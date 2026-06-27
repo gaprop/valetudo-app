@@ -42,6 +42,10 @@ export async function updateWorkoutSet(input: {
   return response.data;
 }
 
+export async function deleteWorkout(input: { workoutID: number }): Promise<void> {
+  await api.delete(`/api/workouts/${input.workoutID}`);
+}
+
 export async function deleteWorkoutSet(input: {
   workoutID: number;
   setID: number;

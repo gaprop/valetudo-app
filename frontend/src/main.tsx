@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import {
   addWorkoutSet,
   createWorkout,
+  deleteWorkout,
   deleteWorkoutSet,
   errorMessage,
   listWorkouts,
@@ -24,6 +25,9 @@ function App() {
   const [savingEntry, setSavingEntry] = useState(false);
   const [savingSetId, setSavingSetId] = useState<number | null>(null);
   const [updatingSetId, setUpdatingSetId] = useState<number | null>(null);
+  const [deletingWorkoutId, setDeletingWorkoutId] = useState<number | null>(
+    null
+  );
   const [deletingSetId, setDeletingSetId] = useState<number | null>(null);
   const [openWorkoutId, setOpenWorkoutId] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -111,6 +115,21 @@ function App() {
     }
   }
 
+  async function handleDeleteWorkout(workoutID: number): Promise<void> {
+    setDeletingWorkoutId(workoutID);
+    setError("");
+
+    try {
+      await deleteWorkout({ workoutID });
+      await loadWorkouts();
+      setOpenWorkoutId((current) => (current === workoutID ? null : current));
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setDeletingWorkoutId(null);
+    }
+  }
+
   async function handleUpdateSet(
     workoutID: number,
     setID: number,
@@ -190,6 +209,7 @@ function App() {
             setForms={setForms}
             savingSetId={savingSetId}
             updatingSetId={updatingSetId}
+            deletingWorkoutId={deletingWorkoutId}
             deletingSetId={deletingSetId}
             openWorkoutId={openWorkoutId}
             onRefresh={loadWorkouts}
@@ -197,6 +217,7 @@ function App() {
             onSetFormChange={handleSetFormChange}
             onAddSet={handleAddSet}
             onUpdateSet={handleUpdateSet}
+            onDeleteWorkout={handleDeleteWorkout}
             onDeleteSet={handleDeleteSet}
           />
         </section>

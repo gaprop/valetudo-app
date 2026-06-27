@@ -72,6 +72,7 @@ func main() {
 	mux.HandleFunc("GET /health", server.health)
 	mux.HandleFunc("GET /api/workouts", server.listWorkouts)
 	mux.HandleFunc("POST /api/workouts", server.createWorkout)
+	mux.HandleFunc("DELETE /api/workouts/{id}", server.deleteWorkout)
 	mux.HandleFunc("POST /api/workouts/{id}/sets", server.createWorkoutSet)
 	mux.HandleFunc("PATCH /api/workouts/{id}/sets/{setID}", server.updateWorkoutSet)
 	mux.HandleFunc("DELETE /api/workouts/{id}/sets/{setID}", server.deleteWorkoutSet)
@@ -244,6 +245,29 @@ func (s *Server) createWorkout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, workout)
+}
+
+func (s *Server) deleteWorkout(w http.ResponseWriter, r *http.Request) {
+	workoutID, err := parsePositivePathID(r, "id", "workout id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	commandTag, err := s.db.Exec(r.Context(), `
+		DELETE FROM workout_entries
+		WHERE id = $1
+	`, workoutID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not delete workout")
+		return
+	}
+	if commandTag.RowsAffected() == 0 {
+		writeError(w, http.StatusNotFound, "workout was not found")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s *Server) createWorkoutSet(w http.ResponseWriter, r *http.Request) {

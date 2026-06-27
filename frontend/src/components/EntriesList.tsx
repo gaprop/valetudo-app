@@ -8,6 +8,7 @@ type EntriesListProps = {
   setForms: Record<number, SetForm>;
   savingSetId: number | null;
   updatingSetId: number | null;
+  deletingWorkoutId: number | null;
   deletingSetId: number | null;
   openWorkoutId: number | null;
   onRefresh: () => void;
@@ -19,6 +20,7 @@ type EntriesListProps = {
   ) => void;
   onAddSet: (event: FormEvent<HTMLFormElement>, workoutID: number) => void;
   onUpdateSet: (workoutID: number, setID: number, form: SetForm) => void;
+  onDeleteWorkout: (workoutID: number) => void;
   onDeleteSet: (workoutID: number, setID: number) => void;
 };
 
@@ -28,6 +30,7 @@ export function EntriesList({
   setForms,
   savingSetId,
   updatingSetId,
+  deletingWorkoutId,
   deletingSetId,
   openWorkoutId,
   onRefresh,
@@ -35,6 +38,7 @@ export function EntriesList({
   onSetFormChange,
   onAddSet,
   onUpdateSet,
+  onDeleteWorkout,
   onDeleteSet,
 }: EntriesListProps) {
   return (
@@ -65,6 +69,7 @@ export function EntriesList({
               setForm={setForms[workout.id] || { weight: "", reps: "" }}
               savingSetId={savingSetId}
               updatingSetId={updatingSetId}
+              deletingWorkoutId={deletingWorkoutId}
               deletingSetId={deletingSetId}
               isOpen={openWorkoutId === workout.id}
               onToggle={() => onToggleWorkout(workout.id)}
@@ -73,6 +78,7 @@ export function EntriesList({
               }
               onAddSet={(event) => onAddSet(event, workout.id)}
               onUpdateSet={(setID, form) => onUpdateSet(workout.id, setID, form)}
+              onDeleteWorkout={() => onDeleteWorkout(workout.id)}
               onDeleteSet={(setID) => onDeleteSet(workout.id, setID)}
             />
           ))}
