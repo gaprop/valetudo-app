@@ -18,9 +18,10 @@ export function WorkoutSetRow({
         <p className="text-xs uppercase tracking-wide text-neutral-500">
           Set {workoutSet.setNumber}
         </p>
-        <p className="mt-1 text-sm font-semibold text-white">
-          {formatWeight(workoutSet.weight)}
-        </p>
+        <div className="mt-1 grid grid-cols-2 divide-x divide-neutral-700 text-center text-sm font-semibold text-white">
+          <span className="px-3">{formatWeight(workoutSet.weight)}</span>
+          <span className="px-3">{workoutSet.reps} reps</span>
+        </div>
       </div>
       <button
         className="shrink-0 rounded border border-neutral-700 px-2 py-1 text-xs font-semibold text-neutral-300 transition hover:border-primary-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"

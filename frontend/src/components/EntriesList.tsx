@@ -1,17 +1,21 @@
 import type { FormEvent } from "react";
-import type { Workout } from "../types";
+import type { SetForm, Workout } from "../types";
 import { WorkoutEntry } from "./WorkoutEntry";
 
 type EntriesListProps = {
   workouts: Workout[];
   loading: boolean;
-  setWeights: Record<number, string>;
+  setForms: Record<number, SetForm>;
   savingSetId: number | null;
   deletingSetId: number | null;
   openWorkoutId: number | null;
   onRefresh: () => void;
   onToggleWorkout: (workoutID: number) => void;
-  onSetWeightChange: (workoutID: number, weight: string) => void;
+  onSetFormChange: (
+    workoutID: number,
+    field: keyof SetForm,
+    value: string
+  ) => void;
   onAddSet: (event: FormEvent<HTMLFormElement>, workoutID: number) => void;
   onDeleteSet: (workoutID: number, setID: number) => void;
 };
@@ -19,13 +23,13 @@ type EntriesListProps = {
 export function EntriesList({
   workouts,
   loading,
-  setWeights,
+  setForms,
   savingSetId,
   deletingSetId,
   openWorkoutId,
   onRefresh,
   onToggleWorkout,
-  onSetWeightChange,
+  onSetFormChange,
   onAddSet,
   onDeleteSet,
 }: EntriesListProps) {
@@ -54,13 +58,13 @@ export function EntriesList({
             <WorkoutEntry
               key={workout.id}
               workout={workout}
-              setWeight={setWeights[workout.id] || ""}
+              setForm={setForms[workout.id] || { weight: "", reps: "" }}
               savingSetId={savingSetId}
               deletingSetId={deletingSetId}
               isOpen={openWorkoutId === workout.id}
               onToggle={() => onToggleWorkout(workout.id)}
-              onSetWeightChange={(weight) =>
-                onSetWeightChange(workout.id, weight)
+              onSetFormChange={(field, value) =>
+                onSetFormChange(workout.id, field, value)
               }
               onAddSet={(event) => onAddSet(event, workout.id)}
               onDeleteSet={(setID) => onDeleteSet(workout.id, setID)}

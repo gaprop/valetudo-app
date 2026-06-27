@@ -9,6 +9,7 @@ export type WorkoutSet = {
   id: number;
   setNumber: number;
   weight: number;
+  reps: number;
   createdAt: string;
 };
 
@@ -25,4 +26,9 @@ export type ApiError = { error: string };
 export type WorkoutForm = {
   trainingDate: string;
   exerciseType: ExerciseType;
+};
+
+export type SetForm = {
+  weight: string;
+  reps: string;
 };

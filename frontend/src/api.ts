@@ -20,10 +20,11 @@ export async function createWorkout(input: {
 export async function addWorkoutSet(input: {
   workoutID: number;
   weight: number;
+  reps: number;
 }): Promise<WorkoutSet> {
   const response = await api.post<WorkoutSet>(
     `/api/workouts/${input.workoutID}/sets`,
-    { weight: input.weight }
+    { weight: input.weight, reps: input.reps }
   );
   return response.data;
 }

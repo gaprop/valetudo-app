@@ -1,28 +1,28 @@
 import type { FormEvent } from "react";
-import type { Workout } from "../types";
+import type { SetForm, Workout } from "../types";
 import { formatWeight, labelFor, maxWeight } from "../workouts";
 import { WorkoutSetRow } from "./WorkoutSetRow";
 
 type WorkoutEntryProps = {
   workout: Workout;
-  setWeight: string;
+  setForm: SetForm;
   savingSetId: number | null;
   deletingSetId: number | null;
   isOpen: boolean;
   onToggle: () => void;
-  onSetWeightChange: (weight: string) => void;
+  onSetFormChange: (field: keyof SetForm, value: string) => void;
   onAddSet: (event: FormEvent<HTMLFormElement>) => void;
   onDeleteSet: (setID: number) => void;
 };
 
 export function WorkoutEntry({
   workout,
-  setWeight,
+  setForm,
   savingSetId,
   deletingSetId,
   isOpen,
   onToggle,
-  onSetWeightChange,
+  onSetFormChange,
   onAddSet,
   onDeleteSet,
 }: WorkoutEntryProps) {
@@ -74,7 +74,10 @@ export function WorkoutEntry({
             )}
           </div>
 
-          <form className="flex max-w-sm items-end gap-3" onSubmit={onAddSet}>
+          <form
+            className="grid max-w-xl gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+            onSubmit={onAddSet}
+          >
             <label className="grid min-w-0 flex-1 gap-2 text-sm font-medium text-neutral-300">
               Weight
               <input
@@ -83,8 +86,24 @@ export function WorkoutEntry({
                 min="0"
                 step="0.5"
                 placeholder="kg"
-                value={setWeight}
-                onChange={(event) => onSetWeightChange(event.target.value)}
+                value={setForm.weight}
+                onChange={(event) =>
+                  onSetFormChange("weight", event.target.value)
+                }
+                required
+              />
+            </label>
+            <label className="grid min-w-0 flex-1 gap-2 text-sm font-medium text-neutral-300">
+              Reps
+              <input
+                className="input"
+                type="number"
+                min="1"
+                step="1"
+                value={setForm.reps}
+                onChange={(event) =>
+                  onSetFormChange("reps", event.target.value)
+                }
                 required
               />
             </label>

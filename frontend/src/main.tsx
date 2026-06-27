@@ -8,7 +8,7 @@ import {
   listWorkouts,
 } from "./api";
 import { EntriesList, StatusSummary, TrainingForm } from "./components";
-import type { Workout, WorkoutForm } from "./types";
+import type { SetForm, Workout, WorkoutForm } from "./types";
 import "./styles.css";
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
     trainingDate: today,
     exerciseType: "bench",
   });
-  const [setWeights, setSetWeights] = useState<Record<number, string>>({});
+  const [setForms, setSetForms] = useState<Record<number, SetForm>>({});
   const [loading, setLoading] = useState(true);
   const [savingEntry, setSavingEntry] = useState(false);
   const [savingSetId, setSavingSetId] = useState<number | null>(null);
@@ -75,10 +75,14 @@ function App() {
     try {
       await addWorkoutSet({
         workoutID,
-        weight: Number(setWeights[workoutID]),
+        weight: Number(setForms[workoutID]?.weight),
+        reps: Number(setForms[workoutID]?.reps),
       });
 
-      setSetWeights((current) => ({ ...current, [workoutID]: "" }));
+      setSetForms((current) => ({
+        ...current,
+        [workoutID]: { weight: "", reps: "" },
+      }));
       await loadWorkouts();
     } catch (err) {
       setError(errorMessage(err));
@@ -109,8 +113,19 @@ function App() {
     setOpenWorkoutId((current) => (current === workoutID ? null : workoutID));
   }
 
-  function handleSetWeightChange(workoutID: number, weight: string): void {
-    setSetWeights((current) => ({ ...current, [workoutID]: weight }));
+  function handleSetFormChange(
+    workoutID: number,
+    field: keyof SetForm,
+    value: string
+  ): void {
+    setSetForms((current) => ({
+      ...current,
+      [workoutID]: {
+        weight: current[workoutID]?.weight || "",
+        reps: current[workoutID]?.reps || "",
+        [field]: value,
+      },
+    }));
   }
 
   const currentPrevious = useMemo(() => {
@@ -146,13 +161,13 @@ function App() {
           <EntriesList
             workouts={workouts}
             loading={loading}
-            setWeights={setWeights}
+            setForms={setForms}
             savingSetId={savingSetId}
             deletingSetId={deletingSetId}
             openWorkoutId={openWorkoutId}
             onRefresh={loadWorkouts}
             onToggleWorkout={handleToggleWorkout}
-            onSetWeightChange={handleSetWeightChange}
+            onSetFormChange={handleSetFormChange}
             onAddSet={handleAddSet}
             onDeleteSet={handleDeleteSet}
           />

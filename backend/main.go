@@ -36,6 +36,7 @@ type WorkoutSet struct {
 	ID        int64     `json:"id"`
 	SetNumber int       `json:"setNumber"`
 	Weight    float64   `json:"weight"`
+	Reps      int       `json:"reps"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -46,6 +47,7 @@ type CreateWorkoutRequest struct {
 
 type CreateWorkoutSetRequest struct {
 	Weight float64 `json:"weight"`
+	Reps   int     `json:"reps"`
 }
 
 func main() {
@@ -119,9 +121,13 @@ func migrate(ctx context.Context, db *pgxpool.Pool) error {
 			workout_id BIGINT NOT NULL REFERENCES workout_entries(id) ON DELETE CASCADE,
 			set_number INTEGER NOT NULL CHECK (set_number > 0),
 			weight NUMERIC(8, 2) NOT NULL CHECK (weight >= 0),
+			reps INTEGER NOT NULL DEFAULT 1 CHECK (reps > 0),
 			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 			UNIQUE (workout_id, set_number)
 		);
+
+		ALTER TABLE workout_sets
+			ADD COLUMN IF NOT EXISTS reps INTEGER NOT NULL DEFAULT 1 CHECK (reps > 0);
 
 		CREATE INDEX IF NOT EXISTS workout_entries_exercise_date_idx
 			ON workout_entries (exercise_type, training_date DESC, created_at DESC, id DESC);
@@ -147,8 +153,8 @@ func migrate(ctx context.Context, db *pgxpool.Pool) error {
 					FROM legacy
 					RETURNING id, legacy_workout_id
 				)
-				INSERT INTO workout_sets (workout_id, set_number, weight, created_at)
-				SELECT inserted.id, series.set_number, legacy.weight, legacy.created_at
+		INSERT INTO workout_sets (workout_id, set_number, weight, reps, created_at)
+		SELECT inserted.id, series.set_number, legacy.weight, 1, legacy.created_at
 				FROM inserted
 				JOIN legacy ON legacy.id = inserted.legacy_workout_id
 				CROSS JOIN LATERAL generate_series(1, legacy.sets) AS series(set_number)
@@ -283,15 +289,16 @@ func (s *Server) createWorkoutSet(w http.ResponseWriter, r *http.Request) {
 
 	var workoutSet WorkoutSet
 	err = tx.QueryRow(r.Context(), `
-		INSERT INTO workout_sets (workout_id, set_number, weight)
-		SELECT $1, COALESCE(MAX(set_number), 0) + 1, $2
+		INSERT INTO workout_sets (workout_id, set_number, weight, reps)
+		SELECT $1, COALESCE(MAX(set_number), 0) + 1, $2, $3
 		FROM workout_sets
 		WHERE workout_id = $1
-		RETURNING id, set_number, weight, created_at
-	`, workoutID, req.Weight).Scan(
+		RETURNING id, set_number, weight, reps, created_at
+	`, workoutID, req.Weight, req.Reps).Scan(
 		&workoutSet.ID,
 		&workoutSet.SetNumber,
 		&workoutSet.Weight,
+		&workoutSet.Reps,
 		&workoutSet.CreatedAt,
 	)
 	if err != nil {
@@ -398,7 +405,7 @@ func (s *Server) getWorkout(ctx context.Context, id int64) (Workout, error) {
 func (s *Server) loadSets(ctx context.Context, workouts []Workout) error {
 	for index := range workouts {
 		rows, err := s.db.Query(ctx, `
-			SELECT id, set_number, weight, created_at
+			SELECT id, set_number, weight, reps, created_at
 			FROM workout_sets
 			WHERE workout_id = $1
 			ORDER BY set_number
@@ -413,6 +420,7 @@ func (s *Server) loadSets(ctx context.Context, workouts []Workout) error {
 				&workoutSet.ID,
 				&workoutSet.SetNumber,
 				&workoutSet.Weight,
+				&workoutSet.Reps,
 				&workoutSet.CreatedAt,
 			); err != nil {
 				rows.Close()
@@ -450,6 +458,9 @@ func validateWorkoutSet(req CreateWorkoutSetRequest) error {
 	}
 	if req.Weight > 999999.99 {
 		return errors.New("weight is too large")
+	}
+	if req.Reps <= 0 {
+		return errors.New("reps must be greater than zero")
 	}
 
 	return nil
