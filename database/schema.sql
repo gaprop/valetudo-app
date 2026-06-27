@@ -6,10 +6,27 @@ CREATE TABLE IF NOT EXISTS exercise_types (
 
 INSERT INTO exercise_types (value, label)
 VALUES
-	('bench', 'Bench'),
-	('dumbell-shoulder', 'Dumbell shoulder'),
-	('dips', 'Dips')
-ON CONFLICT (value) DO NOTHING;
+	('bench', 'Bænk'),
+	('upper-dumbell', 'Upper dumbell'),
+	('dips', 'Dips'),
+	('skulderpress', 'Skulderpress'),
+	('side-laterals', 'Side Laterals'),
+	('tricep-extensions', 'Tricep extensions'),
+	('pullups', 'Pullups'),
+	('dumbell-rows', 'Dumbell Rows'),
+	('pulldown-wide', 'Pulldown wide'),
+	('upright-row', 'Upright row'),
+	('ryg', 'Ryg'),
+	('bicep-curl', 'Bicep curl'),
+	('doedloeft', 'Dødløft'),
+	('squat', 'Squat'),
+	('calf-raises', 'Calf raises'),
+	('mave-hjul', 'Mave hjul'),
+	('pulldown-short', 'Pulldown short'),
+	('rows', 'Rows'),
+	('rows-dumbell', 'Rows dumbell')
+ON CONFLICT (value) DO UPDATE
+SET label = EXCLUDED.label;
 
 CREATE TABLE IF NOT EXISTS workout_entries (
 	id BIGSERIAL PRIMARY KEY,
@@ -60,6 +77,19 @@ CREATE TABLE IF NOT EXISTS workout_plan_items (
 
 ALTER TABLE workout_plan_items
 	DROP CONSTRAINT IF EXISTS workout_plan_items_exercise_type_check;
+
+DELETE FROM exercise_types
+WHERE value = 'dumbell-shoulder'
+	AND NOT EXISTS (
+		SELECT 1
+		FROM workout_entries
+		WHERE exercise_type = 'dumbell-shoulder'
+	)
+	AND NOT EXISTS (
+		SELECT 1
+		FROM workout_plan_items
+		WHERE exercise_type = 'dumbell-shoulder'
+	);
 
 CREATE INDEX IF NOT EXISTS workout_plan_days_created_idx
 	ON workout_plan_days (created_at, id);
