@@ -59,19 +59,6 @@ function App() {
     );
   }, [selectedPlanDayId, workoutPlan.days]);
 
-  const plannedExerciseValues = useMemo(() => {
-    return selectedPlanDay?.items.map((item) => item.exerciseType) || [];
-  }, [selectedPlanDay]);
-
-  const formExercises = useMemo(() => {
-    if (!selectedPlanDay || plannedExerciseValues.length === 0) {
-      return [];
-    }
-
-    const plannedValues = new Set(plannedExerciseValues);
-    return exercises.filter((exercise) => plannedValues.has(exercise.value));
-  }, [exercises, plannedExerciseValues, selectedPlanDay]);
-
   const nextPlanExerciseType = useMemo(() => {
     if (!selectedPlanDay) {
       return null;
@@ -110,15 +97,15 @@ function App() {
 
   useEffect(() => {
     if (
-      formExercises.length > 0 &&
-      !formExercises.some((exercise) => exercise.value === form.exerciseType)
+      exercises.length > 0 &&
+      !exercises.some((exercise) => exercise.value === form.exerciseType)
     ) {
       setForm((current) => ({
         ...current,
-        exerciseType: formExercises[0].value,
+        exerciseType: exercises[0].value,
       }));
     }
-  }, [form.exerciseType, formExercises]);
+  }, [exercises, form.exerciseType]);
 
   async function handleCreateWorkout(
     event: React.FormEvent<HTMLFormElement>
@@ -194,7 +181,7 @@ function App() {
           <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
             <TrainingForm
               form={form}
-              exercises={formExercises}
+              exercises={exercises}
               planDays={workoutPlan.days}
               selectedPlanDayId={selectedPlanDay?.id ?? null}
               error={formError}
