@@ -27,8 +27,21 @@ export function WorkoutPlanPage({
 }: WorkoutPlanPageProps) {
   const [dayName, setDayName] = useState("");
   const [exerciseName, setExerciseName] = useState("");
+  const [selectedExerciseValue, setSelectedExerciseValue] = useState("");
   const { days, loading, pending, error, load, addDay, removeDay, addItem, removeItem } =
     useWorkoutPlan();
+
+  useEffect(() => {
+    if (
+      exercises.length > 0 &&
+      !exercises.some((exercise) => exercise.value === selectedExerciseValue)
+    ) {
+      setSelectedExerciseValue(exercises[0].value);
+    }
+    if (exercises.length === 0 && selectedExerciseValue !== "") {
+      setSelectedExerciseValue("");
+    }
+  }, [exercises, selectedExerciseValue]);
 
   async function handleAddDay(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -104,30 +117,41 @@ export function WorkoutPlanPage({
             {creatingExercise ? "Creating..." : "Create exercise"}
           </button>
 
-          <div className="mt-5 grid gap-2">
+          <div className="mt-5 grid gap-3">
             {exerciseLoading ? (
               <p className="text-sm text-neutral-400">Loading exercises...</p>
             ) : exercises.length === 0 ? (
               <p className="text-sm text-neutral-500">No exercises yet.</p>
             ) : (
-              exercises.map((exercise) => (
-                <div
-                  className="flex items-center justify-between gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-2"
-                  key={exercise.value}
-                >
-                  <span className="text-sm font-semibold text-white">
-                    {exercise.label}
-                  </span>
-                  <IconButton
-                    label={`Delete ${exercise.label}`}
-                    title="Delete exercise"
-                    onClick={() => onDeleteExercise(exercise.value)}
-                    disabled={deletingExerciseValue === exercise.value}
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                <label className="grid gap-2 text-sm font-medium text-neutral-300">
+                  Existing exercise
+                  <select
+                    className="input"
+                    value={selectedExerciseValue}
+                    onChange={(event) =>
+                      setSelectedExerciseValue(event.target.value)
+                    }
                   >
-                    <X aria-hidden="true" size={16} strokeWidth={2.25} />
-                  </IconButton>
-                </div>
-              ))
+                    {exercises.map((exercise) => (
+                      <option key={exercise.value} value={exercise.value}>
+                        {exercise.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <IconButton
+                  label="Delete selected exercise"
+                  title="Delete exercise"
+                  onClick={() => onDeleteExercise(selectedExerciseValue)}
+                  disabled={
+                    !selectedExerciseValue ||
+                    deletingExerciseValue === selectedExerciseValue
+                  }
+                >
+                  <X aria-hidden="true" size={16} strokeWidth={2.25} />
+                </IconButton>
+              </div>
             )}
           </div>
         </form>
