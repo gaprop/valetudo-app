@@ -96,7 +96,6 @@ export function WorkoutEntry({
                     type="number"
                     min="0"
                     step="0.5"
-                    placeholder="0"
                     value={setForm.weight}
                     onChange={(event) =>
                       onSetFormChange("weight", event.target.value)
@@ -114,7 +113,6 @@ export function WorkoutEntry({
                     type="number"
                     min="1"
                     step="1"
-                    placeholder="0"
                     value={setForm.reps}
                     onChange={(event) =>
                       onSetFormChange("reps", event.target.value)
