@@ -1,10 +1,26 @@
+CREATE TABLE IF NOT EXISTS exercise_types (
+	value TEXT PRIMARY KEY,
+	label TEXT NOT NULL UNIQUE CHECK (length(trim(label)) > 0),
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO exercise_types (value, label)
+VALUES
+	('bench', 'Bench'),
+	('dumbell-shoulder', 'Dumbell shoulder'),
+	('dips', 'Dips')
+ON CONFLICT (value) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS workout_entries (
 	id BIGSERIAL PRIMARY KEY,
 	training_date DATE NOT NULL,
-	exercise_type TEXT NOT NULL CHECK (exercise_type IN ('bench', 'dumbell-shoulder', 'dips')),
+	exercise_type TEXT NOT NULL,
 	legacy_workout_id BIGINT UNIQUE,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE workout_entries
+	DROP CONSTRAINT IF EXISTS workout_entries_exercise_type_check;
 
 CREATE TABLE IF NOT EXISTS workout_sets (
 	id BIGSERIAL PRIMARY KEY,
@@ -38,9 +54,12 @@ CREATE TABLE IF NOT EXISTS workout_plan_days (
 CREATE TABLE IF NOT EXISTS workout_plan_items (
 	id BIGSERIAL PRIMARY KEY,
 	day_id BIGINT NOT NULL REFERENCES workout_plan_days(id) ON DELETE CASCADE,
-	exercise_type TEXT NOT NULL CHECK (exercise_type IN ('bench', 'dumbell-shoulder', 'dips')),
+	exercise_type TEXT NOT NULL,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE workout_plan_items
+	DROP CONSTRAINT IF EXISTS workout_plan_items_exercise_type_check;
 
 CREATE INDEX IF NOT EXISTS workout_plan_days_created_idx
 	ON workout_plan_days (created_at, id);

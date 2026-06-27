@@ -1,9 +1,9 @@
 import type { FormEvent } from "react";
-import type { ExerciseType, WorkoutForm } from "../types";
-import { exerciseTypes } from "../workouts";
+import type { ExerciseOption, WorkoutForm } from "../types";
 
 type TrainingFormProps = {
   form: WorkoutForm;
+  exercises: ExerciseOption[];
   error: string;
   savingEntry: boolean;
   onChange: (form: WorkoutForm) => void;
@@ -12,6 +12,7 @@ type TrainingFormProps = {
 
 export function TrainingForm({
   form,
+  exercises,
   error,
   savingEntry,
   onChange,
@@ -39,18 +40,19 @@ export function TrainingForm({
         </label>
 
         <label className="grid gap-2 text-sm font-medium text-neutral-300">
-          Training type
+          Exercise
           <select
             className="input"
             value={form.exerciseType}
             onChange={(event) =>
               onChange({
                 ...form,
-                exerciseType: event.target.value as ExerciseType,
+                exerciseType: event.target.value,
               })
             }
+            disabled={exercises.length === 0}
           >
-            {exerciseTypes.map((type) => (
+            {exercises.map((type) => (
               <option key={type.value} value={type.value}>
                 {type.label}
               </option>
@@ -68,7 +70,7 @@ export function TrainingForm({
       <button
         className="mt-5 w-full rounded bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
         type="submit"
-        disabled={savingEntry}
+        disabled={savingEntry || exercises.length === 0}
       >
         {savingEntry ? "Creating..." : "Create training"}
       </button>

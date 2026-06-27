@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -15,11 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var allowedExerciseTypes = map[string]bool{
-	"bench":            true,
-	"dumbell-shoulder": true,
-	"dips":             true,
-}
+var nonSlugCharacters = regexp.MustCompile(`[^a-z0-9]+`)
 
 type Server struct {
 	db *pgxpool.Pool
@@ -48,6 +45,16 @@ type CreateWorkoutRequest struct {
 type CreateWorkoutSetRequest struct {
 	Weight float64 `json:"weight"`
 	Reps   int     `json:"reps"`
+}
+
+type ExerciseType struct {
+	Value     string    `json:"value"`
+	Label     string    `json:"label"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type CreateExerciseTypeRequest struct {
+	Label string `json:"label"`
 }
 
 type WorkoutPlanDay struct {
@@ -87,6 +94,9 @@ func main() {
 	server := &Server{db: db}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", server.health)
+	mux.HandleFunc("GET /api/exercises", server.listExerciseTypes)
+	mux.HandleFunc("POST /api/exercises", server.createExerciseType)
+	mux.HandleFunc("DELETE /api/exercises/{value}", server.deleteExerciseType)
 	mux.HandleFunc("GET /api/workouts", server.listWorkouts)
 	mux.HandleFunc("POST /api/workouts", server.createWorkout)
 	mux.HandleFunc("DELETE /api/workouts/{id}", server.deleteWorkout)
@@ -132,6 +142,106 @@ func connectWithRetry(ctx context.Context, databaseURL string) (*pgxpool.Pool, e
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (s *Server) listExerciseTypes(w http.ResponseWriter, r *http.Request) {
+	rows, err := s.db.Query(r.Context(), `
+		SELECT value, label, created_at
+		FROM exercise_types
+		ORDER BY label, value
+	`)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not list exercises")
+		return
+	}
+	defer rows.Close()
+
+	exercises := []ExerciseType{}
+	for rows.Next() {
+		var exercise ExerciseType
+		if err := rows.Scan(&exercise.Value, &exercise.Label, &exercise.CreatedAt); err != nil {
+			writeError(w, http.StatusInternalServerError, "could not read exercise")
+			return
+		}
+		exercises = append(exercises, exercise)
+	}
+	if err := rows.Err(); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not read exercises")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, exercises)
+}
+
+func (s *Server) createExerciseType(w http.ResponseWriter, r *http.Request) {
+	var req CreateExerciseTypeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	label, value, err := validateExerciseType(req)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var exercise ExerciseType
+	err = s.db.QueryRow(r.Context(), `
+		INSERT INTO exercise_types (value, label)
+		VALUES ($1, $2)
+		RETURNING value, label, created_at
+	`, value, label).Scan(&exercise.Value, &exercise.Label, &exercise.CreatedAt)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key") {
+			writeError(w, http.StatusConflict, "exercise already exists")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "could not create exercise")
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, exercise)
+}
+
+func (s *Server) deleteExerciseType(w http.ResponseWriter, r *http.Request) {
+	value := strings.TrimSpace(r.PathValue("value"))
+	if value == "" {
+		writeError(w, http.StatusBadRequest, "exercise is required")
+		return
+	}
+
+	var used bool
+	err := s.db.QueryRow(r.Context(), `
+		SELECT EXISTS (
+			SELECT 1 FROM workout_entries WHERE exercise_type = $1
+			UNION ALL
+			SELECT 1 FROM workout_plan_items WHERE exercise_type = $1
+		)
+	`, value).Scan(&used)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not delete exercise")
+		return
+	}
+	if used {
+		writeError(w, http.StatusBadRequest, "exercise is used by workouts or plans")
+		return
+	}
+
+	commandTag, err := s.db.Exec(r.Context(), `
+		DELETE FROM exercise_types
+		WHERE value = $1
+	`, value)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not delete exercise")
+		return
+	}
+	if commandTag.RowsAffected() == 0 {
+		writeError(w, http.StatusNotFound, "exercise was not found")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s *Server) listWorkouts(w http.ResponseWriter, r *http.Request) {
@@ -183,8 +293,9 @@ func (s *Server) createWorkout(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
+	req.ExerciseType = strings.TrimSpace(req.ExerciseType)
 
-	trainingDate, err := validateWorkout(req)
+	trainingDate, err := s.validateWorkout(r.Context(), req)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -474,7 +585,8 @@ func (s *Server) createWorkoutPlanItem(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if err := validateWorkoutPlanItem(req); err != nil {
+	req.ExerciseType = strings.TrimSpace(req.ExerciseType)
+	if err := s.validateWorkoutPlanItem(r.Context(), req); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -646,9 +758,9 @@ func (s *Server) loadWorkoutPlanItems(ctx context.Context, days []WorkoutPlanDay
 	return nil
 }
 
-func validateWorkout(req CreateWorkoutRequest) (time.Time, error) {
-	if !allowedExerciseTypes[req.ExerciseType] {
-		return time.Time{}, errors.New("exercise type must be bench, dumbell-shoulder, or dips")
+func (s *Server) validateWorkout(ctx context.Context, req CreateWorkoutRequest) (time.Time, error) {
+	if err := s.validateExerciseValue(ctx, req.ExerciseType); err != nil {
+		return time.Time{}, err
 	}
 
 	trainingDate, err := time.Parse("2006-01-02", req.TrainingDate)
@@ -657,6 +769,29 @@ func validateWorkout(req CreateWorkoutRequest) (time.Time, error) {
 	}
 
 	return trainingDate, nil
+}
+
+func validateExerciseType(req CreateExerciseTypeRequest) (string, string, error) {
+	label := strings.TrimSpace(req.Label)
+	if label == "" {
+		return "", "", errors.New("exercise name is required")
+	}
+	if len(label) > 80 {
+		return "", "", errors.New("exercise name is too long")
+	}
+
+	value := slugifyExerciseLabel(label)
+	if value == "" {
+		return "", "", errors.New("exercise name must include letters or numbers")
+	}
+
+	return label, value, nil
+}
+
+func slugifyExerciseLabel(label string) string {
+	value := strings.ToLower(strings.TrimSpace(label))
+	value = nonSlugCharacters.ReplaceAllString(value, "-")
+	return strings.Trim(value, "-")
 }
 
 func validateWorkoutSet(req CreateWorkoutSetRequest) error {
@@ -685,9 +820,29 @@ func validateWorkoutPlanDay(req CreateWorkoutPlanDayRequest) (string, error) {
 	return name, nil
 }
 
-func validateWorkoutPlanItem(req CreateWorkoutPlanItemRequest) error {
-	if !allowedExerciseTypes[req.ExerciseType] {
-		return errors.New("exercise type must be bench, dumbell-shoulder, or dips")
+func (s *Server) validateWorkoutPlanItem(ctx context.Context, req CreateWorkoutPlanItemRequest) error {
+	return s.validateExerciseValue(ctx, req.ExerciseType)
+}
+
+func (s *Server) validateExerciseValue(ctx context.Context, value string) error {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return errors.New("exercise is required")
+	}
+
+	var exists bool
+	err := s.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM exercise_types
+			WHERE value = $1
+		)
+	`, value).Scan(&exists)
+	if err != nil {
+		return errors.New("could not validate exercise")
+	}
+	if !exists {
+		return errors.New("exercise does not exist")
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   EntriesList,
@@ -7,6 +7,7 @@ import {
   WorkoutPlanPage,
 } from "./components";
 import type { WorkoutForm } from "./types";
+import { useExercises } from "./useExercises";
 import { useWorkouts } from "./useWorkouts";
 import "./styles.css";
 
@@ -19,6 +20,15 @@ function App() {
     trainingDate: today,
     exerciseType: "bench",
   });
+  const {
+    exercises,
+    loading: exerciseLoading,
+    error: exerciseError,
+    creating: creatingExercise,
+    deletingValue: deletingExerciseValue,
+    addExercise,
+    removeExercise,
+  } = useExercises();
   const {
     workouts,
     loading,
@@ -34,6 +44,18 @@ function App() {
     removeSet,
     toggleWorkout,
   } = useWorkouts();
+
+  useEffect(() => {
+    if (
+      exercises.length > 0 &&
+      !exercises.some((exercise) => exercise.value === form.exerciseType)
+    ) {
+      setForm((current) => ({
+        ...current,
+        exerciseType: exercises[0].value,
+      }));
+    }
+  }, [exercises, form.exerciseType]);
 
   async function handleCreateWorkout(
     event: React.FormEvent<HTMLFormElement>
@@ -61,7 +83,12 @@ function App() {
               {page === "log" ? "Training log" : "Workout plan"}
             </h1>
           </div>
-          {page === "log" && <StatusSummary currentWorkout={currentPrevious} />}
+          {page === "log" && (
+            <StatusSummary
+              exercises={exercises}
+              currentWorkout={currentPrevious}
+            />
+          )}
         </header>
 
         <nav className="flex gap-2">
@@ -93,6 +120,7 @@ function App() {
           <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
             <TrainingForm
               form={form}
+              exercises={exercises}
               error={formError}
               savingEntry={pending.savingEntry}
               onChange={setForm}
@@ -100,6 +128,7 @@ function App() {
             />
             <EntriesList
               workouts={workouts}
+              exercises={exercises}
               loading={loading}
               pending={pending}
               entryErrors={entryErrors}
@@ -113,7 +142,15 @@ function App() {
             />
           </section>
         ) : (
-          <WorkoutPlanPage />
+          <WorkoutPlanPage
+            exercises={exercises}
+            exerciseLoading={exerciseLoading}
+            exerciseError={exerciseError}
+            creatingExercise={creatingExercise}
+            deletingExerciseValue={deletingExerciseValue}
+            onAddExercise={addExercise}
+            onDeleteExercise={(value) => void removeExercise(value)}
+          />
         )}
       </div>
     </main>

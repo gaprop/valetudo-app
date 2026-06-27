@@ -1,13 +1,10 @@
 import type { ExerciseOption, ExerciseType, WorkoutSet } from "./types";
 
-export const exerciseTypes = [
-  { value: "bench", label: "Bench" },
-  { value: "dumbell-shoulder", label: "Dumbell shoulder" },
-  { value: "dips", label: "Dips" },
-] satisfies ExerciseOption[];
-
-export function labelFor(value: ExerciseType): string {
-  return exerciseTypes.find((type) => type.value === value)?.label || value;
+export function labelFor(
+  exercises: ExerciseOption[],
+  value: ExerciseType
+): string {
+  return exercises.find((type) => type.value === value)?.label || value;
 }
 
 export function formatWeight(value: number | null): string {

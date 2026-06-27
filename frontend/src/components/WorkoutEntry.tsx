@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type { SetForm, Workout } from "../types";
+import type { ExerciseOption, SetForm, Workout } from "../types";
 import { formatWeight, labelFor, maxWeight } from "../workouts";
 import { ActionButton } from "./ActionButton";
 import { IconButton } from "./IconButton";
@@ -9,6 +9,7 @@ import { WorkoutSetRow } from "./WorkoutSetRow";
 
 type WorkoutEntryProps = {
   workout: Workout;
+  exercises: ExerciseOption[];
   error: string;
   savingSetId: number | null;
   updatingSetId: number | null;
@@ -24,6 +25,7 @@ type WorkoutEntryProps = {
 
 export function WorkoutEntry({
   workout,
+  exercises,
   error,
   savingSetId,
   updatingSetId,
@@ -55,7 +57,7 @@ export function WorkoutEntry({
           onClick={onToggle}
         >
           <span className="block text-base font-semibold text-white">
-            {labelFor(workout.exerciseType)}
+            {labelFor(exercises, workout.exerciseType)}
           </span>
           <span className="mt-1 block text-sm text-neutral-400">
             {workout.trainingDate}
@@ -79,7 +81,7 @@ export function WorkoutEntry({
             {isOpen ? "Close" : "Open"}
           </button>
           <IconButton
-            label={`Delete ${labelFor(workout.exerciseType)} training on ${workout.trainingDate}`}
+            label={`Delete ${labelFor(exercises, workout.exerciseType)} training on ${workout.trainingDate}`}
             title="Delete training"
             onClick={onDeleteWorkout}
             disabled={deletingWorkoutId === workout.id}

@@ -1,6 +1,6 @@
 # Fitness App
 
-A small full-stack fitness tracker for logging strength training entries. The app records the training date and exercise type first, then lets you add as many weighted sets as needed to that entry.
+A small full-stack fitness tracker for logging strength training entries. The app records the training date and exercise first, then lets you add as many weighted sets as needed to that entry.
 
 ## Stack
 
@@ -11,12 +11,13 @@ A small full-stack fitness tracker for logging strength training entries. The ap
 
 ## Features
 
-- Add workout entries for bench, dumbell shoulder, and dips
-- Add any number of set weights to each training entry
-- Build a reusable workout plan made of day names and planned training types
+- Create your own exercises
+- Add workout entries for any configured exercise
+- Add any number of set weights and reps to each training entry
+- Build a reusable workout plan made of day names and planned exercises
 - List all entries newest first
-- Show recent set history per exercise type
-- Basic API validation for exercise type, date, and set weight
+- Show recent set history per exercise
+- Basic API validation for exercise, date, set weight, and reps
 - Database schema setup through a Docker Compose init service
 
 ## Quick Start
@@ -93,6 +94,24 @@ Returns a basic health response:
 }
 ```
 
+### `GET /api/exercises`
+
+Returns configured exercises ordered by label.
+
+### `POST /api/exercises`
+
+Creates an exercise. The API derives the stored `value` from the label.
+
+```json
+{
+  "label": "Squat"
+}
+```
+
+### `DELETE /api/exercises/{value}`
+
+Deletes an exercise if it is not used by workouts or workout plans.
+
 ### `GET /api/workouts`
 
 Returns workout entries ordered by newest training date first. Each entry includes its set list.
@@ -108,11 +127,7 @@ Creates a training entry.
 }
 ```
 
-Allowed `exerciseType` values:
-
-- `bench`
-- `dumbell-shoulder`
-- `dips`
+`exerciseType` must match an exercise returned by `GET /api/exercises`.
 
 ### `DELETE /api/workouts/{id}`
 
@@ -146,7 +161,7 @@ Removes one set from a training entry.
 
 ### `GET /api/workout-plan/days`
 
-Returns workout plan days ordered by creation time. Each day includes its planned training types.
+Returns workout plan days ordered by creation time. Each day includes its planned exercises.
 
 ### `POST /api/workout-plan/days`
 
@@ -160,11 +175,11 @@ Creates a workout plan day. The day is a schedule label, not a calendar date.
 
 ### `DELETE /api/workout-plan/days/{id}`
 
-Deletes a workout plan day and its planned training types.
+Deletes a workout plan day and its planned exercises.
 
 ### `POST /api/workout-plan/days/{id}/items`
 
-Adds one training type to a workout plan day.
+Adds one exercise to a workout plan day.
 
 ```json
 {
@@ -174,7 +189,7 @@ Adds one training type to a workout plan day.
 
 ### `DELETE /api/workout-plan/days/{id}/items/{itemID}`
 
-Removes one training type from a workout plan day.
+Removes one exercise from a workout plan day.
 
 ## Frontend Scripts
 

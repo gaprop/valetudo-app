@@ -1,5 +1,6 @@
 import type {
   CreateWorkoutSetRequest,
+  ExerciseOption,
   SetForm,
   UpdateWorkoutSetRequest,
   Workout,
@@ -8,6 +9,7 @@ import { WorkoutEntry } from "./WorkoutEntry";
 
 type EntriesListProps = {
   workouts: Workout[];
+  exercises: ExerciseOption[];
   loading: boolean;
   pending: {
     savingSetId: number | null;
@@ -27,6 +29,7 @@ type EntriesListProps = {
 
 export function EntriesList({
   workouts,
+  exercises,
   loading,
   pending,
   entryErrors,
@@ -63,6 +66,7 @@ export function EntriesList({
             <WorkoutEntry
               key={workout.id}
               workout={workout}
+              exercises={exercises}
               error={entryErrors[workout.id] || ""}
               savingSetId={pending.savingSetId}
               updatingSetId={pending.updatingSetId}

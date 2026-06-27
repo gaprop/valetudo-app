@@ -1,8 +1,9 @@
-export type ExerciseType = "bench" | "dumbell-shoulder" | "dips";
+export type ExerciseType = string;
 
 export type ExerciseOption = {
   value: ExerciseType;
   label: string;
+  createdAt: string;
 };
 
 export type WorkoutSet = {

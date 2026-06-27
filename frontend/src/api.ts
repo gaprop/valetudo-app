@@ -1,6 +1,7 @@
 import axios from "axios";
 import type {
   ApiError,
+  ExerciseOption,
   CreateWorkoutRequest,
   CreateWorkoutPlanDayRequest,
   CreateWorkoutPlanItemRequest,
@@ -14,6 +15,22 @@ import type {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const api = axios.create({ baseURL: API_URL });
+
+export async function listExercises(): Promise<ExerciseOption[]> {
+  const response = await api.get<ExerciseOption[]>("/api/exercises");
+  return response.data;
+}
+
+export async function createExercise(input: {
+  label: string;
+}): Promise<ExerciseOption> {
+  const response = await api.post<ExerciseOption>("/api/exercises", input);
+  return response.data;
+}
+
+export async function deleteExercise(input: { value: string }): Promise<void> {
+  await api.delete(`/api/exercises/${encodeURIComponent(input.value)}`);
+}
 
 export async function listWorkouts(): Promise<Workout[]> {
   const response = await api.get<Workout[]>("/api/workouts");
