@@ -47,3 +47,25 @@ export type UpdateWorkoutSetRequest = WorkoutSetRequest & {
   workoutID: number;
   setID: number;
 };
+
+export type WorkoutPlanItem = {
+  id: number;
+  exerciseType: ExerciseType;
+  createdAt: string;
+};
+
+export type WorkoutPlanDay = {
+  id: number;
+  name: string;
+  items: WorkoutPlanItem[];
+  createdAt: string;
+};
+
+export type CreateWorkoutPlanDayRequest = {
+  name: string;
+};
+
+export type CreateWorkoutPlanItemRequest = {
+  dayID: number;
+  exerciseType: ExerciseType;
+};

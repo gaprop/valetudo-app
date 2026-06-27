@@ -1,0 +1,190 @@
+import { useState, type FormEvent } from "react";
+import { X } from "lucide-react";
+import type { ExerciseType, WorkoutPlanDay } from "../types";
+import { useWorkoutPlan } from "../useWorkoutPlan";
+import { exerciseTypes, labelFor } from "../workouts";
+import { ActionButton } from "./ActionButton";
+import { IconButton } from "./IconButton";
+
+export function WorkoutPlanPage() {
+  const [dayName, setDayName] = useState("");
+  const { days, loading, pending, error, load, addDay, removeDay, addItem, removeItem } =
+    useWorkoutPlan();
+
+  async function handleAddDay(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (await addDay({ name: dayName })) {
+      setDayName("");
+    }
+  }
+
+  return (
+    <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
+      <form
+        className="rounded-lg border border-neutral-800 bg-neutral-900 p-5 shadow-2xl shadow-black/30"
+        onSubmit={handleAddDay}
+      >
+        <h2 className="text-lg font-semibold text-white">Add day</h2>
+        <label className="mt-5 grid gap-2 text-sm font-medium text-neutral-300">
+          Day
+          <input
+            className="input"
+            value={dayName}
+            onChange={(event) => setDayName(event.target.value)}
+            placeholder="Push day"
+            required
+          />
+        </label>
+        {error && (
+          <p className="mt-4 rounded border border-primary-700 bg-primary-950 px-3 py-2 text-sm text-primary-100">
+            {error}
+          </p>
+        )}
+        <button
+          className="mt-5 w-full rounded bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
+          type="submit"
+          disabled={pending.creatingDay}
+        >
+          {pending.creatingDay ? "Creating..." : "Create day"}
+        </button>
+      </form>
+
+      <section className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900 shadow-2xl shadow-black/30">
+        <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
+          <h2 className="text-lg font-semibold text-white">Workout plan</h2>
+          <button
+            className="rounded border border-neutral-700 px-3 py-2 text-sm text-neutral-200 transition hover:border-primary-500 hover:text-white"
+            onClick={load}
+            type="button"
+          >
+            Refresh
+          </button>
+        </div>
+
+        {loading ? (
+          <p className="px-5 py-8 text-sm text-neutral-400">Loading plan...</p>
+        ) : days.length === 0 ? (
+          <p className="px-5 py-8 text-sm text-neutral-400">
+            No plan days yet.
+          </p>
+        ) : (
+          <div className="divide-y divide-neutral-800">
+            {days.map((day) => (
+              <WorkoutPlanDayCard
+                key={day.id}
+                day={day}
+                addingItemDayId={pending.addingItemDayId}
+                deletingDayId={pending.deletingDayId}
+                deletingItemId={pending.deletingItemId}
+                onAddItem={addItem}
+                onDeleteDay={() => removeDay(day.id)}
+                onDeleteItem={(itemID) => removeItem(day.id, itemID)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    </section>
+  );
+}
+
+type WorkoutPlanDayCardProps = {
+  day: WorkoutPlanDay;
+  addingItemDayId: number | null;
+  deletingDayId: number | null;
+  deletingItemId: number | null;
+  onAddItem: (input: {
+    dayID: number;
+    exerciseType: ExerciseType;
+  }) => Promise<boolean>;
+  onDeleteDay: () => void;
+  onDeleteItem: (itemID: number) => void;
+};
+
+function WorkoutPlanDayCard({
+  day,
+  addingItemDayId,
+  deletingDayId,
+  deletingItemId,
+  onAddItem,
+  onDeleteDay,
+  onDeleteItem,
+}: WorkoutPlanDayCardProps) {
+  const [exerciseType, setExerciseType] = useState<ExerciseType>("bench");
+
+  async function handleAddItem(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await onAddItem({ dayID: day.id, exerciseType });
+  }
+
+  return (
+    <article className="grid gap-4 px-5 py-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold text-white">{day.name}</h3>
+          <p className="mt-1 text-sm text-neutral-400">
+            {day.items.length} {day.items.length === 1 ? "exercise" : "exercises"}
+          </p>
+        </div>
+        <IconButton
+          label={`Delete ${day.name}`}
+          title="Delete day"
+          onClick={onDeleteDay}
+          disabled={deletingDayId === day.id}
+        >
+          <X aria-hidden="true" size={16} strokeWidth={2.25} />
+        </IconButton>
+      </div>
+
+      {day.items.length === 0 ? (
+        <p className="text-sm text-neutral-500">No exercises added yet.</p>
+      ) : (
+        <div className="grid gap-2">
+          {day.items.map((item) => (
+            <div
+              className="flex items-center justify-between gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3"
+              key={item.id}
+            >
+              <span className="text-sm font-semibold text-white">
+                {labelFor(item.exerciseType)}
+              </span>
+              <IconButton
+                label={`Remove ${labelFor(item.exerciseType)} from ${day.name}`}
+                title="Remove exercise"
+                onClick={() => onDeleteItem(item.id)}
+                disabled={deletingItemId === item.id}
+              >
+                <X aria-hidden="true" size={16} strokeWidth={2.25} />
+              </IconButton>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <form
+        className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3 sm:grid-cols-[1fr_auto] sm:items-end"
+        onSubmit={handleAddItem}
+      >
+        <label className="grid gap-2 text-sm font-medium text-neutral-300">
+          Training type
+          <select
+            className="input"
+            value={exerciseType}
+            onChange={(event) => setExerciseType(event.target.value as ExerciseType)}
+          >
+            {exerciseTypes.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="grid gap-2 sm:w-40">
+          <ActionButton type="submit" disabled={addingItemDayId === day.id}>
+            {addingItemDayId === day.id ? "Adding" : "Add"}
+          </ActionButton>
+        </div>
+      </form>
+    </article>
+  );
+}

@@ -13,6 +13,7 @@ A small full-stack fitness tracker for logging strength training entries. The ap
 
 - Add workout entries for bench, dumbell shoulder, and dips
 - Add any number of set weights to each training entry
+- Build a reusable workout plan made of day names and planned training types
 - List all entries newest first
 - Show recent set history per exercise type
 - Basic API validation for exercise type, date, and set weight
@@ -142,6 +143,38 @@ Updates one set's weight and reps.
 ### `DELETE /api/workouts/{id}/sets/{setID}`
 
 Removes one set from a training entry.
+
+### `GET /api/workout-plan/days`
+
+Returns workout plan days ordered by creation time. Each day includes its planned training types.
+
+### `POST /api/workout-plan/days`
+
+Creates a workout plan day. The day is a schedule label, not a calendar date.
+
+```json
+{
+  "name": "Push day"
+}
+```
+
+### `DELETE /api/workout-plan/days/{id}`
+
+Deletes a workout plan day and its planned training types.
+
+### `POST /api/workout-plan/days/{id}/items`
+
+Adds one training type to a workout plan day.
+
+```json
+{
+  "exerciseType": "bench"
+}
+```
+
+### `DELETE /api/workout-plan/days/{id}/items/{itemID}`
+
+Removes one training type from a workout plan day.
 
 ## Frontend Scripts
 

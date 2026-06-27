@@ -2,9 +2,13 @@ import axios from "axios";
 import type {
   ApiError,
   CreateWorkoutRequest,
+  CreateWorkoutPlanDayRequest,
+  CreateWorkoutPlanItemRequest,
   CreateWorkoutSetRequest,
   UpdateWorkoutSetRequest,
   Workout,
+  WorkoutPlanDay,
+  WorkoutPlanItem,
   WorkoutSet,
 } from "./types";
 
@@ -50,6 +54,44 @@ export async function deleteWorkoutSet(input: {
   setID: number;
 }): Promise<void> {
   await api.delete(`/api/workouts/${input.workoutID}/sets/${input.setID}`);
+}
+
+export async function listWorkoutPlanDays(): Promise<WorkoutPlanDay[]> {
+  const response = await api.get<WorkoutPlanDay[]>("/api/workout-plan/days");
+  return response.data;
+}
+
+export async function createWorkoutPlanDay(
+  input: CreateWorkoutPlanDayRequest
+): Promise<WorkoutPlanDay> {
+  const response = await api.post<WorkoutPlanDay>(
+    "/api/workout-plan/days",
+    input
+  );
+  return response.data;
+}
+
+export async function deleteWorkoutPlanDay(input: {
+  dayID: number;
+}): Promise<void> {
+  await api.delete(`/api/workout-plan/days/${input.dayID}`);
+}
+
+export async function createWorkoutPlanItem(
+  input: CreateWorkoutPlanItemRequest
+): Promise<WorkoutPlanItem> {
+  const response = await api.post<WorkoutPlanItem>(
+    `/api/workout-plan/days/${input.dayID}/items`,
+    { exerciseType: input.exerciseType }
+  );
+  return response.data;
+}
+
+export async function deleteWorkoutPlanItem(input: {
+  dayID: number;
+  itemID: number;
+}): Promise<void> {
+  await api.delete(`/api/workout-plan/days/${input.dayID}/items/${input.itemID}`);
 }
 
 export function errorMessage(error: unknown): string {
