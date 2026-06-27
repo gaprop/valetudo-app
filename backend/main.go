@@ -73,6 +73,7 @@ func main() {
 	mux.HandleFunc("GET /api/workouts", server.listWorkouts)
 	mux.HandleFunc("POST /api/workouts", server.createWorkout)
 	mux.HandleFunc("POST /api/workouts/{id}/sets", server.createWorkoutSet)
+	mux.HandleFunc("PATCH /api/workouts/{id}/sets/{setID}", server.updateWorkoutSet)
 	mux.HandleFunc("DELETE /api/workouts/{id}/sets/{setID}", server.deleteWorkoutSet)
 
 	port := os.Getenv("PORT")
@@ -314,6 +315,55 @@ func (s *Server) createWorkoutSet(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, workoutSet)
 }
 
+func (s *Server) updateWorkoutSet(w http.ResponseWriter, r *http.Request) {
+	workoutID, err := parsePositivePathID(r, "id", "workout id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	setID, err := parsePositivePathID(r, "setID", "set id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var req CreateWorkoutSetRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err := validateWorkoutSet(req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var workoutSet WorkoutSet
+	err = s.db.QueryRow(r.Context(), `
+		UPDATE workout_sets
+		SET weight = $3, reps = $4
+		WHERE workout_id = $1 AND id = $2
+		RETURNING id, set_number, weight, reps, created_at
+	`, workoutID, setID, req.Weight, req.Reps).Scan(
+		&workoutSet.ID,
+		&workoutSet.SetNumber,
+		&workoutSet.Weight,
+		&workoutSet.Reps,
+		&workoutSet.CreatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		writeError(w, http.StatusNotFound, "workout set was not found")
+		return
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not update workout set")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, workoutSet)
+}
+
 func (s *Server) deleteWorkoutSet(w http.ResponseWriter, r *http.Request) {
 	workoutID, err := parsePositivePathID(r, "id", "workout id")
 	if err != nil {
@@ -479,7 +529,7 @@ func cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

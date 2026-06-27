@@ -113,7 +113,19 @@ Adds one set to a training entry. Set numbers are assigned automatically.
 
 ```json
 {
-  "weight": 80
+  "weight": 80,
+  "reps": 8
+}
+```
+
+### `PATCH /api/workouts/{id}/sets/{setID}`
+
+Updates one set's weight and reps.
+
+```json
+{
+  "weight": 82.5,
+  "reps": 7
 }
 ```
 

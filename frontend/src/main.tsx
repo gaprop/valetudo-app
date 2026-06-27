@@ -6,6 +6,7 @@ import {
   deleteWorkoutSet,
   errorMessage,
   listWorkouts,
+  updateWorkoutSet,
 } from "./api";
 import { EntriesList, StatusSummary, TrainingForm } from "./components";
 import type { SetForm, Workout, WorkoutForm } from "./types";
@@ -22,6 +23,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [savingEntry, setSavingEntry] = useState(false);
   const [savingSetId, setSavingSetId] = useState<number | null>(null);
+  const [updatingSetId, setUpdatingSetId] = useState<number | null>(null);
   const [deletingSetId, setDeletingSetId] = useState<number | null>(null);
   const [openWorkoutId, setOpenWorkoutId] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -109,6 +111,30 @@ function App() {
     }
   }
 
+  async function handleUpdateSet(
+    workoutID: number,
+    setID: number,
+    form: SetForm
+  ): Promise<void> {
+    setUpdatingSetId(setID);
+    setError("");
+
+    try {
+      await updateWorkoutSet({
+        workoutID,
+        setID,
+        weight: Number(form.weight),
+        reps: Number(form.reps),
+      });
+      await loadWorkouts();
+      setOpenWorkoutId(workoutID);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setUpdatingSetId(null);
+    }
+  }
+
   function handleToggleWorkout(workoutID: number): void {
     setOpenWorkoutId((current) => (current === workoutID ? null : workoutID));
   }
@@ -163,12 +189,14 @@ function App() {
             loading={loading}
             setForms={setForms}
             savingSetId={savingSetId}
+            updatingSetId={updatingSetId}
             deletingSetId={deletingSetId}
             openWorkoutId={openWorkoutId}
             onRefresh={loadWorkouts}
             onToggleWorkout={handleToggleWorkout}
             onSetFormChange={handleSetFormChange}
             onAddSet={handleAddSet}
+            onUpdateSet={handleUpdateSet}
             onDeleteSet={handleDeleteSet}
           />
         </section>

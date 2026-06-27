@@ -7,11 +7,13 @@ type WorkoutEntryProps = {
   workout: Workout;
   setForm: SetForm;
   savingSetId: number | null;
+  updatingSetId: number | null;
   deletingSetId: number | null;
   isOpen: boolean;
   onToggle: () => void;
   onSetFormChange: (field: keyof SetForm, value: string) => void;
   onAddSet: (event: FormEvent<HTMLFormElement>) => void;
+  onUpdateSet: (setID: number, form: SetForm) => void;
   onDeleteSet: (setID: number) => void;
 };
 
@@ -19,11 +21,13 @@ export function WorkoutEntry({
   workout,
   setForm,
   savingSetId,
+  updatingSetId,
   deletingSetId,
   isOpen,
   onToggle,
   onSetFormChange,
   onAddSet,
+  onUpdateSet,
   onDeleteSet,
 }: WorkoutEntryProps) {
   return (
@@ -66,7 +70,9 @@ export function WorkoutEntry({
                   <WorkoutSetRow
                     key={set.id}
                     workoutSet={set}
+                    updatingSetId={updatingSetId}
                     deletingSetId={deletingSetId}
+                    onUpdate={(form) => onUpdateSet(set.id, form)}
                     onDelete={() => onDeleteSet(set.id)}
                   />
                 ))}

@@ -29,6 +29,19 @@ export async function addWorkoutSet(input: {
   return response.data;
 }
 
+export async function updateWorkoutSet(input: {
+  workoutID: number;
+  setID: number;
+  weight: number;
+  reps: number;
+}): Promise<WorkoutSet> {
+  const response = await api.patch<WorkoutSet>(
+    `/api/workouts/${input.workoutID}/sets/${input.setID}`,
+    { weight: input.weight, reps: input.reps }
+  );
+  return response.data;
+}
+
 export async function deleteWorkoutSet(input: {
   workoutID: number;
   setID: number;
