@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -24,21 +25,27 @@ type Server struct {
 }
 
 type Workout struct {
-	ID             int64     `json:"id"`
-	TrainingDate   string    `json:"trainingDate"`
-	ExerciseType   string    `json:"exerciseType"`
-	Sets           int       `json:"sets"`
-	Weight         float64   `json:"weight"`
-	PreviousSets   *int      `json:"previousSets"`
-	PreviousWeight *float64  `json:"previousWeight"`
-	CreatedAt      time.Time `json:"createdAt"`
+	ID           int64        `json:"id"`
+	TrainingDate string       `json:"trainingDate"`
+	ExerciseType string       `json:"exerciseType"`
+	Sets         []WorkoutSet `json:"sets"`
+	CreatedAt    time.Time    `json:"createdAt"`
+}
+
+type WorkoutSet struct {
+	ID        int64     `json:"id"`
+	SetNumber int       `json:"setNumber"`
+	Weight    float64   `json:"weight"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type CreateWorkoutRequest struct {
-	TrainingDate string  `json:"trainingDate"`
-	ExerciseType string  `json:"exerciseType"`
-	Sets         int     `json:"sets"`
-	Weight       float64 `json:"weight"`
+	TrainingDate string `json:"trainingDate"`
+	ExerciseType string `json:"exerciseType"`
+}
+
+type CreateWorkoutSetRequest struct {
+	Weight float64 `json:"weight"`
 }
 
 func main() {
@@ -63,6 +70,8 @@ func main() {
 	mux.HandleFunc("GET /health", server.health)
 	mux.HandleFunc("GET /api/workouts", server.listWorkouts)
 	mux.HandleFunc("POST /api/workouts", server.createWorkout)
+	mux.HandleFunc("POST /api/workouts/{id}/sets", server.createWorkoutSet)
+	mux.HandleFunc("DELETE /api/workouts/{id}/sets/{setID}", server.deleteWorkoutSet)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -97,17 +106,55 @@ func connectWithRetry(ctx context.Context, databaseURL string) (*pgxpool.Pool, e
 
 func migrate(ctx context.Context, db *pgxpool.Pool) error {
 	_, err := db.Exec(ctx, `
-		CREATE TABLE IF NOT EXISTS workouts (
+		CREATE TABLE IF NOT EXISTS workout_entries (
 			id BIGSERIAL PRIMARY KEY,
 			training_date DATE NOT NULL,
 			exercise_type TEXT NOT NULL CHECK (exercise_type IN ('bench', 'dumbell-shoulder', 'dips')),
-			sets INTEGER NOT NULL CHECK (sets > 0),
-			weight NUMERIC(8, 2) NOT NULL CHECK (weight >= 0),
+			legacy_workout_id BIGINT UNIQUE,
 			created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 		);
 
-		CREATE INDEX IF NOT EXISTS workouts_exercise_date_idx
-			ON workouts (exercise_type, training_date DESC, created_at DESC, id DESC);
+		CREATE TABLE IF NOT EXISTS workout_sets (
+			id BIGSERIAL PRIMARY KEY,
+			workout_id BIGINT NOT NULL REFERENCES workout_entries(id) ON DELETE CASCADE,
+			set_number INTEGER NOT NULL CHECK (set_number > 0),
+			weight NUMERIC(8, 2) NOT NULL CHECK (weight >= 0),
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			UNIQUE (workout_id, set_number)
+		);
+
+		CREATE INDEX IF NOT EXISTS workout_entries_exercise_date_idx
+			ON workout_entries (exercise_type, training_date DESC, created_at DESC, id DESC);
+
+		CREATE INDEX IF NOT EXISTS workout_sets_workout_idx
+			ON workout_sets (workout_id, set_number);
+
+		DO $$
+		BEGIN
+			IF to_regclass('public.workouts') IS NOT NULL THEN
+				WITH legacy AS (
+					SELECT id, training_date, exercise_type, sets, weight, created_at
+					FROM workouts old
+					WHERE NOT EXISTS (
+						SELECT 1
+						FROM workout_entries entry
+						WHERE entry.legacy_workout_id = old.id
+					)
+				),
+				inserted AS (
+					INSERT INTO workout_entries (training_date, exercise_type, legacy_workout_id, created_at)
+					SELECT training_date, exercise_type, id, created_at
+					FROM legacy
+					RETURNING id, legacy_workout_id
+				)
+				INSERT INTO workout_sets (workout_id, set_number, weight, created_at)
+				SELECT inserted.id, series.set_number, legacy.weight, legacy.created_at
+				FROM inserted
+				JOIN legacy ON legacy.id = inserted.legacy_workout_id
+				CROSS JOIN LATERAL generate_series(1, legacy.sets) AS series(set_number)
+				ON CONFLICT DO NOTHING;
+			END IF;
+		END $$;
 	`)
 	return err
 }
@@ -118,26 +165,8 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) listWorkouts(w http.ResponseWriter, r *http.Request) {
 	rows, err := s.db.Query(r.Context(), `
-		WITH ordered_workouts AS (
-			SELECT
-				id,
-				training_date,
-				exercise_type,
-				sets,
-				weight,
-				created_at,
-				LAG(sets) OVER (
-					PARTITION BY exercise_type
-					ORDER BY training_date, created_at, id
-				) AS previous_sets,
-				LAG(weight) OVER (
-					PARTITION BY exercise_type
-					ORDER BY training_date, created_at, id
-				) AS previous_weight
-			FROM workouts
-		)
-		SELECT id, training_date, exercise_type, sets, weight, previous_sets, previous_weight, created_at
-		FROM ordered_workouts
+		SELECT id, training_date, exercise_type, created_at
+		FROM workout_entries
 		ORDER BY training_date DESC, created_at DESC, id DESC
 	`)
 	if err != nil {
@@ -154,21 +183,23 @@ func (s *Server) listWorkouts(w http.ResponseWriter, r *http.Request) {
 			&workout.ID,
 			&trainingDate,
 			&workout.ExerciseType,
-			&workout.Sets,
-			&workout.Weight,
-			&workout.PreviousSets,
-			&workout.PreviousWeight,
 			&workout.CreatedAt,
 		); err != nil {
 			writeError(w, http.StatusInternalServerError, "could not read workout")
 			return
 		}
 		workout.TrainingDate = trainingDate.Format("2006-01-02")
+		workout.Sets = []WorkoutSet{}
 		workouts = append(workouts, workout)
 	}
 
 	if err := rows.Err(); err != nil {
 		writeError(w, http.StatusInternalServerError, "could not read workouts")
+		return
+	}
+
+	if err := s.loadSets(r.Context(), workouts); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not read workout sets")
 		return
 	}
 
@@ -190,10 +221,10 @@ func (s *Server) createWorkout(w http.ResponseWriter, r *http.Request) {
 
 	var id int64
 	err = s.db.QueryRow(r.Context(), `
-		INSERT INTO workouts (training_date, exercise_type, sets, weight)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO workout_entries (training_date, exercise_type)
+		VALUES ($1, $2)
 		RETURNING id
-	`, trainingDate, req.ExerciseType, req.Sets, req.Weight).Scan(&id)
+	`, trainingDate, req.ExerciseType).Scan(&id)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "could not create workout")
 		return
@@ -208,39 +239,143 @@ func (s *Server) createWorkout(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, workout)
 }
 
+func (s *Server) createWorkoutSet(w http.ResponseWriter, r *http.Request) {
+	workoutID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || workoutID <= 0 {
+		writeError(w, http.StatusBadRequest, "workout id must be a positive number")
+		return
+	}
+
+	var req CreateWorkoutSetRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err := validateWorkoutSet(req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tx, err := s.db.Begin(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not create workout set")
+		return
+	}
+	defer tx.Rollback(r.Context())
+
+	var exists bool
+	err = tx.QueryRow(r.Context(), `
+		SELECT EXISTS (
+			SELECT 1
+			FROM workout_entries
+			WHERE id = $1
+		)
+	`, workoutID).Scan(&exists)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not create workout set")
+		return
+	}
+	if !exists {
+		writeError(w, http.StatusNotFound, "workout was not found")
+		return
+	}
+
+	var workoutSet WorkoutSet
+	err = tx.QueryRow(r.Context(), `
+		INSERT INTO workout_sets (workout_id, set_number, weight)
+		SELECT $1, COALESCE(MAX(set_number), 0) + 1, $2
+		FROM workout_sets
+		WHERE workout_id = $1
+		RETURNING id, set_number, weight, created_at
+	`, workoutID, req.Weight).Scan(
+		&workoutSet.ID,
+		&workoutSet.SetNumber,
+		&workoutSet.Weight,
+		&workoutSet.CreatedAt,
+	)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not create workout set")
+		return
+	}
+
+	if err := tx.Commit(r.Context()); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not create workout set")
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, workoutSet)
+}
+
+func (s *Server) deleteWorkoutSet(w http.ResponseWriter, r *http.Request) {
+	workoutID, err := parsePositivePathID(r, "id", "workout id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	setID, err := parsePositivePathID(r, "setID", "set id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tx, err := s.db.Begin(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not delete workout set")
+		return
+	}
+	defer tx.Rollback(r.Context())
+
+	commandTag, err := tx.Exec(r.Context(), `
+		DELETE FROM workout_sets
+		WHERE workout_id = $1 AND id = $2
+	`, workoutID, setID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not delete workout set")
+		return
+	}
+	if commandTag.RowsAffected() == 0 {
+		writeError(w, http.StatusNotFound, "workout set was not found")
+		return
+	}
+
+	if _, err := tx.Exec(r.Context(), `
+		WITH numbered AS (
+			SELECT
+				id,
+				ROW_NUMBER() OVER (ORDER BY set_number, created_at, id) AS next_set_number
+			FROM workout_sets
+			WHERE workout_id = $1
+		)
+		UPDATE workout_sets sets
+		SET set_number = numbered.next_set_number
+		FROM numbered
+		WHERE sets.id = numbered.id
+	`, workoutID); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not reorder workout sets")
+		return
+	}
+
+	if err := tx.Commit(r.Context()); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not delete workout set")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (s *Server) getWorkout(ctx context.Context, id int64) (Workout, error) {
 	var workout Workout
 	var trainingDate time.Time
 	err := s.db.QueryRow(ctx, `
-		WITH ordered_workouts AS (
-			SELECT
-				id,
-				training_date,
-				exercise_type,
-				sets,
-				weight,
-				created_at,
-				LAG(sets) OVER (
-					PARTITION BY exercise_type
-					ORDER BY training_date, created_at, id
-				) AS previous_sets,
-				LAG(weight) OVER (
-					PARTITION BY exercise_type
-					ORDER BY training_date, created_at, id
-				) AS previous_weight
-			FROM workouts
-		)
-		SELECT id, training_date, exercise_type, sets, weight, previous_sets, previous_weight, created_at
-		FROM ordered_workouts
+		SELECT id, training_date, exercise_type, created_at
+		FROM workout_entries
 		WHERE id = $1
 	`, id).Scan(
 		&workout.ID,
 		&trainingDate,
 		&workout.ExerciseType,
-		&workout.Sets,
-		&workout.Weight,
-		&workout.PreviousSets,
-		&workout.PreviousWeight,
 		&workout.CreatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -251,21 +386,54 @@ func (s *Server) getWorkout(ctx context.Context, id int64) (Workout, error) {
 	}
 
 	workout.TrainingDate = trainingDate.Format("2006-01-02")
-	return workout, nil
+	workouts := []Workout{workout}
+	workouts[0].Sets = []WorkoutSet{}
+	if err := s.loadSets(ctx, workouts); err != nil {
+		return Workout{}, err
+	}
+
+	return workouts[0], nil
+}
+
+func (s *Server) loadSets(ctx context.Context, workouts []Workout) error {
+	for index := range workouts {
+		rows, err := s.db.Query(ctx, `
+			SELECT id, set_number, weight, created_at
+			FROM workout_sets
+			WHERE workout_id = $1
+			ORDER BY set_number
+		`, workouts[index].ID)
+		if err != nil {
+			return err
+		}
+
+		for rows.Next() {
+			var workoutSet WorkoutSet
+			if err := rows.Scan(
+				&workoutSet.ID,
+				&workoutSet.SetNumber,
+				&workoutSet.Weight,
+				&workoutSet.CreatedAt,
+			); err != nil {
+				rows.Close()
+				return err
+			}
+			workouts[index].Sets = append(workouts[index].Sets, workoutSet)
+		}
+
+		if err := rows.Err(); err != nil {
+			rows.Close()
+			return err
+		}
+		rows.Close()
+	}
+
+	return nil
 }
 
 func validateWorkout(req CreateWorkoutRequest) (time.Time, error) {
 	if !allowedExerciseTypes[req.ExerciseType] {
 		return time.Time{}, errors.New("exercise type must be bench, dumbell-shoulder, or dips")
-	}
-	if req.Sets <= 0 {
-		return time.Time{}, errors.New("sets must be greater than zero")
-	}
-	if req.Weight < 0 {
-		return time.Time{}, errors.New("weight cannot be negative")
-	}
-	if req.Weight > 999999.99 {
-		return time.Time{}, errors.New("weight is too large")
 	}
 
 	trainingDate, err := time.Parse("2006-01-02", req.TrainingDate)
@@ -276,11 +444,31 @@ func validateWorkout(req CreateWorkoutRequest) (time.Time, error) {
 	return trainingDate, nil
 }
 
+func validateWorkoutSet(req CreateWorkoutSetRequest) error {
+	if req.Weight < 0 {
+		return errors.New("weight cannot be negative")
+	}
+	if req.Weight > 999999.99 {
+		return errors.New("weight is too large")
+	}
+
+	return nil
+}
+
+func parsePositivePathID(r *http.Request, name string, label string) (int64, error) {
+	id, err := strconv.ParseInt(r.PathValue(name), 10, 64)
+	if err != nil || id <= 0 {
+		return 0, errors.New(label + " must be a positive number")
+	}
+
+	return id, nil
+}
+
 func cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
