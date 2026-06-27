@@ -81,6 +81,13 @@ function App() {
     return selectedPlanDay.items[nextIndex]?.exerciseType || null;
   }, [nextPlanIndexByDay, nextPlanKey, selectedPlanDay]);
 
+  const selectedVisibleWorkout = useMemo(() => {
+    return (
+      selectedDateWorkouts.find((workout) => workout.id === openWorkoutId) ||
+      null
+    );
+  }, [openWorkoutId, selectedDateWorkouts]);
+
   useEffect(() => {
     if (
       workoutPlan.days.length > 0 &&
@@ -127,11 +134,31 @@ function App() {
   }
 
   const currentPrevious = useMemo(() => {
-    return workouts.find(
-      (workout) =>
-        workout.exerciseType === form.exerciseType && workout.sets.length > 0
-    );
-  }, [form.exerciseType, workouts]);
+    if (!selectedVisibleWorkout) {
+      return undefined;
+    }
+
+    return [...workouts]
+      .reverse()
+      .find((workout) => {
+        if (
+          workout.exerciseType !== selectedVisibleWorkout.exerciseType ||
+          workout.sets.length === 0
+        ) {
+          return false;
+        }
+
+        if (workout.trainingDate !== selectedVisibleWorkout.trainingDate) {
+          return workout.trainingDate < selectedVisibleWorkout.trainingDate;
+        }
+
+        return (
+          Date.parse(workout.createdAt) <
+            Date.parse(selectedVisibleWorkout.createdAt) ||
+          workout.id < selectedVisibleWorkout.id
+        );
+      });
+  }, [selectedVisibleWorkout, workouts]);
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100">
@@ -149,6 +176,7 @@ function App() {
             <StatusSummary
               exercises={exercises}
               currentWorkout={currentPrevious}
+              hasSelection={selectedVisibleWorkout != null}
             />
           )}
         </header>

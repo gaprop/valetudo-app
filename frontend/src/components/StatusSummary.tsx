@@ -4,12 +4,19 @@ import { formatWeight, labelFor, maxWeight } from "../workouts";
 type StatusSummaryProps = {
   exercises: ExerciseOption[];
   currentWorkout?: Workout;
+  hasSelection: boolean;
 };
 
-export function StatusSummary({ exercises, currentWorkout }: StatusSummaryProps) {
+export function StatusSummary({
+  exercises,
+  currentWorkout,
+  hasSelection,
+}: StatusSummaryProps) {
   return (
     <div className="rounded border border-primary-800 bg-primary-950/50 px-4 py-3 text-sm text-primary-100">
-      {currentWorkout ? (
+      {!hasSelection ? (
+        <span>Nothing is selected</span>
+      ) : currentWorkout ? (
         <span>
           Latest {labelFor(exercises, currentWorkout.exerciseType)}:{" "}
           <strong>{currentWorkout.sets.length} sets</strong>, best at{" "}
