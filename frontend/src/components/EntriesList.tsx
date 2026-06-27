@@ -1,25 +1,26 @@
-import type { FormEvent } from "react";
-import type { SetForm, Workout } from "../types";
+import type {
+  CreateWorkoutSetRequest,
+  SetForm,
+  UpdateWorkoutSetRequest,
+  Workout,
+} from "../types";
 import { WorkoutEntry } from "./WorkoutEntry";
 
 type EntriesListProps = {
   workouts: Workout[];
   loading: boolean;
-  setForms: Record<number, SetForm>;
-  savingSetId: number | null;
-  updatingSetId: number | null;
-  deletingWorkoutId: number | null;
-  deletingSetId: number | null;
+  pending: {
+    savingSetId: number | null;
+    updatingSetId: number | null;
+    deletingWorkoutId: number | null;
+    deletingSetId: number | null;
+  };
+  entryErrors: Record<number, string>;
   openWorkoutId: number | null;
   onRefresh: () => void;
   onToggleWorkout: (workoutID: number) => void;
-  onSetFormChange: (
-    workoutID: number,
-    field: keyof SetForm,
-    value: string
-  ) => void;
-  onAddSet: (event: FormEvent<HTMLFormElement>, workoutID: number) => void;
-  onUpdateSet: (workoutID: number, setID: number, form: SetForm) => void;
+  onAddSet: (input: CreateWorkoutSetRequest) => Promise<boolean>;
+  onUpdateSet: (input: UpdateWorkoutSetRequest) => Promise<void>;
   onDeleteWorkout: (workoutID: number) => void;
   onDeleteSet: (workoutID: number, setID: number) => void;
 };
@@ -27,15 +28,11 @@ type EntriesListProps = {
 export function EntriesList({
   workouts,
   loading,
-  setForms,
-  savingSetId,
-  updatingSetId,
-  deletingWorkoutId,
-  deletingSetId,
+  pending,
+  entryErrors,
   openWorkoutId,
   onRefresh,
   onToggleWorkout,
-  onSetFormChange,
   onAddSet,
   onUpdateSet,
   onDeleteWorkout,
@@ -66,18 +63,28 @@ export function EntriesList({
             <WorkoutEntry
               key={workout.id}
               workout={workout}
-              setForm={setForms[workout.id] || { weight: "", reps: "" }}
-              savingSetId={savingSetId}
-              updatingSetId={updatingSetId}
-              deletingWorkoutId={deletingWorkoutId}
-              deletingSetId={deletingSetId}
+              error={entryErrors[workout.id] || ""}
+              savingSetId={pending.savingSetId}
+              updatingSetId={pending.updatingSetId}
+              deletingWorkoutId={pending.deletingWorkoutId}
+              deletingSetId={pending.deletingSetId}
               isOpen={openWorkoutId === workout.id}
               onToggle={() => onToggleWorkout(workout.id)}
-              onSetFormChange={(field, value) =>
-                onSetFormChange(workout.id, field, value)
+              onAddSet={(form: SetForm) =>
+                onAddSet({
+                  workoutID: workout.id,
+                  weight: Number(form.weight),
+                  reps: Number(form.reps),
+                })
               }
-              onAddSet={(event) => onAddSet(event, workout.id)}
-              onUpdateSet={(setID, form) => onUpdateSet(workout.id, setID, form)}
+              onUpdateSet={(setID, form) =>
+                onUpdateSet({
+                  workoutID: workout.id,
+                  setID,
+                  weight: Number(form.weight),
+                  reps: Number(form.reps),
+                })
+              }
               onDeleteWorkout={() => onDeleteWorkout(workout.id)}
               onDeleteSet={(setID) => onDeleteSet(workout.id, setID)}
             />

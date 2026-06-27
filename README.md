@@ -16,7 +16,7 @@ A small full-stack fitness tracker for logging strength training entries. The ap
 - List all entries newest first
 - Show recent set history per exercise type
 - Basic API validation for exercise type, date, and set weight
-- Automatic database table creation on backend startup
+- Database schema setup through a Docker Compose init service
 
 ## Quick Start
 
@@ -41,13 +41,19 @@ database: fitness
 
 ## Local Development
 
-Start PostgreSQL first. The easiest way is to run only the database service:
+Start PostgreSQL and run the schema init service first:
 
 ```sh
 docker compose up database
 ```
 
-In a second terminal, start the backend:
+In a second terminal, apply the schema:
+
+```sh
+docker compose run --rm database-init
+```
+
+Then start the backend:
 
 ```sh
 cd backend
@@ -107,6 +113,10 @@ Allowed `exerciseType` values:
 - `dumbell-shoulder`
 - `dips`
 
+### `DELETE /api/workouts/{id}`
+
+Deletes a training entry and all of its sets.
+
 ### `POST /api/workouts/{id}/sets`
 
 Adds one set to a training entry. Set numbers are assigned automatically.
@@ -158,7 +168,8 @@ Frontend environment variables:
 
 ```text
 .
-├── backend/          # Go API and database migration
+├── backend/          # Go API
+├── database/         # PostgreSQL schema script
 ├── frontend/         # React/Vite frontend
 └── docker-compose.yml
 ```

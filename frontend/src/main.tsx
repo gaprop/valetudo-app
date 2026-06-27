@@ -1,176 +1,37 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  addWorkoutSet,
-  createWorkout,
-  deleteWorkout,
-  deleteWorkoutSet,
-  errorMessage,
-  listWorkouts,
-  updateWorkoutSet,
-} from "./api";
 import { EntriesList, StatusSummary, TrainingForm } from "./components";
-import type { SetForm, Workout, WorkoutForm } from "./types";
+import type { WorkoutForm } from "./types";
+import { useWorkouts } from "./useWorkouts";
 import "./styles.css";
 
 function App() {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [form, setForm] = useState<WorkoutForm>({
     trainingDate: today,
     exerciseType: "bench",
   });
-  const [setForms, setSetForms] = useState<Record<number, SetForm>>({});
-  const [loading, setLoading] = useState(true);
-  const [savingEntry, setSavingEntry] = useState(false);
-  const [savingSetId, setSavingSetId] = useState<number | null>(null);
-  const [updatingSetId, setUpdatingSetId] = useState<number | null>(null);
-  const [deletingWorkoutId, setDeletingWorkoutId] = useState<number | null>(
-    null
-  );
-  const [deletingSetId, setDeletingSetId] = useState<number | null>(null);
-  const [openWorkoutId, setOpenWorkoutId] = useState<number | null>(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    loadWorkouts();
-  }, []);
-
-  async function loadWorkouts(): Promise<void> {
-    setLoading(true);
-    setError("");
-    try {
-      setWorkouts(await listWorkouts());
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {
+    workouts,
+    loading,
+    pending,
+    formError,
+    entryErrors,
+    openWorkoutId,
+    load,
+    createEntry,
+    deleteEntry,
+    addSet,
+    updateSet,
+    removeSet,
+    toggleWorkout,
+  } = useWorkouts();
 
   async function handleCreateWorkout(
     event: React.FormEvent<HTMLFormElement>
   ): Promise<void> {
     event.preventDefault();
-    setSavingEntry(true);
-    setError("");
-
-    try {
-      const workout = await createWorkout({
-        trainingDate: form.trainingDate,
-        exerciseType: form.exerciseType,
-      });
-
-      await loadWorkouts();
-      setOpenWorkoutId(workout.id);
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setSavingEntry(false);
-    }
-  }
-
-  async function handleAddSet(
-    event: React.FormEvent<HTMLFormElement>,
-    workoutID: number
-  ): Promise<void> {
-    event.preventDefault();
-    setSavingSetId(workoutID);
-    setError("");
-
-    try {
-      await addWorkoutSet({
-        workoutID,
-        weight: Number(setForms[workoutID]?.weight),
-        reps: Number(setForms[workoutID]?.reps),
-      });
-
-      setSetForms((current) => ({
-        ...current,
-        [workoutID]: { weight: "", reps: "" },
-      }));
-      await loadWorkouts();
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setSavingSetId(null);
-    }
-  }
-
-  async function handleDeleteSet(
-    workoutID: number,
-    setID: number
-  ): Promise<void> {
-    setDeletingSetId(setID);
-    setError("");
-
-    try {
-      await deleteWorkoutSet({ workoutID, setID });
-      await loadWorkouts();
-      setOpenWorkoutId(workoutID);
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setDeletingSetId(null);
-    }
-  }
-
-  async function handleDeleteWorkout(workoutID: number): Promise<void> {
-    setDeletingWorkoutId(workoutID);
-    setError("");
-
-    try {
-      await deleteWorkout({ workoutID });
-      await loadWorkouts();
-      setOpenWorkoutId((current) => (current === workoutID ? null : current));
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setDeletingWorkoutId(null);
-    }
-  }
-
-  async function handleUpdateSet(
-    workoutID: number,
-    setID: number,
-    form: SetForm
-  ): Promise<void> {
-    setUpdatingSetId(setID);
-    setError("");
-
-    try {
-      await updateWorkoutSet({
-        workoutID,
-        setID,
-        weight: Number(form.weight),
-        reps: Number(form.reps),
-      });
-      await loadWorkouts();
-      setOpenWorkoutId(workoutID);
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setUpdatingSetId(null);
-    }
-  }
-
-  function handleToggleWorkout(workoutID: number): void {
-    setOpenWorkoutId((current) => (current === workoutID ? null : workoutID));
-  }
-
-  function handleSetFormChange(
-    workoutID: number,
-    field: keyof SetForm,
-    value: string
-  ): void {
-    setSetForms((current) => ({
-      ...current,
-      [workoutID]: {
-        weight: current[workoutID]?.weight || "",
-        reps: current[workoutID]?.reps || "",
-        [field]: value,
-      },
-    }));
+    await createEntry(form);
   }
 
   const currentPrevious = useMemo(() => {
@@ -198,27 +59,23 @@ function App() {
         <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
           <TrainingForm
             form={form}
-            error={error}
-            savingEntry={savingEntry}
+            error={formError}
+            savingEntry={pending.savingEntry}
             onChange={setForm}
             onSubmit={handleCreateWorkout}
           />
           <EntriesList
             workouts={workouts}
             loading={loading}
-            setForms={setForms}
-            savingSetId={savingSetId}
-            updatingSetId={updatingSetId}
-            deletingWorkoutId={deletingWorkoutId}
-            deletingSetId={deletingSetId}
+            pending={pending}
+            entryErrors={entryErrors}
             openWorkoutId={openWorkoutId}
-            onRefresh={loadWorkouts}
-            onToggleWorkout={handleToggleWorkout}
-            onSetFormChange={handleSetFormChange}
-            onAddSet={handleAddSet}
-            onUpdateSet={handleUpdateSet}
-            onDeleteWorkout={handleDeleteWorkout}
-            onDeleteSet={handleDeleteSet}
+            onRefresh={load}
+            onToggleWorkout={toggleWorkout}
+            onAddSet={addSet}
+            onUpdateSet={updateSet}
+            onDeleteWorkout={deleteEntry}
+            onDeleteSet={removeSet}
           />
         </section>
       </div>

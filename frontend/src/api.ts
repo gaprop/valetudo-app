@@ -1,5 +1,12 @@
 import axios from "axios";
-import type { ApiError, ExerciseType, Workout, WorkoutSet } from "./types";
+import type {
+  ApiError,
+  CreateWorkoutRequest,
+  CreateWorkoutSetRequest,
+  UpdateWorkoutSetRequest,
+  Workout,
+  WorkoutSet,
+} from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const api = axios.create({ baseURL: API_URL });
@@ -9,19 +16,14 @@ export async function listWorkouts(): Promise<Workout[]> {
   return response.data;
 }
 
-export async function createWorkout(input: {
-  trainingDate: string;
-  exerciseType: ExerciseType;
-}): Promise<Workout> {
+export async function createWorkout(input: CreateWorkoutRequest): Promise<Workout> {
   const response = await api.post<Workout>("/api/workouts", input);
   return response.data;
 }
 
-export async function addWorkoutSet(input: {
-  workoutID: number;
-  weight: number;
-  reps: number;
-}): Promise<WorkoutSet> {
+export async function addWorkoutSet(
+  input: CreateWorkoutSetRequest
+): Promise<WorkoutSet> {
   const response = await api.post<WorkoutSet>(
     `/api/workouts/${input.workoutID}/sets`,
     { weight: input.weight, reps: input.reps }
@@ -29,12 +31,9 @@ export async function addWorkoutSet(input: {
   return response.data;
 }
 
-export async function updateWorkoutSet(input: {
-  workoutID: number;
-  setID: number;
-  weight: number;
-  reps: number;
-}): Promise<WorkoutSet> {
+export async function updateWorkoutSet(
+  input: UpdateWorkoutSetRequest
+): Promise<WorkoutSet> {
   const response = await api.patch<WorkoutSet>(
     `/api/workouts/${input.workoutID}/sets/${input.setID}`,
     { weight: input.weight, reps: input.reps }

@@ -16,6 +16,24 @@ services:
       timeout: 5s
       retries: 10
 
+  database-init:
+    image: postgres:16-alpine
+    container_name: fitness-database-init
+    environment:
+      PGPASSWORD: fitness
+    volumes:
+      - ./database/schema.sql:/migrations/schema.sql:ro
+    command:
+      [
+        "sh",
+        "-c",
+        "psql -h database -U fitness -d fitness -v ON_ERROR_STOP=1 -f /migrations/schema.sql",
+      ]
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: "no"
+
   backend:
     build:
       context: ./backend
@@ -28,6 +46,8 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      database-init:
+        condition: service_completed_successfully
 
   frontend:
     build:

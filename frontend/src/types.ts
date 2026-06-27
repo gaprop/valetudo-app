@@ -32,3 +32,19 @@ export type SetForm = {
   weight: string;
   reps: string;
 };
+
+export type CreateWorkoutRequest = WorkoutForm;
+
+export type WorkoutSetRequest = {
+  weight: number;
+  reps: number;
+};
+
+export type CreateWorkoutSetRequest = WorkoutSetRequest & {
+  workoutID: number;
+};
+
+export type UpdateWorkoutSetRequest = WorkoutSetRequest & {
+  workoutID: number;
+  setID: number;
+};
