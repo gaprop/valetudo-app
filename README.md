@@ -1,6 +1,6 @@
 # Fitness App
 
-A small full-stack fitness tracker for logging strength training entries. The app records the training date, exercise type, sets, and weight, then shows the previous value for each exercise so progress is easy to compare.
+A small full-stack fitness tracker for logging strength training entries. The app records the training date and exercise type first, then lets you add as many weighted sets as needed to that entry.
 
 ## Stack
 
@@ -12,9 +12,10 @@ A small full-stack fitness tracker for logging strength training entries. The ap
 ## Features
 
 - Add workout entries for bench, dumbell shoulder, and dips
+- Add any number of set weights to each training entry
 - List all entries newest first
-- Show previous sets and weight per exercise type
-- Basic API validation for exercise type, date, sets, and weight
+- Show recent set history per exercise type
+- Basic API validation for exercise type, date, and set weight
 - Automatic database table creation on backend startup
 
 ## Quick Start
@@ -87,18 +88,16 @@ Returns a basic health response:
 
 ### `GET /api/workouts`
 
-Returns workout entries ordered by newest training date first.
+Returns workout entries ordered by newest training date first. Each entry includes its set list.
 
 ### `POST /api/workouts`
 
-Creates a workout entry.
+Creates a training entry.
 
 ```json
 {
   "trainingDate": "2026-06-27",
-  "exerciseType": "bench",
-  "sets": 3,
-  "weight": 80
+  "exerciseType": "bench"
 }
 ```
 
@@ -107,6 +106,20 @@ Allowed `exerciseType` values:
 - `bench`
 - `dumbell-shoulder`
 - `dips`
+
+### `POST /api/workouts/{id}/sets`
+
+Adds one set to a training entry. Set numbers are assigned automatically.
+
+```json
+{
+  "weight": 80
+}
+```
+
+### `DELETE /api/workouts/{id}/sets/{setID}`
+
+Removes one set from a training entry. Remaining set numbers are reordered automatically.
 
 ## Frontend Scripts
 
