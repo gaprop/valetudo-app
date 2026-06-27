@@ -7,7 +7,6 @@ export type ExerciseOption = {
 
 export type WorkoutSet = {
   id: number;
-  setNumber: number;
   weight: number;
   reps: number;
   createdAt: string;

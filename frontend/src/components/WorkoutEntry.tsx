@@ -102,10 +102,11 @@ export function WorkoutEntry({
               <p className="text-sm text-neutral-500">No sets added yet.</p>
             ) : (
               <div className="grid gap-2">
-                {workout.sets.map((set) => (
+                {workout.sets.map((set, index) => (
                   <WorkoutSetRow
                     key={set.id}
                     workoutSet={set}
+                    displayNumber={index + 1}
                     updatingSetId={updatingSetId}
                     deletingSetId={deletingSetId}
                     onUpdate={(form) => onUpdateSet(set.id, form)}

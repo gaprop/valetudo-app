@@ -34,7 +34,6 @@ type Workout struct {
 
 type WorkoutSet struct {
 	ID        int64     `json:"id"`
-	SetNumber int       `json:"setNumber"`
 	Weight    float64   `json:"weight"`
 	Reps      int       `json:"reps"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -251,14 +250,11 @@ func (s *Server) createWorkoutSet(w http.ResponseWriter, r *http.Request) {
 
 	var workoutSet WorkoutSet
 	err = tx.QueryRow(r.Context(), `
-		INSERT INTO workout_sets (workout_id, set_number, weight, reps)
-		SELECT $1, COALESCE(MAX(set_number), 0) + 1, $2, $3
-		FROM workout_sets
-		WHERE workout_id = $1
-		RETURNING id, set_number, weight, reps, created_at
+		INSERT INTO workout_sets (workout_id, weight, reps)
+		VALUES ($1, $2, $3)
+		RETURNING id, weight, reps, created_at
 	`, workoutID, req.Weight, req.Reps).Scan(
 		&workoutSet.ID,
-		&workoutSet.SetNumber,
 		&workoutSet.Weight,
 		&workoutSet.Reps,
 		&workoutSet.CreatedAt,
@@ -305,10 +301,9 @@ func (s *Server) updateWorkoutSet(w http.ResponseWriter, r *http.Request) {
 		UPDATE workout_sets
 		SET weight = $3, reps = $4
 		WHERE workout_id = $1 AND id = $2
-		RETURNING id, set_number, weight, reps, created_at
+		RETURNING id, weight, reps, created_at
 	`, workoutID, setID, req.Weight, req.Reps).Scan(
 		&workoutSet.ID,
-		&workoutSet.SetNumber,
 		&workoutSet.Weight,
 		&workoutSet.Reps,
 		&workoutSet.CreatedAt,
@@ -338,14 +333,7 @@ func (s *Server) deleteWorkoutSet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := s.db.Begin(r.Context())
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "could not delete workout set")
-		return
-	}
-	defer tx.Rollback(r.Context())
-
-	commandTag, err := tx.Exec(r.Context(), `
+	commandTag, err := s.db.Exec(r.Context(), `
 		DELETE FROM workout_sets
 		WHERE workout_id = $1 AND id = $2
 	`, workoutID, setID)
@@ -355,28 +343,6 @@ func (s *Server) deleteWorkoutSet(w http.ResponseWriter, r *http.Request) {
 	}
 	if commandTag.RowsAffected() == 0 {
 		writeError(w, http.StatusNotFound, "workout set was not found")
-		return
-	}
-
-	if _, err := tx.Exec(r.Context(), `
-		WITH numbered AS (
-			SELECT
-				id,
-				ROW_NUMBER() OVER (ORDER BY set_number, created_at, id) AS next_set_number
-			FROM workout_sets
-			WHERE workout_id = $1
-		)
-		UPDATE workout_sets sets
-		SET set_number = numbered.next_set_number
-		FROM numbered
-		WHERE sets.id = numbered.id
-	`, workoutID); err != nil {
-		writeError(w, http.StatusInternalServerError, "could not reorder workout sets")
-		return
-	}
-
-	if err := tx.Commit(r.Context()); err != nil {
-		writeError(w, http.StatusInternalServerError, "could not delete workout set")
 		return
 	}
 
@@ -416,10 +382,10 @@ func (s *Server) getWorkout(ctx context.Context, id int64) (Workout, error) {
 func (s *Server) loadSets(ctx context.Context, workouts []Workout) error {
 	for index := range workouts {
 		rows, err := s.db.Query(ctx, `
-			SELECT id, set_number, weight, reps, created_at
+			SELECT id, weight, reps, created_at
 			FROM workout_sets
 			WHERE workout_id = $1
-			ORDER BY set_number
+			ORDER BY created_at, id
 		`, workouts[index].ID)
 		if err != nil {
 			return err
@@ -429,7 +395,6 @@ func (s *Server) loadSets(ctx context.Context, workouts []Workout) error {
 			var workoutSet WorkoutSet
 			if err := rows.Scan(
 				&workoutSet.ID,
-				&workoutSet.SetNumber,
 				&workoutSet.Weight,
 				&workoutSet.Reps,
 				&workoutSet.CreatedAt,

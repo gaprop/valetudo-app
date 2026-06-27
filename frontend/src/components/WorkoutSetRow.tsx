@@ -7,6 +7,7 @@ import { MetricInputs } from "./MetricInputs";
 
 type WorkoutSetRowProps = {
   workoutSet: WorkoutSet;
+  displayNumber: number;
   updatingSetId: number | null;
   deletingSetId: number | null;
   onUpdate: (form: SetForm) => void;
@@ -15,6 +16,7 @@ type WorkoutSetRowProps = {
 
 export function WorkoutSetRow({
   workoutSet,
+  displayNumber,
   updatingSetId,
   deletingSetId,
   onUpdate,
@@ -41,7 +43,7 @@ export function WorkoutSetRow({
       }}
     >
       <MetricInputs
-        label={`Set ${workoutSet.setNumber}`}
+        label={`Set ${displayNumber}`}
         value={form}
         onChange={(field, value) =>
           setForm((current) => ({ ...current, [field]: value }))
@@ -52,7 +54,7 @@ export function WorkoutSetRow({
           {updatingSetId === workoutSet.id ? "Saving" : "Save"}
         </ActionButton>
         <IconButton
-          label={`Remove set ${workoutSet.setNumber}`}
+          label={`Remove set ${displayNumber}`}
           title="Remove set"
           onClick={onDelete}
           disabled={deletingSetId === workoutSet.id}

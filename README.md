@@ -119,7 +119,7 @@ Deletes a training entry and all of its sets.
 
 ### `POST /api/workouts/{id}/sets`
 
-Adds one set to a training entry. Set numbers are assigned automatically.
+Adds one set to a training entry. Sets are ordered by creation time.
 
 ```json
 {
@@ -141,7 +141,7 @@ Updates one set's weight and reps.
 
 ### `DELETE /api/workouts/{id}/sets/{setID}`
 
-Removes one set from a training entry. Remaining set numbers are reordered automatically.
+Removes one set from a training entry.
 
 ## Frontend Scripts
 

@@ -50,16 +50,6 @@ function updateWorkoutSets(
   );
 }
 
-function renumberSets(workout: Workout): Workout {
-  return {
-    ...workout,
-    sets: workout.sets.map((set, index) => ({
-      ...set,
-      setNumber: index + 1,
-    })),
-  };
-}
-
 export function useWorkouts() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,7 +128,8 @@ export function useWorkouts() {
         updateWorkoutSets(current, input.workoutID, (workout) => ({
           ...workout,
           sets: [...workout.sets, workoutSet].sort(
-            (a, b) => a.setNumber - b.setNumber
+            (a, b) =>
+              Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id
           ),
         }))
       );
@@ -179,12 +170,10 @@ export function useWorkouts() {
     try {
       await deleteWorkoutSet({ workoutID, setID });
       setWorkouts((current) =>
-        updateWorkoutSets(current, workoutID, (workout) =>
-          renumberSets({
-            ...workout,
-            sets: workout.sets.filter((set) => set.id !== setID),
-          })
-        )
+        updateWorkoutSets(current, workoutID, (workout) => ({
+          ...workout,
+          sets: workout.sets.filter((set) => set.id !== setID),
+        }))
       );
     } catch (err) {
       setEntryError(workoutID, errorMessage(err));
