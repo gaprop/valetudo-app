@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type { ExerciseOption, SetForm, Workout } from "../types";
+import type { Exercise, SetForm, Workout } from "../types";
 import { formatWeight, labelFor, maxWeight } from "../workouts";
 import { ActionButton } from "./ActionButton";
 import { IconButton } from "./IconButton";
@@ -9,7 +9,7 @@ import { WorkoutSetRow } from "./WorkoutSetRow";
 
 type WorkoutEntryProps = {
   workout: Workout;
-  exercises: ExerciseOption[];
+  exercises: Exercise[];
   error: string;
   savingSetId: number | null;
   updatingSetId: number | null;
@@ -58,9 +58,6 @@ export function WorkoutEntry({
         >
           <span className="block text-base font-semibold text-white">
             {labelFor(exercises, workout.exerciseType)}
-          </span>
-          <span className="mt-1 block text-sm text-neutral-400">
-            {workout.trainingDate}
           </span>
         </button>
         <span className="flex flex-wrap items-center gap-2 text-sm text-neutral-300 sm:justify-end">

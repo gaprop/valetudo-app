@@ -5,10 +5,10 @@ import {
   errorMessage,
   listExercises,
 } from "./api";
-import type { ExerciseOption } from "./types";
+import type { Exercise } from "./types";
 
 export function useExercises() {
-  const [exercises, setExercises] = useState<ExerciseOption[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);

@@ -1,9 +1,9 @@
 import type { FormEvent } from "react";
-import type { ExerciseOption, WorkoutForm, WorkoutPlanDay } from "../types";
+import type { Exercise, WorkoutForm, WorkoutPlanDay } from "../types";
 
 type TrainingFormProps = {
   form: WorkoutForm;
-  exercises: ExerciseOption[];
+  exercises: Exercise[];
   planDays: WorkoutPlanDay[];
   selectedPlanDayId: number | null;
   error: string;

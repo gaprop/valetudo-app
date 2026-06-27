@@ -1,7 +1,7 @@
-export type ExerciseType = string;
+export type ExerciseValue = string;
 
-export type ExerciseOption = {
-  value: ExerciseType;
+export type Exercise = {
+  value: ExerciseValue;
   label: string;
   createdAt: string;
 };
@@ -16,7 +16,7 @@ export type WorkoutSet = {
 export type Workout = {
   id: number;
   trainingDate: string;
-  exerciseType: ExerciseType;
+  exerciseType: ExerciseValue;
   sets: WorkoutSet[];
   createdAt: string;
 };
@@ -25,15 +25,18 @@ export type ApiError = { error: string };
 
 export type WorkoutForm = {
   trainingDate: string;
-  exerciseType: ExerciseType;
+  exerciseType: ExerciseValue;
+};
+
+export type CreateWorkoutRequest = {
+  trainingDate: string;
+  exerciseType: ExerciseValue;
 };
 
 export type SetForm = {
   weight: string;
   reps: string;
 };
-
-export type CreateWorkoutRequest = WorkoutForm;
 
 export type WorkoutSetRequest = {
   weight: number;
@@ -51,7 +54,7 @@ export type UpdateWorkoutSetRequest = WorkoutSetRequest & {
 
 export type WorkoutPlanItem = {
   id: number;
-  exerciseType: ExerciseType;
+  exerciseType: ExerciseValue;
   createdAt: string;
 };
 
@@ -68,5 +71,5 @@ export type CreateWorkoutPlanDayRequest = {
 
 export type CreateWorkoutPlanItemRequest = {
   dayID: number;
-  exerciseType: ExerciseType;
+  exerciseType: ExerciseValue;
 };

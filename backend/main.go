@@ -47,13 +47,13 @@ type CreateWorkoutSetRequest struct {
 	Reps   int     `json:"reps"`
 }
 
-type ExerciseType struct {
+type Exercise struct {
 	Value     string    `json:"value"`
 	Label     string    `json:"label"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-type CreateExerciseTypeRequest struct {
+type CreateExerciseRequest struct {
 	Label string `json:"label"`
 }
 
@@ -94,9 +94,9 @@ func main() {
 	server := &Server{db: db}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", server.health)
-	mux.HandleFunc("GET /api/exercises", server.listExerciseTypes)
-	mux.HandleFunc("POST /api/exercises", server.createExerciseType)
-	mux.HandleFunc("DELETE /api/exercises/{value}", server.deleteExerciseType)
+	mux.HandleFunc("GET /api/exercises", server.listExercises)
+	mux.HandleFunc("POST /api/exercises", server.createExercise)
+	mux.HandleFunc("DELETE /api/exercises/{value}", server.deleteExercise)
 	mux.HandleFunc("GET /api/workouts", server.listWorkouts)
 	mux.HandleFunc("POST /api/workouts", server.createWorkout)
 	mux.HandleFunc("DELETE /api/workouts/{id}", server.deleteWorkout)
@@ -144,7 +144,7 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-func (s *Server) listExerciseTypes(w http.ResponseWriter, r *http.Request) {
+func (s *Server) listExercises(w http.ResponseWriter, r *http.Request) {
 	rows, err := s.db.Query(r.Context(), `
 		SELECT value, label, created_at
 		FROM exercise_types
@@ -156,9 +156,9 @@ func (s *Server) listExerciseTypes(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	exercises := []ExerciseType{}
+	exercises := []Exercise{}
 	for rows.Next() {
-		var exercise ExerciseType
+		var exercise Exercise
 		if err := rows.Scan(&exercise.Value, &exercise.Label, &exercise.CreatedAt); err != nil {
 			writeError(w, http.StatusInternalServerError, "could not read exercise")
 			return
@@ -173,20 +173,20 @@ func (s *Server) listExerciseTypes(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, exercises)
 }
 
-func (s *Server) createExerciseType(w http.ResponseWriter, r *http.Request) {
-	var req CreateExerciseTypeRequest
+func (s *Server) createExercise(w http.ResponseWriter, r *http.Request) {
+	var req CreateExerciseRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	label, value, err := validateExerciseType(req)
+	label, value, err := validateExercise(req)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	var exercise ExerciseType
+	var exercise Exercise
 	err = s.db.QueryRow(r.Context(), `
 		INSERT INTO exercise_types (value, label)
 		VALUES ($1, $2)
@@ -204,7 +204,7 @@ func (s *Server) createExerciseType(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, exercise)
 }
 
-func (s *Server) deleteExerciseType(w http.ResponseWriter, r *http.Request) {
+func (s *Server) deleteExercise(w http.ResponseWriter, r *http.Request) {
 	value := strings.TrimSpace(r.PathValue("value"))
 	if value == "" {
 		writeError(w, http.StatusBadRequest, "exercise is required")
@@ -771,7 +771,7 @@ func (s *Server) validateWorkout(ctx context.Context, req CreateWorkoutRequest) 
 	return trainingDate, nil
 }
 
-func validateExerciseType(req CreateExerciseTypeRequest) (string, string, error) {
+func validateExercise(req CreateExerciseRequest) (string, string, error) {
 	label := strings.TrimSpace(req.Label)
 	if label == "" {
 		return "", "", errors.New("exercise name is required")

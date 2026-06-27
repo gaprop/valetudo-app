@@ -1,8 +1,8 @@
-import type { ExerciseOption, ExerciseType, WorkoutSet } from "./types";
+import type { Exercise, ExerciseValue, WorkoutSet } from "./types";
 
 export function labelFor(
-  exercises: ExerciseOption[],
-  value: ExerciseType
+  exercises: Exercise[],
+  value: ExerciseValue
 ): string {
   return exercises.find((type) => type.value === value)?.label || value;
 }

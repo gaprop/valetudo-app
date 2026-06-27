@@ -8,6 +8,7 @@ import {
   listWorkouts,
   updateWorkoutSet,
 } from "./api";
+import { sortWorkoutSets, sortWorkouts } from "./sorting";
 import type {
   CreateWorkoutRequest,
   CreateWorkoutSetRequest,
@@ -30,15 +31,6 @@ const initialPendingState: PendingState = {
   deletingWorkoutId: null,
   deletingSetId: null,
 };
-
-function sortWorkouts(workouts: Workout[]): Workout[] {
-  return [...workouts].sort((a, b) => {
-    if (a.trainingDate !== b.trainingDate) {
-      return a.trainingDate.localeCompare(b.trainingDate);
-    }
-    return Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id;
-  });
-}
 
 function updateWorkoutSets(
   workouts: Workout[],
@@ -129,10 +121,7 @@ export function useWorkouts() {
       setWorkouts((current) =>
         updateWorkoutSets(current, input.workoutID, (workout) => ({
           ...workout,
-          sets: [...workout.sets, workoutSet].sort(
-            (a, b) =>
-              Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id
-          ),
+          sets: sortWorkoutSets([...workout.sets, workoutSet]),
         }))
       );
       return true;

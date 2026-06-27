@@ -1,8 +1,8 @@
-import type { ExerciseOption, Workout } from "../types";
+import type { Exercise, Workout } from "../types";
 import { formatWeight, labelFor, maxWeight } from "../workouts";
 
 type StatusSummaryProps = {
-  exercises: ExerciseOption[];
+  exercises: Exercise[];
   currentWorkout?: Workout;
   hasSelection: boolean;
 };

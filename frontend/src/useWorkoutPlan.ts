@@ -7,6 +7,7 @@ import {
   errorMessage,
   listWorkoutPlanDays,
 } from "./api";
+import { sortPlanDays, sortPlanItems } from "./sorting";
 import type {
   CreateWorkoutPlanDayRequest,
   CreateWorkoutPlanItemRequest,
@@ -27,12 +28,6 @@ const initialPendingState: PlanPendingState = {
   deletingItemId: null,
 };
 
-function sortPlanDays(days: WorkoutPlanDay[]): WorkoutPlanDay[] {
-  return [...days].sort(
-    (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id
-  );
-}
-
 function updatePlanDay(
   days: WorkoutPlanDay[],
   dayID: number,
@@ -51,7 +46,7 @@ export function useWorkoutPlan() {
     setLoading(true);
     setError("");
     try {
-      setDays(await listWorkoutPlanDays());
+      setDays(sortPlanDays(await listWorkoutPlanDays()));
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -102,10 +97,7 @@ export function useWorkoutPlan() {
       setDays((current) =>
         updatePlanDay(current, input.dayID, (day) => ({
           ...day,
-          items: [...day.items, item].sort(
-            (a, b) =>
-              Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id
-          ),
+          items: sortPlanItems([...day.items, item]),
         }))
       );
       return true;
