@@ -81,45 +81,61 @@ export function WorkoutEntry({
           </div>
 
           <form
-            className="grid max-w-xl gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+            className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
             onSubmit={onAddSet}
           >
-            <label className="grid min-w-0 flex-1 gap-2 text-sm font-medium text-neutral-300">
-              Weight
-              <input
-                className="input"
-                type="number"
-                min="0"
-                step="0.5"
-                placeholder="kg"
-                value={setForm.weight}
-                onChange={(event) =>
-                  onSetFormChange("weight", event.target.value)
-                }
-                required
-              />
-            </label>
-            <label className="grid min-w-0 flex-1 gap-2 text-sm font-medium text-neutral-300">
-              Reps
-              <input
-                className="input"
-                type="number"
-                min="1"
-                step="1"
-                value={setForm.reps}
-                onChange={(event) =>
-                  onSetFormChange("reps", event.target.value)
-                }
-                required
-              />
-            </label>
-            <button
-              className="h-[46px] rounded bg-primary-600 px-4 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
-              type="submit"
-              disabled={savingSetId === workout.id}
-            >
-              {savingSetId === workout.id ? "Adding..." : "Add set"}
-            </button>
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-wide text-neutral-500">
+                New set
+              </p>
+              <div className="mt-2 grid grid-cols-2 divide-x divide-neutral-700 overflow-hidden rounded border border-neutral-800 text-center text-sm font-semibold text-white">
+                <label className="flex items-center bg-neutral-900 px-3 py-2 text-center">
+                  <input
+                    aria-label="New set weight in kg"
+                    className="min-w-0 flex-1 bg-transparent text-center text-white outline-none"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    placeholder="0"
+                    value={setForm.weight}
+                    onChange={(event) =>
+                      onSetFormChange("weight", event.target.value)
+                    }
+                    required
+                  />
+                  <span className="ml-2 shrink-0 text-xs font-semibold uppercase text-neutral-500">
+                    kg
+                  </span>
+                </label>
+                <label className="flex items-center bg-neutral-900 px-3 py-2 text-center">
+                  <input
+                    aria-label="New set reps"
+                    className="min-w-0 flex-1 bg-transparent text-center text-white outline-none"
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="0"
+                    value={setForm.reps}
+                    onChange={(event) =>
+                      onSetFormChange("reps", event.target.value)
+                    }
+                    required
+                  />
+                  <span className="ml-2 shrink-0 text-xs font-semibold uppercase text-neutral-500">
+                    reps
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div className="grid gap-2 sm:w-40">
+              <button
+                className="w-full rounded bg-primary-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
+                type="submit"
+                disabled={savingSetId === workout.id}
+              >
+                {savingSetId === workout.id ? "Adding" : "Add set"}
+              </button>
+            </div>
           </form>
         </div>
       )}

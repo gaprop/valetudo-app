@@ -83,16 +83,16 @@ export function WorkoutSetRow({
           </label>
         </div>
       </div>
-      <div className="flex gap-2 sm:justify-end">
+      <div className="grid grid-cols-2 gap-2 sm:w-40">
         <button
-          className="rounded bg-primary-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
+          className="w-full rounded bg-primary-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
           type="submit"
           disabled={updatingSetId === workoutSet.id}
         >
           {updatingSetId === workoutSet.id ? "Saving" : "Save"}
         </button>
         <button
-          className="rounded border border-neutral-700 px-3 py-2 text-xs font-semibold text-neutral-300 transition hover:border-primary-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded border border-neutral-700 px-3 py-2 text-xs font-semibold text-neutral-300 transition hover:border-primary-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
           onClick={onDelete}
           disabled={deletingSetId === workoutSet.id}
