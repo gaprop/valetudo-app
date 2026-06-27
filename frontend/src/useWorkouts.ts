@@ -86,7 +86,7 @@ export function useWorkouts() {
     load();
   }, [load]);
 
-  async function createEntry(input: CreateWorkoutRequest): Promise<void> {
+  async function createEntry(input: CreateWorkoutRequest): Promise<boolean> {
     setPending((current) => ({ ...current, savingEntry: true }));
     setFormError("");
 
@@ -94,8 +94,10 @@ export function useWorkouts() {
       const workout = await createWorkout(input);
       setWorkouts((current) => sortWorkouts([workout, ...current]));
       setOpenWorkoutId(workout.id);
+      return true;
     } catch (err) {
       setFormError(errorMessage(err));
+      return false;
     } finally {
       setPending((current) => ({ ...current, savingEntry: false }));
     }

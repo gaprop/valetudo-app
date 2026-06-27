@@ -25,6 +25,9 @@ function App() {
   const [selectedPlanDayId, setSelectedPlanDayId] = useState<number | null>(
     null
   );
+  const [nextPlanIndexByDay, setNextPlanIndexByDay] = useState<
+    Record<number, number>
+  >({});
   const {
     exercises,
     loading: exerciseLoading,
@@ -64,27 +67,9 @@ function App() {
       return null;
     }
 
-    const completedToday = workouts
-      .filter((workout) => workout.trainingDate === today)
-      .reduce<Record<string, number>>((counts, workout) => {
-        counts[workout.exerciseType] = (counts[workout.exerciseType] || 0) + 1;
-        return counts;
-      }, {});
-    const plannedCounts: Record<string, number> = {};
-
-    for (const item of selectedPlanDay.items) {
-      plannedCounts[item.exerciseType] =
-        (plannedCounts[item.exerciseType] || 0) + 1;
-      if (
-        (completedToday[item.exerciseType] || 0) <
-        plannedCounts[item.exerciseType]
-      ) {
-        return item.exerciseType;
-      }
-    }
-
-    return null;
-  }, [selectedPlanDay, today, workouts]);
+    const nextIndex = nextPlanIndexByDay[selectedPlanDay.id] || 0;
+    return selectedPlanDay.items[nextIndex]?.exerciseType || null;
+  }, [nextPlanIndexByDay, selectedPlanDay]);
 
   useEffect(() => {
     if (
@@ -119,10 +104,16 @@ function App() {
       return;
     }
 
-    await createEntry({
+    const created = await createEntry({
       trainingDate: today,
       exerciseType: nextPlanExerciseType,
     });
+    if (created && selectedPlanDay) {
+      setNextPlanIndexByDay((current) => ({
+        ...current,
+        [selectedPlanDay.id]: (current[selectedPlanDay.id] || 0) + 1,
+      }));
+    }
   }
 
   const currentPrevious = useMemo(() => {
