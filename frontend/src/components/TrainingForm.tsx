@@ -1,21 +1,27 @@
 import type { FormEvent } from "react";
-import type { ExerciseOption, WorkoutForm } from "../types";
+import type { ExerciseOption, WorkoutForm, WorkoutPlanDay } from "../types";
 
 type TrainingFormProps = {
   form: WorkoutForm;
   exercises: ExerciseOption[];
+  planDays: WorkoutPlanDay[];
+  selectedPlanDayId: number | null;
   error: string;
   savingEntry: boolean;
   onChange: (form: WorkoutForm) => void;
+  onPlanDayChange: (dayID: number | null) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
 export function TrainingForm({
   form,
   exercises,
+  planDays,
+  selectedPlanDayId,
   error,
   savingEntry,
   onChange,
+  onPlanDayChange,
   onSubmit,
 }: TrainingFormProps) {
   return (
@@ -37,6 +43,30 @@ export function TrainingForm({
             }
             required
           />
+        </label>
+
+        <label className="grid gap-2 text-sm font-medium text-neutral-300">
+          Workout day
+          <select
+            className="input"
+            value={selectedPlanDayId ?? ""}
+            onChange={(event) =>
+              onPlanDayChange(
+                event.target.value === "" ? null : Number(event.target.value)
+              )
+            }
+            disabled={planDays.length === 0}
+          >
+            {planDays.length === 0 ? (
+              <option value="">No workout days</option>
+            ) : (
+              planDays.map((day) => (
+                <option key={day.id} value={day.id}>
+                  {day.name}
+                </option>
+              ))
+            )}
+          </select>
         </label>
 
         <label className="grid gap-2 text-sm font-medium text-neutral-300">

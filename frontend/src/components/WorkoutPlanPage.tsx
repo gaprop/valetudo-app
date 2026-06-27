@@ -1,35 +1,57 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type { ExerciseOption, ExerciseType, WorkoutPlanDay } from "../types";
-import { useWorkoutPlan } from "../useWorkoutPlan";
+import type {
+  CreateWorkoutPlanDayRequest,
+  CreateWorkoutPlanItemRequest,
+  ExerciseOption,
+  ExerciseType,
+  WorkoutPlanDay,
+} from "../types";
+import type { PlanPendingState } from "../useWorkoutPlan";
 import { labelFor } from "../workouts";
 import { ActionButton } from "./ActionButton";
 import { IconButton } from "./IconButton";
 
 type WorkoutPlanPageProps = {
   exercises: ExerciseOption[];
+  days: WorkoutPlanDay[];
+  loading: boolean;
+  pending: PlanPendingState;
+  error: string;
   exerciseLoading: boolean;
   exerciseError: string;
   creatingExercise: boolean;
   deletingExerciseValue: string | null;
+  onRefresh: () => void;
+  onAddDay: (input: CreateWorkoutPlanDayRequest) => Promise<boolean>;
+  onDeleteDay: (dayID: number) => void;
+  onAddItem: (input: CreateWorkoutPlanItemRequest) => Promise<boolean>;
+  onDeleteItem: (dayID: number, itemID: number) => void;
   onAddExercise: (label: string) => Promise<boolean>;
   onDeleteExercise: (value: string) => void;
 };
 
 export function WorkoutPlanPage({
   exercises,
+  days,
+  loading,
+  pending,
+  error,
   exerciseLoading,
   exerciseError,
   creatingExercise,
   deletingExerciseValue,
+  onRefresh,
+  onAddDay,
+  onDeleteDay,
+  onAddItem,
+  onDeleteItem,
   onAddExercise,
   onDeleteExercise,
 }: WorkoutPlanPageProps) {
   const [dayName, setDayName] = useState("");
   const [exerciseName, setExerciseName] = useState("");
   const [selectedExerciseValue, setSelectedExerciseValue] = useState("");
-  const { days, loading, pending, error, load, addDay, removeDay, addItem, removeItem } =
-    useWorkoutPlan();
 
   useEffect(() => {
     if (
@@ -45,7 +67,7 @@ export function WorkoutPlanPage({
 
   async function handleAddDay(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (await addDay({ name: dayName })) {
+    if (await onAddDay({ name: dayName })) {
       setDayName("");
     }
   }
@@ -162,7 +184,7 @@ export function WorkoutPlanPage({
           <h2 className="text-lg font-semibold text-white">Workout plan</h2>
           <button
             className="rounded border border-neutral-700 px-3 py-2 text-sm text-neutral-200 transition hover:border-primary-500 hover:text-white"
-            onClick={load}
+            onClick={onRefresh}
             type="button"
           >
             Refresh
@@ -185,9 +207,9 @@ export function WorkoutPlanPage({
                 addingItemDayId={pending.addingItemDayId}
                 deletingDayId={pending.deletingDayId}
                 deletingItemId={pending.deletingItemId}
-                onAddItem={addItem}
-                onDeleteDay={() => removeDay(day.id)}
-                onDeleteItem={(itemID) => removeItem(day.id, itemID)}
+                onAddItem={onAddItem}
+                onDeleteDay={() => onDeleteDay(day.id)}
+                onDeleteItem={(itemID) => onDeleteItem(day.id, itemID)}
               />
             ))}
           </div>

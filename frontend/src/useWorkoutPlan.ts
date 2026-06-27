@@ -13,7 +13,7 @@ import type {
   WorkoutPlanDay,
 } from "./types";
 
-type PlanPendingState = {
+export type PlanPendingState = {
   creatingDay: boolean;
   deletingDayId: number | null;
   addingItemDayId: number | null;

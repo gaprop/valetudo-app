@@ -8,7 +8,9 @@ import {
 } from "./components";
 import type { WorkoutForm } from "./types";
 import { useExercises } from "./useExercises";
+import { useWorkoutPlan } from "./useWorkoutPlan";
 import { useWorkouts } from "./useWorkouts";
+import { labelFor } from "./workouts";
 import "./styles.css";
 
 type Page = "log" | "plan";
@@ -20,6 +22,9 @@ function App() {
     trainingDate: today,
     exerciseType: "bench",
   });
+  const [selectedPlanDayId, setSelectedPlanDayId] = useState<number | null>(
+    null
+  );
   const {
     exercises,
     loading: exerciseLoading,
@@ -44,24 +49,93 @@ function App() {
     removeSet,
     toggleWorkout,
   } = useWorkouts();
+  const workoutPlan = useWorkoutPlan();
+
+  const selectedPlanDay = useMemo(() => {
+    return (
+      workoutPlan.days.find((day) => day.id === selectedPlanDayId) ||
+      workoutPlan.days[0] ||
+      null
+    );
+  }, [selectedPlanDayId, workoutPlan.days]);
+
+  const plannedExerciseValues = useMemo(() => {
+    return selectedPlanDay?.items.map((item) => item.exerciseType) || [];
+  }, [selectedPlanDay]);
+
+  const formExercises = useMemo(() => {
+    if (!selectedPlanDay || plannedExerciseValues.length === 0) {
+      return [];
+    }
+
+    const plannedValues = new Set(plannedExerciseValues);
+    return exercises.filter((exercise) => plannedValues.has(exercise.value));
+  }, [exercises, plannedExerciseValues, selectedPlanDay]);
+
+  const nextPlanExerciseType = useMemo(() => {
+    if (!selectedPlanDay) {
+      return null;
+    }
+
+    const completedToday = workouts
+      .filter((workout) => workout.trainingDate === today)
+      .reduce<Record<string, number>>((counts, workout) => {
+        counts[workout.exerciseType] = (counts[workout.exerciseType] || 0) + 1;
+        return counts;
+      }, {});
+    const plannedCounts: Record<string, number> = {};
+
+    for (const item of selectedPlanDay.items) {
+      plannedCounts[item.exerciseType] =
+        (plannedCounts[item.exerciseType] || 0) + 1;
+      if (
+        (completedToday[item.exerciseType] || 0) <
+        plannedCounts[item.exerciseType]
+      ) {
+        return item.exerciseType;
+      }
+    }
+
+    return null;
+  }, [selectedPlanDay, today, workouts]);
 
   useEffect(() => {
     if (
-      exercises.length > 0 &&
-      !exercises.some((exercise) => exercise.value === form.exerciseType)
+      workoutPlan.days.length > 0 &&
+      !workoutPlan.days.some((day) => day.id === selectedPlanDayId)
+    ) {
+      setSelectedPlanDayId(workoutPlan.days[0].id);
+    }
+  }, [selectedPlanDayId, workoutPlan.days]);
+
+  useEffect(() => {
+    if (
+      formExercises.length > 0 &&
+      !formExercises.some((exercise) => exercise.value === form.exerciseType)
     ) {
       setForm((current) => ({
         ...current,
-        exerciseType: exercises[0].value,
+        exerciseType: formExercises[0].value,
       }));
     }
-  }, [exercises, form.exerciseType]);
+  }, [form.exerciseType, formExercises]);
 
   async function handleCreateWorkout(
     event: React.FormEvent<HTMLFormElement>
   ): Promise<void> {
     event.preventDefault();
     await createEntry(form);
+  }
+
+  async function handleAddNextPlanWorkout(): Promise<void> {
+    if (!nextPlanExerciseType) {
+      return;
+    }
+
+    await createEntry({
+      trainingDate: today,
+      exerciseType: nextPlanExerciseType,
+    });
   }
 
   const currentPrevious = useMemo(() => {
@@ -120,20 +194,30 @@ function App() {
           <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
             <TrainingForm
               form={form}
-              exercises={exercises}
+              exercises={formExercises}
+              planDays={workoutPlan.days}
+              selectedPlanDayId={selectedPlanDay?.id ?? null}
               error={formError}
               savingEntry={pending.savingEntry}
               onChange={setForm}
+              onPlanDayChange={setSelectedPlanDayId}
               onSubmit={handleCreateWorkout}
             />
             <EntriesList
               workouts={workouts}
               exercises={exercises}
               loading={loading}
+              nextPlanExerciseLabel={
+                nextPlanExerciseType
+                  ? labelFor(exercises, nextPlanExerciseType)
+                  : null
+              }
+              selectedPlanDayName={selectedPlanDay?.name || null}
               pending={pending}
               entryErrors={entryErrors}
               openWorkoutId={openWorkoutId}
               onRefresh={load}
+              onAddNextPlanWorkout={() => void handleAddNextPlanWorkout()}
               onToggleWorkout={toggleWorkout}
               onAddSet={addSet}
               onUpdateSet={updateSet}
@@ -144,10 +228,21 @@ function App() {
         ) : (
           <WorkoutPlanPage
             exercises={exercises}
+            days={workoutPlan.days}
+            loading={workoutPlan.loading}
+            pending={workoutPlan.pending}
+            error={workoutPlan.error}
             exerciseLoading={exerciseLoading}
             exerciseError={exerciseError}
             creatingExercise={creatingExercise}
             deletingExerciseValue={deletingExerciseValue}
+            onRefresh={workoutPlan.load}
+            onAddDay={workoutPlan.addDay}
+            onDeleteDay={(dayID) => void workoutPlan.removeDay(dayID)}
+            onAddItem={workoutPlan.addItem}
+            onDeleteItem={(dayID, itemID) =>
+              void workoutPlan.removeItem(dayID, itemID)
+            }
             onAddExercise={addExercise}
             onDeleteExercise={(value) => void removeExercise(value)}
           />
