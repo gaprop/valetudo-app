@@ -248,7 +248,7 @@ func (s *Server) listWorkouts(w http.ResponseWriter, r *http.Request) {
 	rows, err := s.db.Query(r.Context(), `
 		SELECT id, training_date, exercise_type, created_at
 		FROM workout_entries
-		ORDER BY training_date DESC, created_at DESC, id DESC
+		ORDER BY training_date, created_at, id
 	`)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "could not list workouts")

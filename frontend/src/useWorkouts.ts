@@ -34,9 +34,9 @@ const initialPendingState: PendingState = {
 function sortWorkouts(workouts: Workout[]): Workout[] {
   return [...workouts].sort((a, b) => {
     if (a.trainingDate !== b.trainingDate) {
-      return b.trainingDate.localeCompare(a.trainingDate);
+      return a.trainingDate.localeCompare(b.trainingDate);
     }
-    return Date.parse(b.createdAt) - Date.parse(a.createdAt) || b.id - a.id;
+    return Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id;
   });
 }
 
@@ -74,7 +74,7 @@ export function useWorkouts() {
     setLoading(true);
     setFormError("");
     try {
-      setWorkouts(await listWorkouts());
+      setWorkouts(sortWorkouts(await listWorkouts()));
     } catch (err) {
       setFormError(errorMessage(err));
     } finally {

@@ -15,7 +15,7 @@ A small full-stack fitness tracker for logging strength training entries. The ap
 - Add workout entries for any configured exercise
 - Add any number of set weights and reps to each training entry
 - Build a reusable workout plan made of day names and planned exercises
-- List all entries newest first
+- List entries oldest first so the newest entries appear at the bottom
 - Show recent set history per exercise
 - Basic API validation for exercise, date, set weight, and reps
 - Database schema setup through a Docker Compose init service
@@ -114,7 +114,7 @@ Deletes an exercise if it is not used by workouts or workout plans.
 
 ### `GET /api/workouts`
 
-Returns workout entries ordered by newest training date first. Each entry includes its set list.
+Returns workout entries ordered oldest first. Each entry includes its set list.
 
 ### `POST /api/workouts`
 
