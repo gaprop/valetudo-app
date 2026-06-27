@@ -11,6 +11,7 @@ type EntriesListProps = {
   workouts: Workout[];
   exercises: ExerciseOption[];
   loading: boolean;
+  selectedDate: string;
   nextPlanExerciseLabel: string | null;
   selectedPlanDayName: string | null;
   pending: {
@@ -35,6 +36,7 @@ export function EntriesList({
   workouts,
   exercises,
   loading,
+  selectedDate,
   nextPlanExerciseLabel,
   selectedPlanDayName,
   pending,
@@ -51,7 +53,10 @@ export function EntriesList({
   return (
     <section className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900 shadow-2xl shadow-black/30">
       <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
-        <h2 className="text-lg font-semibold text-white">Entries</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-white">Entries</h2>
+          <p className="mt-1 text-sm text-neutral-400">{selectedDate}</p>
+        </div>
         <button
           className="rounded border border-neutral-700 px-3 py-2 text-sm text-neutral-200 transition hover:border-primary-500 hover:text-white"
           onClick={onRefresh}
@@ -68,7 +73,7 @@ export function EntriesList({
           </p>
         ) : workouts.length === 0 ? (
           <p className="px-5 py-8 text-sm text-neutral-400">
-            No training entries yet.
+            No training entries for this day.
           </p>
         ) : (
           <div className="divide-y divide-neutral-800">

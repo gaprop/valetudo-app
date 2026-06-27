@@ -26,7 +26,7 @@ function App() {
     null
   );
   const [nextPlanIndexByDay, setNextPlanIndexByDay] = useState<
-    Record<number, number>
+    Record<string, number>
   >({});
   const {
     exercises,
@@ -62,14 +62,24 @@ function App() {
     );
   }, [selectedPlanDayId, workoutPlan.days]);
 
+  const selectedDateWorkouts = useMemo(() => {
+    return workouts.filter(
+      (workout) => workout.trainingDate === form.trainingDate
+    );
+  }, [form.trainingDate, workouts]);
+
+  const nextPlanKey = selectedPlanDay
+    ? `${selectedPlanDay.id}:${form.trainingDate}`
+    : "";
+
   const nextPlanExerciseType = useMemo(() => {
     if (!selectedPlanDay) {
       return null;
     }
 
-    const nextIndex = nextPlanIndexByDay[selectedPlanDay.id] || 0;
+    const nextIndex = nextPlanIndexByDay[nextPlanKey] || 0;
     return selectedPlanDay.items[nextIndex]?.exerciseType || null;
-  }, [nextPlanIndexByDay, selectedPlanDay]);
+  }, [nextPlanIndexByDay, nextPlanKey, selectedPlanDay]);
 
   useEffect(() => {
     if (
@@ -105,13 +115,13 @@ function App() {
     }
 
     const created = await createEntry({
-      trainingDate: today,
+      trainingDate: form.trainingDate,
       exerciseType: nextPlanExerciseType,
     });
     if (created && selectedPlanDay) {
       setNextPlanIndexByDay((current) => ({
         ...current,
-        [selectedPlanDay.id]: (current[selectedPlanDay.id] || 0) + 1,
+        [nextPlanKey]: (current[nextPlanKey] || 0) + 1,
       }));
     }
   }
@@ -182,9 +192,10 @@ function App() {
               onSubmit={handleCreateWorkout}
             />
             <EntriesList
-              workouts={workouts}
+              workouts={selectedDateWorkouts}
               exercises={exercises}
               loading={loading}
+              selectedDate={form.trainingDate}
               nextPlanExerciseLabel={
                 nextPlanExerciseType
                   ? labelFor(exercises, nextPlanExerciseType)
