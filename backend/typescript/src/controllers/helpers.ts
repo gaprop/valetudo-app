@@ -1,6 +1,5 @@
-import type { Request } from "express";
+import type { Request, Response } from "express";
 import { HttpError } from "../middleware/errors";
-import { pool } from "../db/pool";
 
 export function parsePositivePathID(req: Request, name: string, label: string) {
   const value = Number(req.params[name]);
@@ -10,44 +9,13 @@ export function parsePositivePathID(req: Request, name: string, label: string) {
   return value;
 }
 
-export function requireString(value: unknown, message: string) {
-  if (typeof value !== "string") {
-    throw new HttpError(400, message);
-  }
-  return value.trim();
-}
+export function handleControllerError(error: unknown, res: Response) {
+  console.error(error);
 
-export function requireNumber(value: unknown, message: string) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) {
-    throw new HttpError(400, message);
-  }
-  return number;
-}
-
-export async function validateExerciseValue(value: string) {
-  const exerciseValue = value.trim();
-  if (!exerciseValue) {
-    throw new HttpError(400, "exercise is required");
+  if (error instanceof HttpError) {
+    res.status(error.status).json({ error: error.message });
+    return;
   }
 
-  const result = await pool.query<{ exists: boolean }>(
-    `
-      SELECT EXISTS (
-        SELECT 1
-        FROM exercise_types
-        WHERE value = $1
-      )
-    `,
-    [exerciseValue]
-  );
-  if (!result.rows[0]?.exists) {
-    throw new HttpError(400, "exercise does not exist");
-  }
-
-  return exerciseValue;
-}
-
-export function formatDate(value: Date) {
-  return value.toISOString().slice(0, 10);
+  res.status(500).json({ error: "internal server error" });
 }
