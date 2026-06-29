@@ -1,12 +1,11 @@
 import { pool } from "../db/pool";
 import { HttpError } from "../middleware/errors";
+import type {
+  ValidatedWorkoutBody,
+  ValidatedWorkoutSetBody,
+} from "../middleware/validation";
 import type { Workout, WorkoutSet } from "../types/api";
-import {
-  formatDate,
-  requireNumber,
-  requireString,
-  validateExerciseValue,
-} from "./helpers";
+import { formatDate } from "./helpers";
 
 type WorkoutRow = {
   id: string;
@@ -79,30 +78,6 @@ async function getWorkout(id: number) {
   return workout;
 }
 
-function validateWorkoutSetInput(body: unknown) {
-  const input = body && typeof body === "object" ? body : {};
-  const weight = requireNumber(
-    (input as { weight?: unknown }).weight,
-    "weight must be a number"
-  );
-  const reps = requireNumber(
-    (input as { reps?: unknown }).reps,
-    "reps must be a number"
-  );
-
-  if (weight < 0) {
-    throw new HttpError(400, "weight cannot be negative");
-  }
-  if (weight > 999999.99) {
-    throw new HttpError(400, "weight is too large");
-  }
-  if (!Number.isInteger(reps) || reps <= 0) {
-    throw new HttpError(400, "reps must be greater than zero");
-  }
-
-  return { weight, reps };
-}
-
 export class WorkoutsService {
   static async listWorkouts() {
     const result = await pool.query<WorkoutRow>(
@@ -121,19 +96,7 @@ export class WorkoutsService {
     return workouts;
   }
 
-  static async createWorkout(trainingDateInput: unknown, exerciseTypeInput: unknown) {
-    const trainingDate = requireString(
-      trainingDateInput,
-      "trainingDate must use YYYY-MM-DD format"
-    );
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(trainingDate)) {
-      throw new HttpError(400, "trainingDate must use YYYY-MM-DD format");
-    }
-
-    const exerciseType = await validateExerciseValue(
-      requireString(exerciseTypeInput, "exercise is required")
-    );
-
+  static async createWorkout({ trainingDate, exerciseType }: ValidatedWorkoutBody) {
     const result = await pool.query<{ id: string }>(
       `
         INSERT INTO workout_entries (training_date, exercise_type)
@@ -159,9 +122,10 @@ export class WorkoutsService {
     }
   }
 
-  static async createWorkoutSet(workoutID: number, body: unknown) {
-    const { weight, reps } = validateWorkoutSetInput(body);
-
+  static async createWorkoutSet(
+    workoutID: number,
+    { weight, reps }: ValidatedWorkoutSetBody
+  ) {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -198,9 +162,11 @@ export class WorkoutsService {
     }
   }
 
-  static async updateWorkoutSet(workoutID: number, setID: number, body: unknown) {
-    const { weight, reps } = validateWorkoutSetInput(body);
-
+  static async updateWorkoutSet(
+    workoutID: number,
+    setID: number,
+    { weight, reps }: ValidatedWorkoutSetBody
+  ) {
     const result = await pool.query<WorkoutSetRow>(
       `
         UPDATE workout_sets

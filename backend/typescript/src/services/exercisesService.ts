@@ -1,33 +1,6 @@
 import { pool } from "../db/pool";
 import { HttpError } from "../middleware/errors";
-import { requireString } from "./helpers";
-
-const nonSlugCharacters = /[^a-z0-9]+/g;
-
-function slugifyExerciseLabel(label: string) {
-  return label
-    .trim()
-    .toLowerCase()
-    .replace(nonSlugCharacters, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function validateExercise(labelInput: unknown) {
-  const label = requireString(labelInput, "exercise name is required");
-  if (!label) {
-    throw new HttpError(400, "exercise name is required");
-  }
-  if (label.length > 80) {
-    throw new HttpError(400, "exercise name is too long");
-  }
-
-  const value = slugifyExerciseLabel(label);
-  if (!value) {
-    throw new HttpError(400, "exercise name must include letters or numbers");
-  }
-
-  return { label, value };
-}
+import type { ValidatedExerciseBody } from "../middleware/validation";
 
 export class ExercisesService {
   static async listExercises() {
@@ -41,9 +14,7 @@ export class ExercisesService {
     return result.rows;
   }
 
-  static async createExercise(labelInput: unknown) {
-    const { label, value } = validateExercise(labelInput);
-
+  static async createExercise({ label, value }: ValidatedExerciseBody) {
     try {
       const result = await pool.query(
         `
@@ -62,12 +33,7 @@ export class ExercisesService {
     }
   }
 
-  static async deleteExercise(valueInput: string) {
-    const value = valueInput.trim();
-    if (!value) {
-      throw new HttpError(400, "exercise is required");
-    }
-
+  static async deleteExercise(value: string) {
     const used = await pool.query<{ exists: boolean }>(
       `
         SELECT EXISTS (

@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
+import type {
+  ValidatedWorkoutBody,
+  ValidatedWorkoutSetBody,
+} from "../middleware/validation";
 import { WorkoutsService } from "../services/workoutsService";
-import { handleControllerError, parsePositivePathID } from "./helpers";
+import { handleControllerError } from "./helpers";
 
 export class WorkoutsController {
   static async listWorkouts(_req: Request, res: Response) {
@@ -12,11 +16,10 @@ export class WorkoutsController {
     }
   }
 
-  static async createWorkout(req: Request, res: Response) {
+  static async createWorkout(_req: Request, res: Response) {
     try {
       const workout = await WorkoutsService.createWorkout(
-        req.body?.trainingDate,
-        req.body?.exerciseType
+        res.locals.workoutBody as ValidatedWorkoutBody
       );
       res.status(201).json(workout);
     } catch (error) {
@@ -24,9 +27,9 @@ export class WorkoutsController {
     }
   }
 
-  static async deleteWorkout(req: Request, res: Response) {
+  static async deleteWorkout(_req: Request, res: Response) {
     try {
-      const workoutID = parsePositivePathID(req, "id", "workout id");
+      const workoutID = res.locals.id as number;
       await WorkoutsService.deleteWorkout(workoutID);
       res.status(204).send();
     } catch (error) {
@@ -34,12 +37,12 @@ export class WorkoutsController {
     }
   }
 
-  static async createWorkoutSet(req: Request, res: Response) {
+  static async createWorkoutSet(_req: Request, res: Response) {
     try {
-      const workoutID = parsePositivePathID(req, "id", "workout id");
+      const workoutID = res.locals.id as number;
       const workoutSet = await WorkoutsService.createWorkoutSet(
         workoutID,
-        req.body
+        res.locals.workoutSetBody as ValidatedWorkoutSetBody
       );
       res.status(201).json(workoutSet);
     } catch (error) {
@@ -47,14 +50,14 @@ export class WorkoutsController {
     }
   }
 
-  static async updateWorkoutSet(req: Request, res: Response) {
+  static async updateWorkoutSet(_req: Request, res: Response) {
     try {
-      const workoutID = parsePositivePathID(req, "id", "workout id");
-      const setID = parsePositivePathID(req, "setID", "set id");
+      const workoutID = res.locals.id as number;
+      const setID = res.locals.setID as number;
       const workoutSet = await WorkoutsService.updateWorkoutSet(
         workoutID,
         setID,
-        req.body
+        res.locals.workoutSetBody as ValidatedWorkoutSetBody
       );
       res.json(workoutSet);
     } catch (error) {
@@ -62,10 +65,10 @@ export class WorkoutsController {
     }
   }
 
-  static async deleteWorkoutSet(req: Request, res: Response) {
+  static async deleteWorkoutSet(_req: Request, res: Response) {
     try {
-      const workoutID = parsePositivePathID(req, "id", "workout id");
-      const setID = parsePositivePathID(req, "setID", "set id");
+      const workoutID = res.locals.id as number;
+      const setID = res.locals.setID as number;
       await WorkoutsService.deleteWorkoutSet(workoutID, setID);
       res.status(204).send();
     } catch (error) {

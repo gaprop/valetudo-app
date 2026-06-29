@@ -1,7 +1,10 @@
 import { pool } from "../db/pool";
 import { HttpError } from "../middleware/errors";
+import type {
+  ValidatedWorkoutPlanDayBody,
+  ValidatedWorkoutPlanItemBody,
+} from "../middleware/validation";
 import type { WorkoutPlanDay, WorkoutPlanItem } from "../types/api";
-import { requireString, validateExerciseValue } from "./helpers";
 
 type WorkoutPlanDayRow = {
   id: string;
@@ -50,17 +53,6 @@ async function loadWorkoutPlanItems(days: WorkoutPlanDay[]) {
   }
 }
 
-function validateWorkoutPlanDayName(value: unknown) {
-  const name = requireString(value, "day name is required");
-  if (!name) {
-    throw new HttpError(400, "day name is required");
-  }
-  if (name.length > 80) {
-    throw new HttpError(400, "day name is too long");
-  }
-  return name;
-}
-
 export class WorkoutPlanService {
   static async listWorkoutPlanDays() {
     const result = await pool.query<WorkoutPlanDayRow>(
@@ -75,8 +67,7 @@ export class WorkoutPlanService {
     return days;
   }
 
-  static async createWorkoutPlanDay(nameInput: unknown) {
-    const name = validateWorkoutPlanDayName(nameInput);
+  static async createWorkoutPlanDay({ name }: ValidatedWorkoutPlanDayBody) {
     const result = await pool.query<WorkoutPlanDayRow>(
       `
         INSERT INTO workout_plan_days (name)
@@ -102,11 +93,10 @@ export class WorkoutPlanService {
     }
   }
 
-  static async createWorkoutPlanItem(dayID: number, exerciseTypeInput: unknown) {
-    const exerciseType = await validateExerciseValue(
-      requireString(exerciseTypeInput, "exercise is required")
-    );
-
+  static async createWorkoutPlanItem(
+    dayID: number,
+    { exerciseType }: ValidatedWorkoutPlanItemBody
+  ) {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
