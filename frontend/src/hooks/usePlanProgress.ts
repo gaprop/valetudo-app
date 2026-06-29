@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import type { WorkoutPlanDay } from "../types";
+import type { PlanDay } from "../types";
 
-const storageKey = "fitness-workout-plan-progress";
+const storageKey = "fitness-trainingSession-plan-progress";
 
 function readProgress(): Record<string, number> {
   try {
@@ -16,8 +16,8 @@ function readProgress(): Record<string, number> {
   }
 }
 
-export function useWorkoutPlanProgress(
-  selectedPlanDay: WorkoutPlanDay | null,
+export function usePlanProgress(
+  selectedPlanDay: PlanDay | null,
   selectedDate: string
 ) {
   const [progress, setProgress] = useState<Record<string, number>>(() =>

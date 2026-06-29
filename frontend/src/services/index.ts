@@ -1,3 +1,3 @@
-export { exercisesService } from "./exercisesService";
-export { workoutsService } from "./workoutsService";
-export { workoutPlanService } from "./workoutPlanService";
+export { exerciseCatalogService } from "./exerciseCatalogService";
+export { trainingSessionsService } from "./trainingSessionsService";
+export { planDaysService } from "./planDaysService";

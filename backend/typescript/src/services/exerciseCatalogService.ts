@@ -2,7 +2,7 @@ import { pool } from "../db/pool";
 import { HttpError } from "../middleware/errors";
 import type { ValidatedExerciseBody } from "../middleware/validation";
 
-export class ExercisesService {
+export class ExerciseCatalogService {
   static async listExercises() {
     const result = await pool.query(
       `
@@ -45,7 +45,7 @@ export class ExercisesService {
       [value]
     );
     if (used.rows[0]?.exists) {
-      throw new HttpError(400, "exercise is used by workouts or plans");
+      throw new HttpError(400, "exercise is used by trainingSessions or plans");
     }
 
     const result = await pool.query(

@@ -1,12 +1,12 @@
 import type { SetForm } from "../types";
 
-type MetricInputsProps = {
+type SetMetricInputsProps = {
   label: string;
   value: SetForm;
   onChange: (field: keyof SetForm, value: string) => void;
 };
 
-export function MetricInputs({ label, value, onChange }: MetricInputsProps) {
+export function SetMetricInputs({ label, value, onChange }: SetMetricInputsProps) {
   return (
     <div className="min-w-0">
       <p className="text-xs uppercase tracking-wide text-neutral-500">{label}</p>

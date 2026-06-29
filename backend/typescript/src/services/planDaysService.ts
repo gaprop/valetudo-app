@@ -1,24 +1,24 @@
 import { pool } from "../db/pool";
 import { HttpError } from "../middleware/errors";
 import type {
-  ValidatedWorkoutPlanDayBody,
-  ValidatedWorkoutPlanItemBody,
+  ValidatedPlanDayBody,
+  ValidatedPlanExerciseBody,
 } from "../middleware/validation";
-import type { WorkoutPlanDay, WorkoutPlanItem } from "../types/api";
+import type { PlanDay, PlanExercise } from "../types/api";
 
-type WorkoutPlanDayRow = {
+type PlanDayRow = {
   id: string;
   name: string;
   createdAt: Date;
 };
 
-type WorkoutPlanItemRow = {
+type PlanExerciseRow = {
   id: string;
   exerciseType: string;
   createdAt: Date;
 };
 
-function mapPlanDay(row: WorkoutPlanDayRow): WorkoutPlanDay {
+function mapPlanDay(row: PlanDayRow): PlanDay {
   return {
     id: row.id,
     name: row.name,
@@ -27,7 +27,7 @@ function mapPlanDay(row: WorkoutPlanDayRow): WorkoutPlanDay {
   };
 }
 
-function mapPlanItem(row: WorkoutPlanItemRow): WorkoutPlanItem {
+function mapPlanExercise(row: PlanExerciseRow): PlanExercise {
   return {
     id: row.id,
     exerciseType: row.exerciseType,
@@ -35,9 +35,9 @@ function mapPlanItem(row: WorkoutPlanItemRow): WorkoutPlanItem {
   };
 }
 
-async function loadWorkoutPlanItems(days: WorkoutPlanDay[]) {
+async function loadPlanExercises(days: PlanDay[]) {
   for (const day of days) {
-    const result = await pool.query<WorkoutPlanItemRow>(
+    const result = await pool.query<PlanExerciseRow>(
       `
         SELECT
           id,
@@ -49,13 +49,13 @@ async function loadWorkoutPlanItems(days: WorkoutPlanDay[]) {
       `,
       [day.id]
     );
-    day.items = result.rows.map(mapPlanItem);
+    day.items = result.rows.map(mapPlanExercise);
   }
 }
 
-export class WorkoutPlanService {
-  static async listWorkoutPlanDays() {
-    const result = await pool.query<WorkoutPlanDayRow>(
+export class PlanDaysService {
+  static async listPlanDays() {
+    const result = await pool.query<PlanDayRow>(
       `
         SELECT id, name, created_at AS "createdAt"
         FROM workout_plan_days
@@ -63,12 +63,12 @@ export class WorkoutPlanService {
       `
     );
     const days = result.rows.map(mapPlanDay);
-    await loadWorkoutPlanItems(days);
+    await loadPlanExercises(days);
     return days;
   }
 
-  static async createWorkoutPlanDay({ name }: ValidatedWorkoutPlanDayBody) {
-    const result = await pool.query<WorkoutPlanDayRow>(
+  static async createPlanDay({ name }: ValidatedPlanDayBody) {
+    const result = await pool.query<PlanDayRow>(
       `
         INSERT INTO workout_plan_days (name)
         VALUES ($1)
@@ -80,7 +80,7 @@ export class WorkoutPlanService {
     return mapPlanDay(result.rows[0]);
   }
 
-  static async deleteWorkoutPlanDay(dayID: string) {
+  static async deletePlanDay(dayID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_plan_days
@@ -93,9 +93,9 @@ export class WorkoutPlanService {
     }
   }
 
-  static async createWorkoutPlanItem(
+  static async createPlanExercise(
     dayID: string,
-    { exerciseType }: ValidatedWorkoutPlanItemBody
+    { exerciseType }: ValidatedPlanExerciseBody
   ) {
     const client = await pool.connect();
     try {
@@ -115,7 +115,7 @@ export class WorkoutPlanService {
         throw new HttpError(404, "workout plan day was not found");
       }
 
-      const result = await client.query<WorkoutPlanItemRow>(
+      const result = await client.query<PlanExerciseRow>(
         `
           INSERT INTO workout_plan_items (day_id, exercise_type)
           VALUES ($1, $2)
@@ -127,7 +127,7 @@ export class WorkoutPlanService {
         [dayID, exerciseType]
       );
       await client.query("COMMIT");
-      return mapPlanItem(result.rows[0]);
+      return mapPlanExercise(result.rows[0]);
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
@@ -136,7 +136,7 @@ export class WorkoutPlanService {
     }
   }
 
-  static async deleteWorkoutPlanItem(dayID: string, itemID: string) {
+  static async deletePlanExercise(dayID: string, itemID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_plan_items

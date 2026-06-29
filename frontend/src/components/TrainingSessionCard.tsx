@@ -1,43 +1,43 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type { Exercise, ID, SetForm, Workout } from "../types";
-import { formatWeight, labelFor, maxWeight } from "../workouts";
+import type { Exercise, ID, SetForm, TrainingSession } from "../types";
+import { formatWeight, labelFor, maxWeight } from "../trainingSessions";
 import { ActionButton } from "./ActionButton";
 import { IconButton } from "./IconButton";
-import { MetricInputs } from "./MetricInputs";
-import { WorkoutSetRow } from "./WorkoutSetRow";
+import { SetMetricInputs } from "./SetMetricInputs";
+import { TrainingSetRow } from "./TrainingSetRow";
 
-type WorkoutEntryProps = {
-  workout: Workout;
+type TrainingSessionCardProps = {
+  trainingSession: TrainingSession;
   exercises: Exercise[];
   error: string;
   savingSetId: ID | null;
   updatingSetId: ID | null;
-  deletingWorkoutId: ID | null;
+  deletingTrainingSessionId: ID | null;
   deletingSetId: ID | null;
   isOpen: boolean;
   onToggle: () => void;
   onAddSet: (form: SetForm) => Promise<boolean>;
   onUpdateSet: (setID: ID, form: SetForm) => void;
-  onDeleteWorkout: () => void;
+  onDeleteTrainingSession: () => void;
   onDeleteSet: (setID: ID) => void;
 };
 
-export function WorkoutEntry({
-  workout,
+export function TrainingSessionCard({
+  trainingSession,
   exercises,
   error,
   savingSetId,
   updatingSetId,
-  deletingWorkoutId,
+  deletingTrainingSessionId,
   deletingSetId,
   isOpen,
   onToggle,
   onAddSet,
   onUpdateSet,
-  onDeleteWorkout,
+  onDeleteTrainingSession,
   onDeleteSet,
-}: WorkoutEntryProps) {
+}: TrainingSessionCardProps) {
   const [setForm, setSetForm] = useState<SetForm>({ weight: "", reps: "" });
 
   async function handleAddSet(event: FormEvent<HTMLFormElement>) {
@@ -57,15 +57,15 @@ export function WorkoutEntry({
           onClick={onToggle}
         >
           <span className="block text-base font-semibold text-white">
-            {labelFor(exercises, workout.exerciseType)}
+            {labelFor(exercises, trainingSession.exerciseType)}
           </span>
         </button>
         <span className="flex flex-wrap items-center gap-2 text-sm text-neutral-300 sm:justify-end">
           <span className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1">
-            {workout.sets.length} {workout.sets.length === 1 ? "set" : "sets"}
+            {trainingSession.sets.length} {trainingSession.sets.length === 1 ? "set" : "sets"}
           </span>
           <span className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1">
-            Best {formatWeight(maxWeight(workout.sets))}
+            Best {formatWeight(maxWeight(trainingSession.sets))}
           </span>
         </span>
         <div className="flex flex-wrap gap-2 sm:justify-self-end">
@@ -78,10 +78,10 @@ export function WorkoutEntry({
             {isOpen ? "Close" : "Open"}
           </button>
           <IconButton
-            label={`Delete ${labelFor(exercises, workout.exerciseType)} training on ${workout.trainingDate}`}
+            label={`Delete ${labelFor(exercises, trainingSession.exerciseType)} training on ${trainingSession.trainingDate}`}
             title="Delete training"
-            onClick={onDeleteWorkout}
-            disabled={deletingWorkoutId === workout.id}
+            onClick={onDeleteTrainingSession}
+            disabled={deletingTrainingSessionId === trainingSession.id}
           >
             <X aria-hidden="true" size={16} strokeWidth={2.25} />
           </IconButton>
@@ -97,14 +97,14 @@ export function WorkoutEntry({
           )}
 
           <div>
-            {workout.sets.length === 0 ? (
+            {trainingSession.sets.length === 0 ? (
               <p className="text-sm text-neutral-500">No sets added yet.</p>
             ) : (
               <div className="grid gap-2">
-                {workout.sets.map((set, index) => (
-                  <WorkoutSetRow
+                {trainingSession.sets.map((set, index) => (
+                  <TrainingSetRow
                     key={set.id}
-                    workoutSet={set}
+                    trainingSet={set}
                     displayNumber={index + 1}
                     updatingSetId={updatingSetId}
                     deletingSetId={deletingSetId}
@@ -120,7 +120,7 @@ export function WorkoutEntry({
             className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
             onSubmit={handleAddSet}
           >
-            <MetricInputs
+            <SetMetricInputs
               label="New set"
               value={setForm}
               onChange={(field, value) =>
@@ -128,8 +128,8 @@ export function WorkoutEntry({
               }
             />
             <div className="grid gap-2 sm:w-40">
-              <ActionButton type="submit" disabled={savingSetId === workout.id}>
-                {savingSetId === workout.id ? "Adding" : "Add set"}
+              <ActionButton type="submit" disabled={savingSetId === trainingSession.id}>
+                {savingSetId === trainingSession.id ? "Adding" : "Add set"}
               </ActionButton>
             </div>
           </form>

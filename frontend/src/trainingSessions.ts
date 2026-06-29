@@ -1,4 +1,4 @@
-import type { Exercise, ExerciseValue, WorkoutSet } from "./types";
+import type { Exercise, ExerciseValue, TrainingSet } from "./types";
 
 export function labelFor(
   exercises: Exercise[],
@@ -17,7 +17,7 @@ export function formatWeight(value: number | null): string {
   })} kg`;
 }
 
-export function maxWeight(sets: WorkoutSet[]): number | null {
+export function maxWeight(sets: TrainingSet[]): number | null {
   if (sets.length === 0) {
     return null;
   }

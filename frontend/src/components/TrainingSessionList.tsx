@@ -2,12 +2,12 @@ import type {
   ID,
   SetForm,
   Exercise,
-  Workout,
+  TrainingSession,
 } from "../types";
-import { WorkoutEntry } from "./WorkoutEntry";
+import { TrainingSessionCard } from "./TrainingSessionCard";
 
-type EntriesListProps = {
-  workouts: Workout[];
+type TrainingSessionListProps = {
+  trainingSessions: TrainingSession[];
   exercises: Exercise[];
   loading: boolean;
   nextPlanExerciseLabel: string | null;
@@ -16,45 +16,45 @@ type EntriesListProps = {
     savingEntry: boolean;
     savingSetId: ID | null;
     updatingSetId: ID | null;
-    deletingWorkoutId: ID | null;
+    deletingTrainingSessionId: ID | null;
     deletingSetId: ID | null;
   };
   entryErrors: Record<ID, string>;
-  openWorkoutId: ID | null;
+  openTrainingSessionId: ID | null;
   onRefresh: () => void;
-  onAddNextPlanWorkout: () => void;
-  onToggleWorkout: (workoutID: ID) => void;
-  onAddSet: (workoutID: ID, form: SetForm) => Promise<boolean>;
+  onAddNextPlanSession: () => void;
+  onToggleTrainingSession: (trainingSessionID: ID) => void;
+  onAddSet: (trainingSessionID: ID, form: SetForm) => Promise<boolean>;
   onUpdateSet: (
-    workoutID: ID,
+    trainingSessionID: ID,
     setID: ID,
     form: SetForm
   ) => Promise<void>;
-  onDeleteWorkout: (workoutID: ID) => void;
-  onDeleteSet: (workoutID: ID, setID: ID) => void;
+  onDeleteTrainingSession: (trainingSessionID: ID) => void;
+  onDeleteSet: (trainingSessionID: ID, setID: ID) => void;
 };
 
-export function EntriesList({
-  workouts,
+export function TrainingSessionList({
+  trainingSessions,
   exercises,
   loading,
   nextPlanExerciseLabel,
   selectedPlanDayName,
   pending,
   entryErrors,
-  openWorkoutId,
+  openTrainingSessionId,
   onRefresh,
-  onAddNextPlanWorkout,
-  onToggleWorkout,
+  onAddNextPlanSession,
+  onToggleTrainingSession,
   onAddSet,
   onUpdateSet,
-  onDeleteWorkout,
+  onDeleteTrainingSession,
   onDeleteSet,
-}: EntriesListProps) {
+}: TrainingSessionListProps) {
   return (
     <section className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900 shadow-2xl shadow-black/30">
       <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
-        <h2 className="text-lg font-semibold text-white">Entries</h2>
+        <h2 className="text-lg font-semibold text-white">Training sessions</h2>
         <button
           className="rounded border border-neutral-700 px-3 py-2 text-sm text-neutral-200 transition hover:border-primary-500 hover:text-white"
           onClick={onRefresh}
@@ -67,32 +67,32 @@ export function EntriesList({
       <div>
         {loading ? (
           <p className="px-5 py-8 text-sm text-neutral-400">
-            Loading entries...
+            Loading training sessions...
           </p>
-        ) : workouts.length === 0 ? (
+        ) : trainingSessions.length === 0 ? (
           <p className="px-5 py-8 text-sm text-neutral-400">
-            No training entries for this day.
+            No training sessions for this day.
           </p>
         ) : (
           <div className="divide-y divide-neutral-800">
-            {workouts.map((workout) => (
-              <WorkoutEntry
-                key={workout.id}
-                workout={workout}
+            {trainingSessions.map((trainingSession) => (
+              <TrainingSessionCard
+                key={trainingSession.id}
+                trainingSession={trainingSession}
                 exercises={exercises}
-                error={entryErrors[workout.id] || ""}
+                error={entryErrors[trainingSession.id] || ""}
                 savingSetId={pending.savingSetId}
                 updatingSetId={pending.updatingSetId}
-                deletingWorkoutId={pending.deletingWorkoutId}
+                deletingTrainingSessionId={pending.deletingTrainingSessionId}
                 deletingSetId={pending.deletingSetId}
-                isOpen={openWorkoutId === workout.id}
-                onToggle={() => onToggleWorkout(workout.id)}
-                onAddSet={(form: SetForm) => onAddSet(workout.id, form)}
+                isOpen={openTrainingSessionId === trainingSession.id}
+                onToggle={() => onToggleTrainingSession(trainingSession.id)}
+                onAddSet={(form: SetForm) => onAddSet(trainingSession.id, form)}
                 onUpdateSet={(setID, form) =>
-                  onUpdateSet(workout.id, setID, form)
+                  onUpdateSet(trainingSession.id, setID, form)
                 }
-                onDeleteWorkout={() => onDeleteWorkout(workout.id)}
-                onDeleteSet={(setID) => onDeleteSet(workout.id, setID)}
+                onDeleteTrainingSession={() => onDeleteTrainingSession(trainingSession.id)}
+                onDeleteSet={(setID) => onDeleteSet(trainingSession.id, setID)}
               />
             ))}
           </div>
@@ -102,7 +102,7 @@ export function EntriesList({
           <button
             className="w-full rounded border border-neutral-700 bg-neutral-800 px-4 py-3 text-sm font-semibold text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
             type="button"
-            onClick={onAddNextPlanWorkout}
+            onClick={onAddNextPlanSession}
             disabled={!nextPlanExerciseLabel || pending.savingEntry}
           >
             {nextPlanExerciseLabel && selectedPlanDayName

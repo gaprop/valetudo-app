@@ -1,7 +1,7 @@
 import { api } from "../api";
 import type { Exercise } from "../types";
 
-export const exercisesService = {
+export const exerciseCatalogService = {
   async list(): Promise<Exercise[]> {
     const response = await api.get<Exercise[]>("/api/exercises");
     return response.data;

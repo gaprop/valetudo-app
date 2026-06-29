@@ -2,31 +2,31 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type {
   Exercise,
   ID,
-  Workout,
-  WorkoutForm,
-  WorkoutPlanDay,
+  TrainingSession,
+  TrainingSessionForm,
+  PlanDay,
 } from "../types";
-import { findPreviousWorkoutForSelection } from "../trainingLog";
-import { useWorkoutPlanProgress } from "./useWorkoutPlanProgress";
+import { findPreviousTrainingSessionForSelection } from "../trainingLogSelectors";
+import { usePlanProgress } from "./usePlanProgress";
 
 type UseTrainingLogPageInput = {
   today: string;
   exercises: Exercise[];
-  workouts: Workout[];
-  planDays: WorkoutPlanDay[];
-  openWorkoutId: ID | null;
-  createEntry: (input: WorkoutForm) => Promise<boolean>;
+  trainingSessions: TrainingSession[];
+  planDays: PlanDay[];
+  openTrainingSessionId: ID | null;
+  createTrainingSession: (input: TrainingSessionForm) => Promise<boolean>;
 };
 
-export function useTrainingLogPage({
+export function useTrainingLogState({
   today,
   exercises,
-  workouts,
+  trainingSessions,
   planDays,
-  openWorkoutId,
-  createEntry,
+  openTrainingSessionId,
+  createTrainingSession,
 }: UseTrainingLogPageInput) {
-  const [form, setForm] = useState<WorkoutForm>({
+  const [form, setForm] = useState<TrainingSessionForm>({
     trainingDate: today,
     exerciseType: "bench",
   });
@@ -40,27 +40,27 @@ export function useTrainingLogPage({
     );
   }, [planDays, selectedPlanDayId]);
 
-  const selectedDateWorkouts = useMemo(() => {
-    return workouts.filter(
-      (workout) => workout.trainingDate === form.trainingDate
+  const selectedDateSessions = useMemo(() => {
+    return trainingSessions.filter(
+      (trainingSession) => trainingSession.trainingDate === form.trainingDate
     );
-  }, [form.trainingDate, workouts]);
+  }, [form.trainingDate, trainingSessions]);
 
-  const selectedVisibleWorkout = useMemo(() => {
+  const selectedVisibleSession = useMemo(() => {
     return (
-      selectedDateWorkouts.find((workout) => workout.id === openWorkoutId) ||
+      selectedDateSessions.find((trainingSession) => trainingSession.id === openTrainingSessionId) ||
       null
     );
-  }, [openWorkoutId, selectedDateWorkouts]);
+  }, [openTrainingSessionId, selectedDateSessions]);
 
-  const { nextExerciseValue, advance } = useWorkoutPlanProgress(
+  const { nextExerciseValue, advance } = usePlanProgress(
     selectedPlanDay,
     form.trainingDate
   );
 
-  const previousWorkout = useMemo(
-    () => findPreviousWorkoutForSelection(workouts, selectedVisibleWorkout),
-    [selectedVisibleWorkout, workouts]
+  const previousSession = useMemo(
+    () => findPreviousTrainingSessionForSelection(trainingSessions, selectedVisibleSession),
+    [selectedVisibleSession, trainingSessions]
   );
 
   useEffect(() => {
@@ -84,17 +84,17 @@ export function useTrainingLogPage({
     }
   }, [exercises, form.exerciseType]);
 
-  async function submitWorkout(event: FormEvent<HTMLFormElement>): Promise<void> {
+  async function submitTrainingSession(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    await createEntry(form);
+    await createTrainingSession(form);
   }
 
-  async function addNextPlanWorkout(): Promise<void> {
+  async function addNextPlanSession(): Promise<void> {
     if (!nextExerciseValue) {
       return;
     }
 
-    const created = await createEntry({
+    const created = await createTrainingSession({
       trainingDate: form.trainingDate,
       exerciseType: nextExerciseValue,
     });
@@ -106,13 +106,13 @@ export function useTrainingLogPage({
   return {
     form,
     selectedPlanDay,
-    selectedDateWorkouts,
-    selectedVisibleWorkout,
+    selectedDateSessions,
+    selectedVisibleSession,
     nextPlanExerciseValue: nextExerciseValue,
-    previousWorkout,
+    previousSession,
     setForm,
     setSelectedPlanDayId,
-    submitWorkout,
-    addNextPlanWorkout,
+    submitTrainingSession,
+    addNextPlanSession,
   };
 }

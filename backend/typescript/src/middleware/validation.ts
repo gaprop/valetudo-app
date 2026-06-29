@@ -10,21 +10,21 @@ export type ValidatedExerciseBody = {
   value: string;
 };
 
-export type ValidatedWorkoutBody = {
+export type ValidatedTrainingSessionBody = {
   trainingDate: string;
   exerciseType: string;
 };
 
-export type ValidatedWorkoutSetBody = {
+export type ValidatedTrainingSetBody = {
   weight: number;
   reps: number;
 };
 
-export type ValidatedWorkoutPlanDayBody = {
+export type ValidatedPlanDayBody = {
   name: string;
 };
 
-export type ValidatedWorkoutPlanItemBody = {
+export type ValidatedPlanExerciseBody = {
   exerciseType: string;
 };
 
@@ -45,7 +45,7 @@ const exercisePathSchema = Joi.object({
   }),
 });
 
-const workoutBodySchema = Joi.object({
+const trainingSessionBodySchema = Joi.object({
   trainingDate: Joi.string()
     .trim()
     .pattern(/^\d{4}-\d{2}-\d{2}$/)
@@ -63,7 +63,7 @@ const workoutBodySchema = Joi.object({
   }),
 });
 
-const workoutSetBodySchema = Joi.object({
+const trainingSetBodySchema = Joi.object({
   weight: Joi.number().min(0).max(999999.99).required().messages({
     "any.required": "weight must be a number",
     "number.base": "weight must be a number",
@@ -78,7 +78,7 @@ const workoutSetBodySchema = Joi.object({
   }),
 });
 
-const workoutPlanDayBodySchema = Joi.object({
+const planDayBodySchema = Joi.object({
   name: Joi.string().trim().max(80).required().messages({
     "any.required": "day name is required",
     "string.base": "day name is required",
@@ -87,7 +87,7 @@ const workoutPlanDayBodySchema = Joi.object({
   }),
 });
 
-const workoutPlanItemBodySchema = Joi.object({
+const planExerciseBodySchema = Joi.object({
   exerciseType: Joi.string().trim().required().messages({
     "any.required": "exercise is required",
     "string.base": "exercise is required",
@@ -126,12 +126,12 @@ function validateExerciseLabel(labelInput: unknown): ValidatedExerciseBody {
   return { label, value };
 }
 
-function validateWorkoutSetInput(body: unknown): ValidatedWorkoutSetBody {
-  return validateSchema(workoutSetBodySchema, body);
+function validateTrainingSetInput(body: unknown): ValidatedTrainingSetBody {
+  return validateSchema(trainingSetBodySchema, body);
 }
 
-function validateWorkoutPlanDayName(value: unknown): ValidatedWorkoutPlanDayBody {
-  return validateSchema(workoutPlanDayBodySchema, { name: value });
+function validatePlanDayName(value: unknown): ValidatedPlanDayBody {
+  return validateSchema(planDayBodySchema, { name: value });
 }
 
 async function validateExerciseValue(value: string) {
@@ -216,52 +216,52 @@ export function validateExercisePathValue(
   });
 }
 
-export function validateWorkoutBody(
+export function validateTrainingSessionBody(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   handleValidation(res, next, async () => {
     const { trainingDate, exerciseType: exerciseInput } = validateSchema(
-      workoutBodySchema,
+      trainingSessionBodySchema,
       req.body
     );
     const exerciseType = await validateExerciseValue(exerciseInput);
-    res.locals.workoutBody = { trainingDate, exerciseType };
+    res.locals.trainingSessionBody = { trainingDate, exerciseType };
   });
 }
 
-export function validateWorkoutSetBody(
+export function validateTrainingSetBody(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   handleValidation(res, next, () => {
-    res.locals.workoutSetBody = validateWorkoutSetInput(req.body);
+    res.locals.trainingSetBody = validateTrainingSetInput(req.body);
   });
 }
 
-export function validateWorkoutPlanDayBody(
+export function validatePlanDayBody(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   handleValidation(res, next, () => {
-    res.locals.workoutPlanDayBody = validateWorkoutPlanDayName(req.body?.name);
+    res.locals.planDayBody = validatePlanDayName(req.body?.name);
   });
 }
 
-export function validateWorkoutPlanItemBody(
+export function validatePlanExerciseBody(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   handleValidation(res, next, async () => {
     const { exerciseType: exerciseInput } = validateSchema(
-      workoutPlanItemBodySchema,
+      planExerciseBodySchema,
       req.body
     );
     const exerciseType = await validateExerciseValue(exerciseInput);
-    res.locals.workoutPlanItemBody = { exerciseType };
+    res.locals.planExerciseBody = { exerciseType };
   });
 }

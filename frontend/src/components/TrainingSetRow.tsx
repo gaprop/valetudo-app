@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import type { ID, SetForm, WorkoutSet } from "../types";
+import type { ID, SetForm, TrainingSet } from "../types";
 import { ActionButton } from "./ActionButton";
 import { IconButton } from "./IconButton";
-import { MetricInputs } from "./MetricInputs";
+import { SetMetricInputs } from "./SetMetricInputs";
 
-type WorkoutSetRowProps = {
-  workoutSet: WorkoutSet;
+type TrainingSetRowProps = {
+  trainingSet: TrainingSet;
   displayNumber: number;
   updatingSetId: ID | null;
   deletingSetId: ID | null;
@@ -14,25 +14,25 @@ type WorkoutSetRowProps = {
   onDelete: () => void;
 };
 
-export function WorkoutSetRow({
-  workoutSet,
+export function TrainingSetRow({
+  trainingSet,
   displayNumber,
   updatingSetId,
   deletingSetId,
   onUpdate,
   onDelete,
-}: WorkoutSetRowProps) {
+}: TrainingSetRowProps) {
   const [form, setForm] = useState<SetForm>({
-    weight: String(workoutSet.weight),
-    reps: String(workoutSet.reps),
+    weight: String(trainingSet.weight),
+    reps: String(trainingSet.reps),
   });
 
   useEffect(() => {
     setForm({
-      weight: String(workoutSet.weight),
-      reps: String(workoutSet.reps),
+      weight: String(trainingSet.weight),
+      reps: String(trainingSet.reps),
     });
-  }, [workoutSet.reps, workoutSet.weight]);
+  }, [trainingSet.reps, trainingSet.weight]);
 
   return (
     <form
@@ -42,7 +42,7 @@ export function WorkoutSetRow({
         onUpdate(form);
       }}
     >
-      <MetricInputs
+      <SetMetricInputs
         label={`Set ${displayNumber}`}
         value={form}
         onChange={(field, value) =>
@@ -50,14 +50,14 @@ export function WorkoutSetRow({
         }
       />
       <div className="grid grid-cols-[1fr_auto] gap-2 sm:w-40">
-        <ActionButton type="submit" disabled={updatingSetId === workoutSet.id}>
-          {updatingSetId === workoutSet.id ? "Saving" : "Save"}
+        <ActionButton type="submit" disabled={updatingSetId === trainingSet.id}>
+          {updatingSetId === trainingSet.id ? "Saving" : "Save"}
         </ActionButton>
         <IconButton
           label={`Remove set ${displayNumber}`}
           title="Remove set"
           onClick={onDelete}
-          disabled={deletingSetId === workoutSet.id}
+          disabled={deletingSetId === trainingSet.id}
         >
           <X aria-hidden="true" size={16} strokeWidth={2.25} />
         </IconButton>

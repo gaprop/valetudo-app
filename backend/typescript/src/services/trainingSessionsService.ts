@@ -1,27 +1,27 @@
 import { pool } from "../db/pool";
 import { HttpError } from "../middleware/errors";
 import type {
-  ValidatedWorkoutBody,
-  ValidatedWorkoutSetBody,
+  ValidatedTrainingSessionBody,
+  ValidatedTrainingSetBody,
 } from "../middleware/validation";
-import type { Workout, WorkoutSet } from "../types/api";
+import type { TrainingSession, TrainingSet } from "../types/api";
 import { formatDate } from "./helpers";
 
-type WorkoutRow = {
+type TrainingSessionRow = {
   id: string;
   trainingDate: Date;
   exerciseType: string;
   createdAt: Date;
 };
 
-type WorkoutSetRow = {
+type TrainingSetRow = {
   id: string;
   weight: string;
   reps: number;
   createdAt: Date;
 };
 
-function mapWorkout(row: WorkoutRow): Workout {
+function mapTrainingSession(row: TrainingSessionRow): TrainingSession {
   return {
     id: row.id,
     trainingDate: formatDate(row.trainingDate),
@@ -31,7 +31,7 @@ function mapWorkout(row: WorkoutRow): Workout {
   };
 }
 
-function mapWorkoutSet(row: WorkoutSetRow): WorkoutSet {
+function mapTrainingSet(row: TrainingSetRow): TrainingSet {
   return {
     id: row.id,
     weight: Number(row.weight),
@@ -40,23 +40,23 @@ function mapWorkoutSet(row: WorkoutSetRow): WorkoutSet {
   };
 }
 
-async function loadSets(workouts: Workout[]) {
-  for (const workout of workouts) {
-    const result = await pool.query<WorkoutSetRow>(
+async function loadTrainingSets(trainingSessions: TrainingSession[]) {
+  for (const trainingSession of trainingSessions) {
+    const result = await pool.query<TrainingSetRow>(
       `
         SELECT id, weight, reps, created_at AS "createdAt"
         FROM workout_sets
         WHERE workout_id = $1
         ORDER BY created_at, id
       `,
-      [workout.id]
+      [trainingSession.id]
     );
-    workout.sets = result.rows.map(mapWorkoutSet);
+    trainingSession.sets = result.rows.map(mapTrainingSet);
   }
 }
 
-async function getWorkout(id: string) {
-  const result = await pool.query<WorkoutRow>(
+async function getTrainingSession(id: string) {
+  const result = await pool.query<TrainingSessionRow>(
     `
       SELECT
         id,
@@ -70,17 +70,17 @@ async function getWorkout(id: string) {
   );
   const row = result.rows[0];
   if (!row) {
-    throw new HttpError(404, "workout was not found");
+    throw new HttpError(404, "training session was not found");
   }
 
-  const workout = mapWorkout(row);
-  await loadSets([workout]);
-  return workout;
+  const trainingSession = mapTrainingSession(row);
+  await loadTrainingSets([trainingSession]);
+  return trainingSession;
 }
 
-export class WorkoutsService {
-  static async listWorkouts() {
-    const result = await pool.query<WorkoutRow>(
+export class TrainingSessionsService {
+  static async listTrainingSessions() {
+    const result = await pool.query<TrainingSessionRow>(
       `
         SELECT
           id,
@@ -91,12 +91,12 @@ export class WorkoutsService {
         ORDER BY training_date, created_at, id
       `
     );
-    const workouts = result.rows.map(mapWorkout);
-    await loadSets(workouts);
-    return workouts;
+    const trainingSessions = result.rows.map(mapTrainingSession);
+    await loadTrainingSets(trainingSessions);
+    return trainingSessions;
   }
 
-  static async createWorkout({ trainingDate, exerciseType }: ValidatedWorkoutBody) {
+  static async createTrainingSession({ trainingDate, exerciseType }: ValidatedTrainingSessionBody) {
     const result = await pool.query<{ id: string }>(
       `
         INSERT INTO workout_entries (training_date, exercise_type)
@@ -106,25 +106,25 @@ export class WorkoutsService {
       [trainingDate, exerciseType]
     );
 
-    return getWorkout(result.rows[0].id);
+    return getTrainingSession(result.rows[0].id);
   }
 
-  static async deleteWorkout(workoutID: string) {
+  static async deleteTrainingSession(trainingSessionID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_entries
         WHERE id = $1
       `,
-      [workoutID]
+      [trainingSessionID]
     );
     if (result.rowCount === 0) {
-      throw new HttpError(404, "workout was not found");
+      throw new HttpError(404, "training session was not found");
     }
   }
 
-  static async createWorkoutSet(
-    workoutID: string,
-    { weight, reps }: ValidatedWorkoutSetBody
+  static async createTrainingSet(
+    trainingSessionID: string,
+    { weight, reps }: ValidatedTrainingSetBody
   ) {
     const client = await pool.connect();
     try {
@@ -138,22 +138,22 @@ export class WorkoutsService {
             WHERE id = $1
           )
         `,
-        [workoutID]
+        [trainingSessionID]
       );
       if (!exists.rows[0]?.exists) {
-        throw new HttpError(404, "workout was not found");
+        throw new HttpError(404, "training session was not found");
       }
 
-      const result = await client.query<WorkoutSetRow>(
+      const result = await client.query<TrainingSetRow>(
         `
           INSERT INTO workout_sets (workout_id, weight, reps)
           VALUES ($1, $2, $3)
           RETURNING id, weight, reps, created_at AS "createdAt"
         `,
-        [workoutID, weight, reps]
+        [trainingSessionID, weight, reps]
       );
       await client.query("COMMIT");
-      return mapWorkoutSet(result.rows[0]);
+      return mapTrainingSet(result.rows[0]);
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
@@ -162,37 +162,37 @@ export class WorkoutsService {
     }
   }
 
-  static async updateWorkoutSet(
-    workoutID: string,
+  static async updateTrainingSet(
+    trainingSessionID: string,
     setID: string,
-    { weight, reps }: ValidatedWorkoutSetBody
+    { weight, reps }: ValidatedTrainingSetBody
   ) {
-    const result = await pool.query<WorkoutSetRow>(
+    const result = await pool.query<TrainingSetRow>(
       `
         UPDATE workout_sets
         SET weight = $3, reps = $4
         WHERE workout_id = $1 AND id = $2
         RETURNING id, weight, reps, created_at AS "createdAt"
       `,
-      [workoutID, setID, weight, reps]
+      [trainingSessionID, setID, weight, reps]
     );
     if (!result.rows[0]) {
-      throw new HttpError(404, "workout set was not found");
+      throw new HttpError(404, "training set was not found");
     }
 
-    return mapWorkoutSet(result.rows[0]);
+    return mapTrainingSet(result.rows[0]);
   }
 
-  static async deleteWorkoutSet(workoutID: string, setID: string) {
+  static async deleteTrainingSet(trainingSessionID: string, setID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_sets
         WHERE workout_id = $1 AND id = $2
       `,
-      [workoutID, setID]
+      [trainingSessionID, setID]
     );
     if (result.rowCount === 0) {
-      throw new HttpError(404, "workout set was not found");
+      throw new HttpError(404, "training set was not found");
     }
   }
 }

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ExercisesController } from "../controllers/exercisesController";
+import { ExerciseCatalogController } from "../controllers/exerciseCatalogController";
 import { asyncHandler } from "../middleware/errors";
 import {
   validateExerciseBody,
@@ -8,14 +8,14 @@ import {
 
 export const exercisesRoutes = Router();
 
-exercisesRoutes.get("/", asyncHandler(ExercisesController.listExercises));
+exercisesRoutes.get("/", asyncHandler(ExerciseCatalogController.listExercises));
 exercisesRoutes.post(
   "/",
   validateExerciseBody,
-  asyncHandler(ExercisesController.createExercise)
+  asyncHandler(ExerciseCatalogController.createExercise)
 );
 exercisesRoutes.delete(
   "/:value",
   validateExercisePathValue,
-  asyncHandler(ExercisesController.deleteExercise)
+  asyncHandler(ExerciseCatalogController.deleteExercise)
 );

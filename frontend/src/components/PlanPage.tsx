@@ -1,18 +1,18 @@
 import type {
-  CreateWorkoutPlanDayRequest,
-  CreateWorkoutPlanItemRequest,
+  CreatePlanDayRequest,
+  CreatePlanExerciseRequest,
   Exercise,
   ID,
-  WorkoutPlanDay,
+  PlanDay,
 } from "../types";
 import type { PlanPendingState } from "../hooks";
-import { ExerciseManager } from "./ExerciseManager";
-import { WorkoutDayForm } from "./WorkoutDayForm";
-import { WorkoutPlanDayCard } from "./WorkoutPlanDayCard";
+import { ExerciseCatalog } from "./ExerciseCatalog";
+import { PlanDayForm } from "./PlanDayForm";
+import { PlanDayCard } from "./PlanDayCard";
 
-type WorkoutPlanPageProps = {
+type PlanPageProps = {
   exercises: Exercise[];
-  days: WorkoutPlanDay[];
+  days: PlanDay[];
   loading: boolean;
   pending: PlanPendingState;
   error: string;
@@ -21,15 +21,15 @@ type WorkoutPlanPageProps = {
   creatingExercise: boolean;
   deletingExerciseValue: string | null;
   onRefresh: () => void;
-  onAddDay: (input: CreateWorkoutPlanDayRequest) => Promise<boolean>;
+  onAddDay: (input: CreatePlanDayRequest) => Promise<boolean>;
   onDeleteDay: (dayID: ID) => void;
-  onAddItem: (input: CreateWorkoutPlanItemRequest) => Promise<boolean>;
+  onAddItem: (input: CreatePlanExerciseRequest) => Promise<boolean>;
   onDeleteItem: (dayID: ID, itemID: ID) => void;
   onAddExercise: (label: string) => Promise<boolean>;
   onDeleteExercise: (value: string) => void;
 };
 
-export function WorkoutPlanPage({
+export function PlanPage({
   exercises,
   days,
   loading,
@@ -46,16 +46,16 @@ export function WorkoutPlanPage({
   onDeleteItem,
   onAddExercise,
   onDeleteExercise,
-}: WorkoutPlanPageProps) {
+}: PlanPageProps) {
   return (
     <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
       <div className="grid content-start gap-6">
-        <WorkoutDayForm
+        <PlanDayForm
           error={error}
           creatingDay={pending.creatingDay}
           onAddDay={onAddDay}
         />
-        <ExerciseManager
+        <ExerciseCatalog
           exercises={exercises}
           loading={exerciseLoading}
           error={exerciseError}
@@ -87,7 +87,7 @@ export function WorkoutPlanPage({
         ) : (
           <div className="divide-y divide-neutral-800">
             {days.map((day) => (
-              <WorkoutPlanDayCard
+              <PlanDayCard
                 key={day.id}
                 day={day}
                 exercises={exercises}

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { errorMessage } from "../api";
-import { workoutPlanService } from "../services";
+import { planDaysService } from "../services";
 import { sortPlanDays, sortPlanItems } from "../sorting";
 import type {
-  CreateWorkoutPlanDayRequest,
-  CreateWorkoutPlanItemRequest,
+  CreatePlanDayRequest,
+  CreatePlanExerciseRequest,
   ID,
-  WorkoutPlanDay,
+  PlanDay,
 } from "../types";
 
 export type PlanPendingState = {
@@ -24,15 +24,15 @@ const initialPendingState: PlanPendingState = {
 };
 
 function updatePlanDay(
-  days: WorkoutPlanDay[],
+  days: PlanDay[],
   dayID: ID,
-  update: (day: WorkoutPlanDay) => WorkoutPlanDay
-): WorkoutPlanDay[] {
+  update: (day: PlanDay) => PlanDay
+): PlanDay[] {
   return days.map((day) => (day.id === dayID ? update(day) : day));
 }
 
-export function useWorkoutPlan() {
-  const [days, setDays] = useState<WorkoutPlanDay[]>([]);
+export function usePlanDays() {
+  const [days, setDays] = useState<PlanDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<PlanPendingState>(initialPendingState);
   const [error, setError] = useState("");
@@ -41,7 +41,7 @@ export function useWorkoutPlan() {
     setLoading(true);
     setError("");
     try {
-      setDays(sortPlanDays(await workoutPlanService.listDays()));
+      setDays(sortPlanDays(await planDaysService.listDays()));
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -53,12 +53,12 @@ export function useWorkoutPlan() {
     load();
   }, [load]);
 
-  async function addDay(input: CreateWorkoutPlanDayRequest): Promise<boolean> {
+  async function addDay(input: CreatePlanDayRequest): Promise<boolean> {
     setPending((current) => ({ ...current, creatingDay: true }));
     setError("");
 
     try {
-      const day = await workoutPlanService.createDay(input);
+      const day = await planDaysService.createDay(input);
       setDays((current) => sortPlanDays([...current, day]));
       return true;
     } catch (err) {
@@ -74,7 +74,7 @@ export function useWorkoutPlan() {
     setError("");
 
     try {
-      await workoutPlanService.deleteDay({ dayID });
+      await planDaysService.deleteDay({ dayID });
       setDays((current) => current.filter((day) => day.id !== dayID));
     } catch (err) {
       setError(errorMessage(err));
@@ -83,12 +83,12 @@ export function useWorkoutPlan() {
     }
   }
 
-  async function addItem(input: CreateWorkoutPlanItemRequest): Promise<boolean> {
+  async function addItem(input: CreatePlanExerciseRequest): Promise<boolean> {
     setPending((current) => ({ ...current, addingItemDayId: input.dayID }));
     setError("");
 
     try {
-      const item = await workoutPlanService.createItem(input);
+      const item = await planDaysService.createItem(input);
       setDays((current) =>
         updatePlanDay(current, input.dayID, (day) => ({
           ...day,
@@ -109,7 +109,7 @@ export function useWorkoutPlan() {
     setError("");
 
     try {
-      await workoutPlanService.deleteItem({ dayID, itemID });
+      await planDaysService.deleteItem({ dayID, itemID });
       setDays((current) =>
         updatePlanDay(current, dayID, (day) => ({
           ...day,

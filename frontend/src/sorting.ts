@@ -1,7 +1,7 @@
-import type { Workout, WorkoutPlanDay, WorkoutPlanItem, WorkoutSet } from "./types";
+import type { TrainingSession, PlanDay, PlanExercise, TrainingSet } from "./types";
 
-export function sortWorkouts(workouts: Workout[]): Workout[] {
-  return [...workouts].sort((a, b) => {
+export function sortTrainingSessions(trainingSessions: TrainingSession[]): TrainingSession[] {
+  return [...trainingSessions].sort((a, b) => {
     if (a.trainingDate !== b.trainingDate) {
       return a.trainingDate.localeCompare(b.trainingDate);
     }
@@ -12,7 +12,7 @@ export function sortWorkouts(workouts: Workout[]): Workout[] {
   });
 }
 
-export function sortWorkoutSets(sets: WorkoutSet[]): WorkoutSet[] {
+export function sortTrainingSets(sets: TrainingSet[]): TrainingSet[] {
   return [...sets].sort(
     (a, b) =>
       Date.parse(a.createdAt) - Date.parse(b.createdAt) ||
@@ -20,7 +20,7 @@ export function sortWorkoutSets(sets: WorkoutSet[]): WorkoutSet[] {
   );
 }
 
-export function sortPlanDays(days: WorkoutPlanDay[]): WorkoutPlanDay[] {
+export function sortPlanDays(days: PlanDay[]): PlanDay[] {
   return [...days].sort(
     (a, b) =>
       Date.parse(a.createdAt) - Date.parse(b.createdAt) ||
@@ -28,7 +28,7 @@ export function sortPlanDays(days: WorkoutPlanDay[]): WorkoutPlanDay[] {
   );
 }
 
-export function sortPlanItems(items: WorkoutPlanItem[]): WorkoutPlanItem[] {
+export function sortPlanItems(items: PlanExercise[]): PlanExercise[] {
   return [...items].sort(
     (a, b) =>
       Date.parse(a.createdAt) - Date.parse(b.createdAt) ||

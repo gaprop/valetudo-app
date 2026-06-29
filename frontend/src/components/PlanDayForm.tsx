@@ -1,17 +1,17 @@
 import { useState, type FormEvent } from "react";
-import type { CreateWorkoutPlanDayRequest } from "../types";
+import type { CreatePlanDayRequest } from "../types";
 
-type WorkoutDayFormProps = {
+type PlanDayFormProps = {
   error: string;
   creatingDay: boolean;
-  onAddDay: (input: CreateWorkoutPlanDayRequest) => Promise<boolean>;
+  onAddDay: (input: CreatePlanDayRequest) => Promise<boolean>;
 };
 
-export function WorkoutDayForm({
+export function PlanDayForm({
   error,
   creatingDay,
   onAddDay,
-}: WorkoutDayFormProps) {
+}: PlanDayFormProps) {
   const [dayName, setDayName] = useState("");
 
   async function handleAddDay(event: FormEvent<HTMLFormElement>) {

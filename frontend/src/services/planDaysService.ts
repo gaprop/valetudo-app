@@ -1,22 +1,22 @@
 import { api } from "../api";
 import type {
-  CreateWorkoutPlanDayRequest,
-  CreateWorkoutPlanItemRequest,
+  CreatePlanDayRequest,
+  CreatePlanExerciseRequest,
   ID,
-  WorkoutPlanDay,
-  WorkoutPlanItem,
+  PlanDay,
+  PlanExercise,
 } from "../types";
 
-export const workoutPlanService = {
-  async listDays(): Promise<WorkoutPlanDay[]> {
-    const response = await api.get<WorkoutPlanDay[]>("/api/workout-plan/days");
+export const planDaysService = {
+  async listDays(): Promise<PlanDay[]> {
+    const response = await api.get<PlanDay[]>("/api/workout-plan/days");
     return response.data;
   },
 
   async createDay(
-    input: CreateWorkoutPlanDayRequest
-  ): Promise<WorkoutPlanDay> {
-    const response = await api.post<WorkoutPlanDay>(
+    input: CreatePlanDayRequest
+  ): Promise<PlanDay> {
+    const response = await api.post<PlanDay>(
       "/api/workout-plan/days",
       input
     );
@@ -28,9 +28,9 @@ export const workoutPlanService = {
   },
 
   async createItem(
-    input: CreateWorkoutPlanItemRequest
-  ): Promise<WorkoutPlanItem> {
-    const response = await api.post<WorkoutPlanItem>(
+    input: CreatePlanExerciseRequest
+  ): Promise<PlanExercise> {
+    const response = await api.post<PlanExercise>(
       `/api/workout-plan/days/${input.dayID}/items`,
       { exerciseType: input.exerciseType }
     );

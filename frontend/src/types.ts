@@ -7,29 +7,29 @@ export type Exercise = {
   createdAt: string;
 };
 
-export type WorkoutSet = {
+export type TrainingSet = {
   id: ID;
   weight: number;
   reps: number;
   createdAt: string;
 };
 
-export type Workout = {
+export type TrainingSession = {
   id: ID;
   trainingDate: string;
   exerciseType: ExerciseValue;
-  sets: WorkoutSet[];
+  sets: TrainingSet[];
   createdAt: string;
 };
 
 export type ApiError = { error: string };
 
-export type WorkoutForm = {
+export type TrainingSessionForm = {
   trainingDate: string;
   exerciseType: ExerciseValue;
 };
 
-export type CreateWorkoutRequest = {
+export type CreateTrainingSessionRequest = {
   trainingDate: string;
   exerciseType: ExerciseValue;
 };
@@ -39,38 +39,38 @@ export type SetForm = {
   reps: string;
 };
 
-export type WorkoutSetRequest = {
+export type TrainingSetRequest = {
   weight: number;
   reps: number;
 };
 
-export type CreateWorkoutSetRequest = WorkoutSetRequest & {
-  workoutID: ID;
+export type CreateTrainingSetRequest = TrainingSetRequest & {
+  trainingSessionID: ID;
 };
 
-export type UpdateWorkoutSetRequest = WorkoutSetRequest & {
-  workoutID: ID;
+export type UpdateTrainingSetRequest = TrainingSetRequest & {
+  trainingSessionID: ID;
   setID: ID;
 };
 
-export type WorkoutPlanItem = {
+export type PlanExercise = {
   id: ID;
   exerciseType: ExerciseValue;
   createdAt: string;
 };
 
-export type WorkoutPlanDay = {
+export type PlanDay = {
   id: ID;
   name: string;
-  items: WorkoutPlanItem[];
+  items: PlanExercise[];
   createdAt: string;
 };
 
-export type CreateWorkoutPlanDayRequest = {
+export type CreatePlanDayRequest = {
   name: string;
 };
 
-export type CreateWorkoutPlanItemRequest = {
+export type CreatePlanExerciseRequest = {
   dayID: ID;
   exerciseType: ExerciseValue;
 };

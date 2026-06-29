@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import type { Exercise } from "../types";
 import { IconButton } from "./IconButton";
 
-type ExerciseManagerProps = {
+type ExerciseCatalogProps = {
   exercises: Exercise[];
   loading: boolean;
   error: string;
@@ -13,7 +13,7 @@ type ExerciseManagerProps = {
   onDeleteExercise: (value: string) => void;
 };
 
-export function ExerciseManager({
+export function ExerciseCatalog({
   exercises,
   loading,
   error,
@@ -21,7 +21,7 @@ export function ExerciseManager({
   deletingValue,
   onAddExercise,
   onDeleteExercise,
-}: ExerciseManagerProps) {
+}: ExerciseCatalogProps) {
   const [exerciseName, setExerciseName] = useState("");
   const [selectedExerciseValue, setSelectedExerciseValue] = useState("");
 

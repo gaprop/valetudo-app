@@ -1,18 +1,18 @@
 import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  StatusSummary,
+  PreviousSessionSummary,
   TrainingForm,
-  TrainingLogEntries,
-  WorkoutPlanPage,
+  TrainingSessionPanel,
+  PlanPage,
 } from "./components";
 import {
-  useExercises,
-  useTrainingLogPage,
-  useWorkoutPlan,
-  useWorkouts,
+  useExerciseCatalog,
+  useTrainingLogState,
+  usePlanDays,
+  useTrainingSessions,
 } from "./hooks";
-import { labelFor } from "./workouts";
+import { labelFor } from "./trainingSessions";
 import "./styles.css";
 
 type Page = "log" | "plan";
@@ -28,30 +28,30 @@ function App() {
     deletingValue: deletingExerciseValue,
     addExercise,
     removeExercise,
-  } = useExercises();
+  } = useExerciseCatalog();
   const {
-    workouts,
+    trainingSessions,
     loading,
     pending,
     formError,
     entryErrors,
-    openWorkoutId,
+    openTrainingSessionId,
     load,
-    createEntry,
-    deleteEntry,
+    createTrainingSession,
+    deleteTrainingSession,
     addSet,
     updateSet,
     removeSet,
-    toggleWorkout,
-  } = useWorkouts();
-  const workoutPlan = useWorkoutPlan();
-  const trainingLog = useTrainingLogPage({
+    toggleTrainingSession,
+  } = useTrainingSessions();
+  const planDays = usePlanDays();
+  const trainingLog = useTrainingLogState({
     today,
     exercises,
-    workouts,
-    planDays: workoutPlan.days,
-    openWorkoutId,
-    createEntry,
+    trainingSessions,
+    planDays: planDays.days,
+    openTrainingSessionId,
+    createTrainingSession,
   });
 
   return (
@@ -67,10 +67,10 @@ function App() {
             </h1>
           </div>
           {page === "log" && (
-            <StatusSummary
+            <PreviousSessionSummary
               exercises={exercises}
-              currentWorkout={trainingLog.previousWorkout}
-              hasSelection={trainingLog.selectedVisibleWorkout != null}
+              previousSession={trainingLog.previousSession}
+              hasSelection={trainingLog.selectedVisibleSession != null}
             />
           )}
         </header>
@@ -105,16 +105,16 @@ function App() {
             <TrainingForm
               form={trainingLog.form}
               exercises={exercises}
-              planDays={workoutPlan.days}
+              planDays={planDays.days}
               selectedPlanDayId={trainingLog.selectedPlanDay?.id ?? null}
               error={formError}
               savingEntry={pending.savingEntry}
               onChange={trainingLog.setForm}
               onPlanDayChange={trainingLog.setSelectedPlanDayId}
-              onSubmit={trainingLog.submitWorkout}
+              onSubmit={trainingLog.submitTrainingSession}
             />
-            <TrainingLogEntries
-              workouts={trainingLog.selectedDateWorkouts}
+            <TrainingSessionPanel
+              trainingSessions={trainingLog.selectedDateSessions}
               exercises={exercises}
               loading={loading}
               nextPlanExerciseLabel={
@@ -125,33 +125,33 @@ function App() {
               selectedPlanDayName={trainingLog.selectedPlanDay?.name || null}
               pending={pending}
               entryErrors={entryErrors}
-              openWorkoutId={openWorkoutId}
+              openTrainingSessionId={openTrainingSessionId}
               onRefresh={load}
-              onAddNextPlanWorkout={() => void trainingLog.addNextPlanWorkout()}
-              onToggleWorkout={toggleWorkout}
+              onAddNextPlanSession={() => void trainingLog.addNextPlanSession()}
+              onToggleTrainingSession={toggleTrainingSession}
               onAddSet={addSet}
               onUpdateSet={updateSet}
-              onDeleteWorkout={deleteEntry}
+              onDeleteTrainingSession={deleteTrainingSession}
               onDeleteSet={removeSet}
             />
           </section>
         ) : (
-          <WorkoutPlanPage
+          <PlanPage
             exercises={exercises}
-            days={workoutPlan.days}
-            loading={workoutPlan.loading}
-            pending={workoutPlan.pending}
-            error={workoutPlan.error}
+            days={planDays.days}
+            loading={planDays.loading}
+            pending={planDays.pending}
+            error={planDays.error}
             exerciseLoading={exerciseLoading}
             exerciseError={exerciseError}
             creatingExercise={creatingExercise}
             deletingExerciseValue={deletingExerciseValue}
-            onRefresh={workoutPlan.load}
-            onAddDay={workoutPlan.addDay}
-            onDeleteDay={(dayID) => void workoutPlan.removeDay(dayID)}
-            onAddItem={workoutPlan.addItem}
+            onRefresh={planDays.load}
+            onAddDay={planDays.addDay}
+            onDeleteDay={(dayID) => void planDays.removeDay(dayID)}
+            onAddItem={planDays.addItem}
             onDeleteItem={(dayID, itemID) =>
-              void workoutPlan.removeItem(dayID, itemID)
+              void planDays.removeItem(dayID, itemID)
             }
             onAddExercise={addExercise}
             onDeleteExercise={(value) => void removeExercise(value)}

@@ -1,31 +1,31 @@
 import { useEffect, useId, useState } from "react";
 import { X } from "lucide-react";
-import type { Exercise, Workout } from "../types";
-import { formatWeight, labelFor, maxWeight } from "../workouts";
+import type { Exercise, TrainingSession } from "../types";
+import { formatWeight, labelFor, maxWeight } from "../trainingSessions";
 import { IconButton } from "./IconButton";
 
-type StatusSummaryProps = {
+type PreviousSessionSummaryProps = {
   exercises: Exercise[];
-  currentWorkout?: Workout;
+  previousSession?: TrainingSession;
   hasSelection: boolean;
 };
 
-export function StatusSummary({
+export function PreviousSessionSummary({
   exercises,
-  currentWorkout,
+  previousSession,
   hasSelection,
-}: StatusSummaryProps) {
+}: PreviousSessionSummaryProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const titleId = useId();
-  const exerciseLabel = currentWorkout
-    ? labelFor(exercises, currentWorkout.exerciseType)
+  const exerciseLabel = previousSession
+    ? labelFor(exercises, previousSession.exerciseType)
     : "";
 
   useEffect(() => {
-    if (!currentWorkout) {
+    if (!previousSession) {
       setIsModalOpen(false);
     }
-  }, [currentWorkout]);
+  }, [previousSession]);
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -47,15 +47,15 @@ export function StatusSummary({
       <div className="rounded border border-primary-800 bg-primary-950/50 text-sm text-primary-100">
       {!hasSelection ? (
         <span className="block px-4 py-3">Nothing is selected</span>
-      ) : currentWorkout ? (
+      ) : previousSession ? (
         <button
           className="block w-full rounded px-4 py-3 text-left transition hover:bg-primary-900/60 focus:outline-none focus:ring-2 focus:ring-primary-500"
           type="button"
           onClick={() => setIsModalOpen(true)}
         >
           Latest {exerciseLabel}:{" "}
-          <strong>{currentWorkout.sets.length} sets</strong>, best at{" "}
-          <strong>{formatWeight(maxWeight(currentWorkout.sets))}</strong>
+          <strong>{previousSession.sets.length} sets</strong>, best at{" "}
+          <strong>{formatWeight(maxWeight(previousSession.sets))}</strong>
         </button>
       ) : (
         <span className="block px-4 py-3">
@@ -64,7 +64,7 @@ export function StatusSummary({
       )}
       </div>
 
-      {isModalOpen && currentWorkout && (
+      {isModalOpen && previousSession && (
         <div
           className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4 py-6"
           role="presentation"
@@ -86,7 +86,7 @@ export function StatusSummary({
                   {exerciseLabel}
                 </h2>
                 <p className="mt-1 text-sm text-neutral-400">
-                  {currentWorkout.trainingDate}
+                  {previousSession.trainingDate}
                 </p>
               </div>
               <IconButton
@@ -105,7 +105,7 @@ export function StatusSummary({
                   <span className="text-center">Kg</span>
                   <span className="text-center">Reps</span>
                 </div>
-                {currentWorkout.sets.map((set, index) => (
+                {previousSession.sets.map((set, index) => (
                   <div
                     className="grid grid-cols-[80px_1fr_1fr] border-b border-neutral-800 px-3 py-3 text-sm text-neutral-100 last:border-b-0"
                     key={set.id}
