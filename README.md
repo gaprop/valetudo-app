@@ -5,7 +5,7 @@ A small full-stack fitness tracker for logging strength training entries. The ap
 ## Stack
 
 - React 18, TypeScript, Vite, and Tailwind CSS frontend
-- Go 1.22 HTTP API
+- TypeScript/Express HTTP API, with the previous Go implementation available under `backend/go`
 - PostgreSQL 16 database
 - Docker Compose for local orchestration
 
@@ -49,7 +49,9 @@ database: fitness
 
 ```text
 .
-├── backend/          # Go API
+├── backend/          # Backend implementations
+│   ├── go/           # Previous Go API
+│   └── typescript/   # Default Express API
 ├── database/         # PostgreSQL schema script
 ├── frontend/         # React/Vite frontend
 └── docker-compose.yml

@@ -1,6 +1,9 @@
 # Backend
 
-Go 1.22 HTTP API for the fitness tracker.
+This directory contains two backend implementations:
+
+- `typescript/`: default Express API with routes and controllers split by resource
+- `go/`: previous Go 1.22 HTTP API
 
 ## Local Development
 
@@ -16,14 +19,37 @@ In a second terminal, apply the schema:
 docker compose run --rm database-init
 ```
 
-Then start the backend:
+Then start the default TypeScript/Express backend:
 
 ```sh
-cd backend
-go run .
+cd backend/typescript
+npm install
+npm run dev
 ```
 
 The API defaults to `http://localhost:8080`.
+
+To run the Go backend instead:
+
+```sh
+cd backend/go
+go run .
+```
+
+The TypeScript backend route tree is:
+
+```text
+src/
+├── routes.ts
+├── routes/
+│   ├── exercisesRoutes.ts
+│   ├── workoutsRoutes.ts
+│   └── workoutPlanRoutes.ts
+└── controllers/
+    ├── exercisesController.ts
+    ├── workoutsController.ts
+    └── workoutPlanController.ts
+```
 
 ## Configuration
 

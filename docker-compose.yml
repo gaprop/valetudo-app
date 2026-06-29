@@ -36,7 +36,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./backend/typescript
     container_name: fitness-backend
     environment:
       DATABASE_URL: postgres://fitness:fitness@database:5432/fitness?sslmode=disable

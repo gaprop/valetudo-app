@@ -1,2 +1,4 @@
 frontend/dist/
 frontend/node_modules/
+backend/typescript/dist/
+backend/typescript/node_modules/
