@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import Joi from "joi";
 import { pool } from "../db/pool";
 import { HttpError } from "./errors";
 
@@ -27,19 +28,84 @@ export type ValidatedWorkoutPlanItemBody = {
   exerciseType: string;
 };
 
-function requireString(value: unknown, message: string) {
-  if (typeof value !== "string") {
-    throw new HttpError(400, message);
-  }
-  return value.trim();
-}
+const exerciseBodySchema = Joi.object({
+  label: Joi.string().trim().max(80).required().messages({
+    "any.required": "exercise name is required",
+    "string.base": "exercise name is required",
+    "string.empty": "exercise name is required",
+    "string.max": "exercise name is too long",
+  }),
+});
 
-function requireNumber(value: unknown, message: string) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) {
-    throw new HttpError(400, message);
+const exercisePathSchema = Joi.object({
+  value: Joi.string().trim().required().messages({
+    "any.required": "exercise is required",
+    "string.base": "exercise is required",
+    "string.empty": "exercise is required",
+  }),
+});
+
+const workoutBodySchema = Joi.object({
+  trainingDate: Joi.string()
+    .trim()
+    .pattern(/^\d{4}-\d{2}-\d{2}$/)
+    .required()
+    .messages({
+      "any.required": "trainingDate must use YYYY-MM-DD format",
+      "string.base": "trainingDate must use YYYY-MM-DD format",
+      "string.empty": "trainingDate must use YYYY-MM-DD format",
+      "string.pattern.base": "trainingDate must use YYYY-MM-DD format",
+    }),
+  exerciseType: Joi.string().trim().required().messages({
+    "any.required": "exercise is required",
+    "string.base": "exercise is required",
+    "string.empty": "exercise is required",
+  }),
+});
+
+const workoutSetBodySchema = Joi.object({
+  weight: Joi.number().min(0).max(999999.99).required().messages({
+    "any.required": "weight must be a number",
+    "number.base": "weight must be a number",
+    "number.min": "weight cannot be negative",
+    "number.max": "weight is too large",
+  }),
+  reps: Joi.number().integer().greater(0).required().messages({
+    "any.required": "reps must be a number",
+    "number.base": "reps must be a number",
+    "number.integer": "reps must be greater than zero",
+    "number.greater": "reps must be greater than zero",
+  }),
+});
+
+const workoutPlanDayBodySchema = Joi.object({
+  name: Joi.string().trim().max(80).required().messages({
+    "any.required": "day name is required",
+    "string.base": "day name is required",
+    "string.empty": "day name is required",
+    "string.max": "day name is too long",
+  }),
+});
+
+const workoutPlanItemBodySchema = Joi.object({
+  exerciseType: Joi.string().trim().required().messages({
+    "any.required": "exercise is required",
+    "string.base": "exercise is required",
+    "string.empty": "exercise is required",
+  }),
+});
+
+function validateSchema<T>(schema: Joi.ObjectSchema<T>, value: unknown) {
+  const result = schema.validate(value, {
+    abortEarly: true,
+    allowUnknown: true,
+    convert: true,
+    stripUnknown: true,
+  });
+  if (result.error) {
+    throw new HttpError(400, result.error.details[0].message);
   }
-  return number;
+  return result.value;
 }
 
 function slugifyExerciseLabel(label: string) {
@@ -51,14 +117,7 @@ function slugifyExerciseLabel(label: string) {
 }
 
 function validateExerciseLabel(labelInput: unknown): ValidatedExerciseBody {
-  const label = requireString(labelInput, "exercise name is required");
-  if (!label) {
-    throw new HttpError(400, "exercise name is required");
-  }
-  if (label.length > 80) {
-    throw new HttpError(400, "exercise name is too long");
-  }
-
+  const { label } = validateSchema(exerciseBodySchema, { label: labelInput });
   const value = slugifyExerciseLabel(label);
   if (!value) {
     throw new HttpError(400, "exercise name must include letters or numbers");
@@ -68,38 +127,11 @@ function validateExerciseLabel(labelInput: unknown): ValidatedExerciseBody {
 }
 
 function validateWorkoutSetInput(body: unknown): ValidatedWorkoutSetBody {
-  const input = body && typeof body === "object" ? body : {};
-  const weight = requireNumber(
-    (input as { weight?: unknown }).weight,
-    "weight must be a number"
-  );
-  const reps = requireNumber(
-    (input as { reps?: unknown }).reps,
-    "reps must be a number"
-  );
-
-  if (weight < 0) {
-    throw new HttpError(400, "weight cannot be negative");
-  }
-  if (weight > 999999.99) {
-    throw new HttpError(400, "weight is too large");
-  }
-  if (!Number.isInteger(reps) || reps <= 0) {
-    throw new HttpError(400, "reps must be greater than zero");
-  }
-
-  return { weight, reps };
+  return validateSchema(workoutSetBodySchema, body);
 }
 
 function validateWorkoutPlanDayName(value: unknown): ValidatedWorkoutPlanDayBody {
-  const name = requireString(value, "day name is required");
-  if (!name) {
-    throw new HttpError(400, "day name is required");
-  }
-  if (name.length > 80) {
-    throw new HttpError(400, "day name is too long");
-  }
-  return { name };
+  return validateSchema(workoutPlanDayBodySchema, { name: value });
 }
 
 async function validateExerciseValue(value: string) {
@@ -146,10 +178,18 @@ function handleValidation(
 export function validatePositivePathID(name: string, label: string) {
   return (req: Request, res: Response, next: NextFunction) => {
     handleValidation(res, next, () => {
-      const value = Number(req.params[name]);
-      if (!Number.isInteger(value) || value <= 0) {
-        throw new HttpError(400, `${label} must be a positive number`);
-      }
+      const schema = Joi.object({
+        [name]: Joi.number().integer().greater(0).required().messages({
+          "any.required": `${label} must be a positive number`,
+          "number.base": `${label} must be a positive number`,
+          "number.integer": `${label} must be a positive number`,
+          "number.greater": `${label} must be a positive number`,
+        }),
+      });
+      const { [name]: value } = validateSchema<Record<string, number>>(
+        schema,
+        req.params
+      );
       res.locals[name] = value;
     });
   };
@@ -171,10 +211,7 @@ export function validateExercisePathValue(
   next: NextFunction
 ) {
   handleValidation(res, next, () => {
-    const value = req.params.value?.trim();
-    if (!value) {
-      throw new HttpError(400, "exercise is required");
-    }
+    const { value } = validateSchema(exercisePathSchema, req.params);
     res.locals.exerciseValue = value;
   });
 }
@@ -185,17 +222,11 @@ export function validateWorkoutBody(
   next: NextFunction
 ) {
   handleValidation(res, next, async () => {
-    const trainingDate = requireString(
-      req.body?.trainingDate,
-      "trainingDate must use YYYY-MM-DD format"
+    const { trainingDate, exerciseType: exerciseInput } = validateSchema(
+      workoutBodySchema,
+      req.body
     );
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(trainingDate)) {
-      throw new HttpError(400, "trainingDate must use YYYY-MM-DD format");
-    }
-
-    const exerciseType = await validateExerciseValue(
-      requireString(req.body?.exerciseType, "exercise is required")
-    );
+    const exerciseType = await validateExerciseValue(exerciseInput);
     res.locals.workoutBody = { trainingDate, exerciseType };
   });
 }
@@ -226,9 +257,11 @@ export function validateWorkoutPlanItemBody(
   next: NextFunction
 ) {
   handleValidation(res, next, async () => {
-    const exerciseType = await validateExerciseValue(
-      requireString(req.body?.exerciseType, "exercise is required")
+    const { exerciseType: exerciseInput } = validateSchema(
+      workoutPlanItemBodySchema,
+      req.body
     );
+    const exerciseType = await validateExerciseValue(exerciseInput);
     res.locals.workoutPlanItemBody = { exerciseType };
   });
 }
