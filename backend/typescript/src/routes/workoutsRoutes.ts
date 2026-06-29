@@ -1,19 +1,18 @@
 import { Router } from "express";
-import {
-  createWorkout,
-  createWorkoutSet,
-  deleteWorkout,
-  deleteWorkoutSet,
-  listWorkouts,
-  updateWorkoutSet,
-} from "../controllers/workoutsController";
+import { WorkoutsController } from "../controllers/workoutsController";
 import { asyncHandler } from "../middleware/errors";
 
 export const workoutsRoutes = Router();
 
-workoutsRoutes.get("/", asyncHandler(listWorkouts));
-workoutsRoutes.post("/", asyncHandler(createWorkout));
-workoutsRoutes.delete("/:id", asyncHandler(deleteWorkout));
-workoutsRoutes.post("/:id/sets", asyncHandler(createWorkoutSet));
-workoutsRoutes.patch("/:id/sets/:setID", asyncHandler(updateWorkoutSet));
-workoutsRoutes.delete("/:id/sets/:setID", asyncHandler(deleteWorkoutSet));
+workoutsRoutes.get("/", asyncHandler(WorkoutsController.listWorkouts));
+workoutsRoutes.post("/", asyncHandler(WorkoutsController.createWorkout));
+workoutsRoutes.delete("/:id", asyncHandler(WorkoutsController.deleteWorkout));
+workoutsRoutes.post("/:id/sets", asyncHandler(WorkoutsController.createWorkoutSet));
+workoutsRoutes.patch(
+  "/:id/sets/:setID",
+  asyncHandler(WorkoutsController.updateWorkoutSet)
+);
+workoutsRoutes.delete(
+  "/:id/sets/:setID",
+  asyncHandler(WorkoutsController.deleteWorkoutSet)
+);
