@@ -6,10 +6,12 @@ import {
   TrainingLogEntries,
   WorkoutPlanPage,
 } from "./components";
-import { useExercises } from "./useExercises";
-import { useTrainingLogPage } from "./useTrainingLogPage";
-import { useWorkoutPlan } from "./useWorkoutPlan";
-import { useWorkouts } from "./useWorkouts";
+import {
+  useExercises,
+  useTrainingLogPage,
+  useWorkoutPlan,
+  useWorkouts,
+} from "./hooks";
 import { labelFor } from "./workouts";
 import "./styles.css";
 

@@ -4,7 +4,7 @@ import type {
   Exercise,
   WorkoutPlanDay,
 } from "../types";
-import type { PlanPendingState } from "../useWorkoutPlan";
+import type { PlanPendingState } from "../hooks";
 import { ExerciseManager } from "./ExerciseManager";
 import { WorkoutDayForm } from "./WorkoutDayForm";
 import { WorkoutPlanDayCard } from "./WorkoutPlanDayCard";

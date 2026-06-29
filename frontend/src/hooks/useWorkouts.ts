@@ -1,20 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  addWorkoutSet,
-  createWorkout,
-  deleteWorkout,
-  deleteWorkoutSet,
-  errorMessage,
-  listWorkouts,
-  updateWorkoutSet,
-} from "./api";
-import { sortWorkoutSets, sortWorkouts } from "./sorting";
+import { errorMessage } from "../api";
+import { workoutsService } from "../services";
+import { sortWorkoutSets, sortWorkouts } from "../sorting";
 import type {
   CreateWorkoutRequest,
   CreateWorkoutSetRequest,
   UpdateWorkoutSetRequest,
   Workout,
-} from "./types";
+} from "../types";
 
 type PendingState = {
   savingEntry: boolean;
@@ -66,7 +59,7 @@ export function useWorkouts() {
     setLoading(true);
     setFormError("");
     try {
-      setWorkouts(sortWorkouts(await listWorkouts()));
+      setWorkouts(sortWorkouts(await workoutsService.list()));
     } catch (err) {
       setFormError(errorMessage(err));
     } finally {
@@ -83,7 +76,7 @@ export function useWorkouts() {
     setFormError("");
 
     try {
-      const workout = await createWorkout(input);
+      const workout = await workoutsService.create(input);
       setWorkouts((current) => sortWorkouts([workout, ...current]));
       setOpenWorkoutId(workout.id);
       return true;
@@ -100,7 +93,7 @@ export function useWorkouts() {
     clearEntryError(workoutID);
 
     try {
-      await deleteWorkout({ workoutID });
+      await workoutsService.delete({ workoutID });
       setWorkouts((current) =>
         current.filter((workout) => workout.id !== workoutID)
       );
@@ -117,7 +110,7 @@ export function useWorkouts() {
     clearEntryError(input.workoutID);
 
     try {
-      const workoutSet = await addWorkoutSet(input);
+      const workoutSet = await workoutsService.addSet(input);
       setWorkouts((current) =>
         updateWorkoutSets(current, input.workoutID, (workout) => ({
           ...workout,
@@ -138,7 +131,7 @@ export function useWorkouts() {
     clearEntryError(input.workoutID);
 
     try {
-      const workoutSet = await updateWorkoutSet(input);
+      const workoutSet = await workoutsService.updateSet(input);
       setWorkouts((current) =>
         updateWorkoutSets(current, input.workoutID, (workout) => ({
           ...workout,
@@ -159,7 +152,7 @@ export function useWorkouts() {
     clearEntryError(workoutID);
 
     try {
-      await deleteWorkoutSet({ workoutID, setID });
+      await workoutsService.deleteSet({ workoutID, setID });
       setWorkouts((current) =>
         updateWorkoutSets(current, workoutID, (workout) => ({
           ...workout,

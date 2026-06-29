@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { WorkoutPlanDay } from "./types";
+import type { WorkoutPlanDay } from "../types";
 
 const storageKey = "fitness-workout-plan-progress";
 

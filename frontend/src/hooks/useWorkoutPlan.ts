@@ -1,18 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  createWorkoutPlanDay,
-  createWorkoutPlanItem,
-  deleteWorkoutPlanDay,
-  deleteWorkoutPlanItem,
-  errorMessage,
-  listWorkoutPlanDays,
-} from "./api";
-import { sortPlanDays, sortPlanItems } from "./sorting";
+import { errorMessage } from "../api";
+import { workoutPlanService } from "../services";
+import { sortPlanDays, sortPlanItems } from "../sorting";
 import type {
   CreateWorkoutPlanDayRequest,
   CreateWorkoutPlanItemRequest,
   WorkoutPlanDay,
-} from "./types";
+} from "../types";
 
 export type PlanPendingState = {
   creatingDay: boolean;
@@ -46,7 +40,7 @@ export function useWorkoutPlan() {
     setLoading(true);
     setError("");
     try {
-      setDays(sortPlanDays(await listWorkoutPlanDays()));
+      setDays(sortPlanDays(await workoutPlanService.listDays()));
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -63,7 +57,7 @@ export function useWorkoutPlan() {
     setError("");
 
     try {
-      const day = await createWorkoutPlanDay(input);
+      const day = await workoutPlanService.createDay(input);
       setDays((current) => sortPlanDays([...current, day]));
       return true;
     } catch (err) {
@@ -79,7 +73,7 @@ export function useWorkoutPlan() {
     setError("");
 
     try {
-      await deleteWorkoutPlanDay({ dayID });
+      await workoutPlanService.deleteDay({ dayID });
       setDays((current) => current.filter((day) => day.id !== dayID));
     } catch (err) {
       setError(errorMessage(err));
@@ -93,7 +87,7 @@ export function useWorkoutPlan() {
     setError("");
 
     try {
-      const item = await createWorkoutPlanItem(input);
+      const item = await workoutPlanService.createItem(input);
       setDays((current) =>
         updatePlanDay(current, input.dayID, (day) => ({
           ...day,
@@ -114,7 +108,7 @@ export function useWorkoutPlan() {
     setError("");
 
     try {
-      await deleteWorkoutPlanItem({ dayID, itemID });
+      await workoutPlanService.deleteItem({ dayID, itemID });
       setDays((current) =>
         updatePlanDay(current, dayID, (day) => ({
           ...day,

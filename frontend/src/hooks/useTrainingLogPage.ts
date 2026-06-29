@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import type { Exercise, Workout, WorkoutForm, WorkoutPlanDay } from "./types";
-import { findPreviousWorkoutForSelection } from "./trainingLog";
+import type { Exercise, Workout, WorkoutForm, WorkoutPlanDay } from "../types";
+import { findPreviousWorkoutForSelection } from "../trainingLog";
 import { useWorkoutPlanProgress } from "./useWorkoutPlanProgress";
 
 type UseTrainingLogPageInput = {

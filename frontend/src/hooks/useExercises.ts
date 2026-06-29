@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  createExercise,
-  deleteExercise,
-  errorMessage,
-  listExercises,
-} from "./api";
-import type { Exercise } from "./types";
+import { errorMessage } from "../api";
+import { exercisesService } from "../services";
+import type { Exercise } from "../types";
 
 export function useExercises() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -18,7 +14,7 @@ export function useExercises() {
     setLoading(true);
     setError("");
     try {
-      setExercises(await listExercises());
+      setExercises(await exercisesService.list());
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -34,7 +30,7 @@ export function useExercises() {
     setCreating(true);
     setError("");
     try {
-      const exercise = await createExercise({ label });
+      const exercise = await exercisesService.create({ label });
       setExercises((current) =>
         [...current, exercise].sort((a, b) =>
           a.label.localeCompare(b.label) || a.value.localeCompare(b.value)
@@ -53,7 +49,7 @@ export function useExercises() {
     setDeletingValue(value);
     setError("");
     try {
-      await deleteExercise({ value });
+      await exercisesService.delete({ value });
       setExercises((current) =>
         current.filter((exercise) => exercise.value !== value)
       );
