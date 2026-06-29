@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
-import { pool } from "../db/pool.js";
-import { HttpError } from "../middleware/errors.js";
-import type { WorkoutPlanDay, WorkoutPlanItem } from "../types/api.js";
+import { pool } from "../db/pool";
+import { HttpError } from "../middleware/errors";
+import type { WorkoutPlanDay, WorkoutPlanItem } from "../types/api";
 import {
   parsePositivePathID,
   requireString,
   validateExerciseValue,
-} from "./helpers.js";
+} from "./helpers";
 
 type WorkoutPlanDayRow = {
   id: string;

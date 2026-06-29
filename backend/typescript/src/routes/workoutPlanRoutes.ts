@@ -5,8 +5,8 @@ import {
   deleteWorkoutPlanDay,
   deleteWorkoutPlanItem,
   listWorkoutPlanDays,
-} from "../controllers/workoutPlanController.js";
-import { asyncHandler } from "../middleware/errors.js";
+} from "../controllers/workoutPlanController";
+import { asyncHandler } from "../middleware/errors";
 
 export const workoutPlanRoutes = Router();
 

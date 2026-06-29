@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { exercisesRoutes } from "./routes/exercisesRoutes.js";
-import { workoutPlanRoutes } from "./routes/workoutPlanRoutes.js";
-import { workoutsRoutes } from "./routes/workoutsRoutes.js";
+import { exercisesRoutes } from "./routes/exercisesRoutes";
+import { workoutPlanRoutes } from "./routes/workoutPlanRoutes";
+import { workoutsRoutes } from "./routes/workoutsRoutes";
 
 export const routes = Router();
 

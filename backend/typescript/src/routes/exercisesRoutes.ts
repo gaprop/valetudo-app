@@ -3,8 +3,8 @@ import {
   createExercise,
   deleteExercise,
   listExercises,
-} from "../controllers/exercisesController.js";
-import { asyncHandler } from "../middleware/errors.js";
+} from "../controllers/exercisesController";
+import { asyncHandler } from "../middleware/errors";
 
 export const exercisesRoutes = Router();
 

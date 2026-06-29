@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
-import { pool } from "../db/pool.js";
-import { HttpError } from "../middleware/errors.js";
-import { requireString } from "./helpers.js";
+import { pool } from "../db/pool";
+import { HttpError } from "../middleware/errors";
+import { requireString } from "./helpers";
 
 const nonSlugCharacters = /[^a-z0-9]+/g;
 

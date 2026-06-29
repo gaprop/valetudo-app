@@ -1,6 +1,6 @@
 import type { Request } from "express";
-import { HttpError } from "../middleware/errors.js";
-import { pool } from "../db/pool.js";
+import { HttpError } from "../middleware/errors";
+import { pool } from "../db/pool";
 
 export function parsePositivePathID(req: Request, name: string, label: string) {
   const value = Number(req.params[name]);

@@ -1,8 +1,8 @@
 import cors from "cors";
 import express from "express";
-import { connectWithRetry } from "./db/pool.js";
-import { errorHandler } from "./middleware/errors.js";
-import { routes } from "./routes.js";
+import { connectWithRetry } from "./db/pool";
+import { errorHandler } from "./middleware/errors";
+import { routes } from "./routes";
 
 const port = process.env.PORT || "8080";
 

@@ -6,8 +6,8 @@ import {
   deleteWorkoutSet,
   listWorkouts,
   updateWorkoutSet,
-} from "../controllers/workoutsController.js";
-import { asyncHandler } from "../middleware/errors.js";
+} from "../controllers/workoutsController";
+import { asyncHandler } from "../middleware/errors";
 
 export const workoutsRoutes = Router();
 
