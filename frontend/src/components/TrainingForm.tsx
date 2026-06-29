@@ -1,15 +1,15 @@
 import type { FormEvent } from "react";
-import type { Exercise, WorkoutForm, WorkoutPlanDay } from "../types";
+import type { Exercise, ID, WorkoutForm, WorkoutPlanDay } from "../types";
 
 type TrainingFormProps = {
   form: WorkoutForm;
   exercises: Exercise[];
   planDays: WorkoutPlanDay[];
-  selectedPlanDayId: number | null;
+  selectedPlanDayId: ID | null;
   error: string;
   savingEntry: boolean;
   onChange: (form: WorkoutForm) => void;
-  onPlanDayChange: (dayID: number | null) => void;
+  onPlanDayChange: (dayID: ID | null) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
@@ -52,7 +52,7 @@ export function TrainingForm({
             value={selectedPlanDayId ?? ""}
             onChange={(event) =>
               onPlanDayChange(
-                event.target.value === "" ? null : Number(event.target.value)
+                event.target.value === "" ? null : event.target.value
               )
             }
             disabled={planDays.length === 0}

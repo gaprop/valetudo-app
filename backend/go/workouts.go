@@ -68,7 +68,7 @@ func (s *Server) createWorkout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var id int64
+	var id string
 	err = s.db.QueryRow(r.Context(), `
 		INSERT INTO workout_entries (training_date, exercise_type)
 		VALUES ($1, $2)
@@ -89,7 +89,7 @@ func (s *Server) createWorkout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteWorkout(w http.ResponseWriter, r *http.Request) {
-	workoutID, err := parsePositivePathID(r, "id", "workout id")
+	workoutID, err := parseUUIDPathID(r, "id", "workout id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -112,7 +112,7 @@ func (s *Server) deleteWorkout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) createWorkoutSet(w http.ResponseWriter, r *http.Request) {
-	workoutID, err := parsePositivePathID(r, "id", "workout id")
+	workoutID, err := parseUUIDPathID(r, "id", "workout id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -178,13 +178,13 @@ func (s *Server) createWorkoutSet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) updateWorkoutSet(w http.ResponseWriter, r *http.Request) {
-	workoutID, err := parsePositivePathID(r, "id", "workout id")
+	workoutID, err := parseUUIDPathID(r, "id", "workout id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	setID, err := parsePositivePathID(r, "setID", "set id")
+	setID, err := parseUUIDPathID(r, "setID", "set id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -226,13 +226,13 @@ func (s *Server) updateWorkoutSet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteWorkoutSet(w http.ResponseWriter, r *http.Request) {
-	workoutID, err := parsePositivePathID(r, "id", "workout id")
+	workoutID, err := parseUUIDPathID(r, "id", "workout id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	setID, err := parsePositivePathID(r, "setID", "set id")
+	setID, err := parseUUIDPathID(r, "setID", "set id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -254,7 +254,7 @@ func (s *Server) deleteWorkoutSet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (s *Server) getWorkout(ctx context.Context, id int64) (Workout, error) {
+func (s *Server) getWorkout(ctx context.Context, id string) (Workout, error) {
 	var workout Workout
 	var trainingDate time.Time
 	err := s.db.QueryRow(ctx, `

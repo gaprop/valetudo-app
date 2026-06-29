@@ -20,7 +20,7 @@ type WorkoutPlanItemRow = {
 
 function mapPlanDay(row: WorkoutPlanDayRow): WorkoutPlanDay {
   return {
-    id: Number(row.id),
+    id: row.id,
     name: row.name,
     items: [],
     createdAt: row.createdAt,
@@ -29,7 +29,7 @@ function mapPlanDay(row: WorkoutPlanDayRow): WorkoutPlanDay {
 
 function mapPlanItem(row: WorkoutPlanItemRow): WorkoutPlanItem {
   return {
-    id: Number(row.id),
+    id: row.id,
     exerciseType: row.exerciseType,
     createdAt: row.createdAt,
   };
@@ -80,7 +80,7 @@ export class WorkoutPlanService {
     return mapPlanDay(result.rows[0]);
   }
 
-  static async deleteWorkoutPlanDay(dayID: number) {
+  static async deleteWorkoutPlanDay(dayID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_plan_days
@@ -94,7 +94,7 @@ export class WorkoutPlanService {
   }
 
   static async createWorkoutPlanItem(
-    dayID: number,
+    dayID: string,
     { exerciseType }: ValidatedWorkoutPlanItemBody
   ) {
     const client = await pool.connect();
@@ -136,7 +136,7 @@ export class WorkoutPlanService {
     }
   }
 
-  static async deleteWorkoutPlanItem(dayID: number, itemID: number) {
+  static async deleteWorkoutPlanItem(dayID: string, itemID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_plan_items

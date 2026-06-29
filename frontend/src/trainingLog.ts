@@ -22,7 +22,7 @@ export function findPreviousWorkoutForSelection(
 
     return (
       Date.parse(workout.createdAt) < Date.parse(selectedWorkout.createdAt) ||
-      workout.id < selectedWorkout.id
+      workout.id.localeCompare(selectedWorkout.id) < 0
     );
   });
 }

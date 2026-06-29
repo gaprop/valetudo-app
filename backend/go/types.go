@@ -3,7 +3,7 @@ package main
 import "time"
 
 type Workout struct {
-	ID           int64        `json:"id"`
+	ID           string       `json:"id"`
 	TrainingDate string       `json:"trainingDate"`
 	ExerciseType string       `json:"exerciseType"`
 	Sets         []WorkoutSet `json:"sets"`
@@ -11,7 +11,7 @@ type Workout struct {
 }
 
 type WorkoutSet struct {
-	ID        int64     `json:"id"`
+	ID        string    `json:"id"`
 	Weight    float64   `json:"weight"`
 	Reps      int       `json:"reps"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -38,14 +38,14 @@ type CreateExerciseRequest struct {
 }
 
 type WorkoutPlanDay struct {
-	ID        int64             `json:"id"`
+	ID        string            `json:"id"`
 	Name      string            `json:"name"`
 	Items     []WorkoutPlanItem `json:"items"`
 	CreatedAt time.Time         `json:"createdAt"`
 }
 
 type WorkoutPlanItem struct {
-	ID           int64     `json:"id"`
+	ID           string    `json:"id"`
 	ExerciseType string    `json:"exerciseType"`
 	CreatedAt    time.Time `json:"createdAt"`
 }

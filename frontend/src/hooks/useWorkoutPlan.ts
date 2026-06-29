@@ -5,14 +5,15 @@ import { sortPlanDays, sortPlanItems } from "../sorting";
 import type {
   CreateWorkoutPlanDayRequest,
   CreateWorkoutPlanItemRequest,
+  ID,
   WorkoutPlanDay,
 } from "../types";
 
 export type PlanPendingState = {
   creatingDay: boolean;
-  deletingDayId: number | null;
-  addingItemDayId: number | null;
-  deletingItemId: number | null;
+  deletingDayId: ID | null;
+  addingItemDayId: ID | null;
+  deletingItemId: ID | null;
 };
 
 const initialPendingState: PlanPendingState = {
@@ -24,7 +25,7 @@ const initialPendingState: PlanPendingState = {
 
 function updatePlanDay(
   days: WorkoutPlanDay[],
-  dayID: number,
+  dayID: ID,
   update: (day: WorkoutPlanDay) => WorkoutPlanDay
 ): WorkoutPlanDay[] {
   return days.map((day) => (day.id === dayID ? update(day) : day));
@@ -68,7 +69,7 @@ export function useWorkoutPlan() {
     }
   }
 
-  async function removeDay(dayID: number): Promise<void> {
+  async function removeDay(dayID: ID): Promise<void> {
     setPending((current) => ({ ...current, deletingDayId: dayID }));
     setError("");
 
@@ -103,7 +104,7 @@ export function useWorkoutPlan() {
     }
   }
 
-  async function removeItem(dayID: number, itemID: number): Promise<void> {
+  async function removeItem(dayID: ID, itemID: ID): Promise<void> {
     setPending((current) => ({ ...current, deletingItemId: itemID }));
     setError("");
 

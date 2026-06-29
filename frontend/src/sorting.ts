@@ -5,24 +5,33 @@ export function sortWorkouts(workouts: Workout[]): Workout[] {
     if (a.trainingDate !== b.trainingDate) {
       return a.trainingDate.localeCompare(b.trainingDate);
     }
-    return Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id;
+    return (
+      Date.parse(a.createdAt) - Date.parse(b.createdAt) ||
+      a.id.localeCompare(b.id)
+    );
   });
 }
 
 export function sortWorkoutSets(sets: WorkoutSet[]): WorkoutSet[] {
   return [...sets].sort(
-    (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id
+    (a, b) =>
+      Date.parse(a.createdAt) - Date.parse(b.createdAt) ||
+      a.id.localeCompare(b.id)
   );
 }
 
 export function sortPlanDays(days: WorkoutPlanDay[]): WorkoutPlanDay[] {
   return [...days].sort(
-    (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id
+    (a, b) =>
+      Date.parse(a.createdAt) - Date.parse(b.createdAt) ||
+      a.id.localeCompare(b.id)
   );
 }
 
 export function sortPlanItems(items: WorkoutPlanItem[]): WorkoutPlanItem[] {
   return [...items].sort(
-    (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt) || a.id - b.id
+    (a, b) =>
+      Date.parse(a.createdAt) - Date.parse(b.createdAt) ||
+      a.id.localeCompare(b.id)
   );
 }

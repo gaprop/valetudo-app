@@ -1,12 +1,12 @@
 export type WorkoutSet = {
-  id: number;
+  id: string;
   weight: number;
   reps: number;
   createdAt: Date;
 };
 
 export type Workout = {
-  id: number;
+  id: string;
   trainingDate: string;
   exerciseType: string;
   sets: WorkoutSet[];
@@ -14,13 +14,13 @@ export type Workout = {
 };
 
 export type WorkoutPlanItem = {
-  id: number;
+  id: string;
   exerciseType: string;
   createdAt: Date;
 };
 
 export type WorkoutPlanDay = {
-  id: number;
+  id: string;
   name: string;
   items: WorkoutPlanItem[];
   createdAt: Date;

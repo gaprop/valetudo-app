@@ -29,7 +29,7 @@ export class WorkoutPlanController {
 
   static async deleteWorkoutPlanDay(_req: Request, res: Response) {
     try {
-      const dayID = res.locals.id as number;
+      const dayID = res.locals.id as string;
       await WorkoutPlanService.deleteWorkoutPlanDay(dayID);
       res.status(204).send();
     } catch (error) {
@@ -39,7 +39,7 @@ export class WorkoutPlanController {
 
   static async createWorkoutPlanItem(_req: Request, res: Response) {
     try {
-      const dayID = res.locals.id as number;
+      const dayID = res.locals.id as string;
       const item = await WorkoutPlanService.createWorkoutPlanItem(
         dayID,
         res.locals.workoutPlanItemBody as ValidatedWorkoutPlanItemBody
@@ -52,8 +52,8 @@ export class WorkoutPlanController {
 
   static async deleteWorkoutPlanItem(_req: Request, res: Response) {
     try {
-      const dayID = res.locals.id as number;
-      const itemID = res.locals.itemID as number;
+      const dayID = res.locals.id as string;
+      const itemID = res.locals.itemID as string;
       await WorkoutPlanService.deleteWorkoutPlanItem(dayID, itemID);
       res.status(204).send();
     } catch (error) {

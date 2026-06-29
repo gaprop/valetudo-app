@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import type { SetForm, WorkoutSet } from "../types";
+import type { ID, SetForm, WorkoutSet } from "../types";
 import { ActionButton } from "./ActionButton";
 import { IconButton } from "./IconButton";
 import { MetricInputs } from "./MetricInputs";
@@ -8,8 +8,8 @@ import { MetricInputs } from "./MetricInputs";
 type WorkoutSetRowProps = {
   workoutSet: WorkoutSet;
   displayNumber: number;
-  updatingSetId: number | null;
-  deletingSetId: number | null;
+  updatingSetId: ID | null;
+  deletingSetId: ID | null;
   onUpdate: (form: SetForm) => void;
   onDelete: () => void;
 };

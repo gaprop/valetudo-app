@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type { Exercise, ExerciseValue, WorkoutPlanDay } from "../types";
+import type { Exercise, ExerciseValue, ID, WorkoutPlanDay } from "../types";
 import { labelFor } from "../workouts";
 import { ActionButton } from "./ActionButton";
 import { IconButton } from "./IconButton";
@@ -8,15 +8,15 @@ import { IconButton } from "./IconButton";
 type WorkoutPlanDayCardProps = {
   day: WorkoutPlanDay;
   exercises: Exercise[];
-  addingItemDayId: number | null;
-  deletingDayId: number | null;
-  deletingItemId: number | null;
+  addingItemDayId: ID | null;
+  deletingDayId: ID | null;
+  deletingItemId: ID | null;
   onAddItem: (input: {
-    dayID: number;
+    dayID: ID;
     exerciseType: ExerciseValue;
   }) => Promise<boolean>;
   onDeleteDay: () => void;
-  onDeleteItem: (itemID: number) => void;
+  onDeleteItem: (itemID: ID) => void;
 };
 
 export function WorkoutPlanDayCard({

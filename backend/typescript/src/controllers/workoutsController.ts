@@ -29,7 +29,7 @@ export class WorkoutsController {
 
   static async deleteWorkout(_req: Request, res: Response) {
     try {
-      const workoutID = res.locals.id as number;
+      const workoutID = res.locals.id as string;
       await WorkoutsService.deleteWorkout(workoutID);
       res.status(204).send();
     } catch (error) {
@@ -39,7 +39,7 @@ export class WorkoutsController {
 
   static async createWorkoutSet(_req: Request, res: Response) {
     try {
-      const workoutID = res.locals.id as number;
+      const workoutID = res.locals.id as string;
       const workoutSet = await WorkoutsService.createWorkoutSet(
         workoutID,
         res.locals.workoutSetBody as ValidatedWorkoutSetBody
@@ -52,8 +52,8 @@ export class WorkoutsController {
 
   static async updateWorkoutSet(_req: Request, res: Response) {
     try {
-      const workoutID = res.locals.id as number;
-      const setID = res.locals.setID as number;
+      const workoutID = res.locals.id as string;
+      const setID = res.locals.setID as string;
       const workoutSet = await WorkoutsService.updateWorkoutSet(
         workoutID,
         setID,
@@ -67,8 +67,8 @@ export class WorkoutsController {
 
   static async deleteWorkoutSet(_req: Request, res: Response) {
     try {
-      const workoutID = res.locals.id as number;
-      const setID = res.locals.setID as number;
+      const workoutID = res.locals.id as string;
+      const setID = res.locals.setID as string;
       await WorkoutsService.deleteWorkoutSet(workoutID, setID);
       res.status(204).send();
     } catch (error) {

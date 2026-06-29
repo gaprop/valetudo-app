@@ -2,6 +2,7 @@ import { api } from "../api";
 import type {
   CreateWorkoutPlanDayRequest,
   CreateWorkoutPlanItemRequest,
+  ID,
   WorkoutPlanDay,
   WorkoutPlanItem,
 } from "../types";
@@ -22,7 +23,7 @@ export const workoutPlanService = {
     return response.data;
   },
 
-  async deleteDay(input: { dayID: number }): Promise<void> {
+  async deleteDay(input: { dayID: ID }): Promise<void> {
     await api.delete(`/api/workout-plan/days/${input.dayID}`);
   },
 
@@ -36,7 +37,7 @@ export const workoutPlanService = {
     return response.data;
   },
 
-  async deleteItem(input: { dayID: number; itemID: number }): Promise<void> {
+  async deleteItem(input: { dayID: ID; itemID: ID }): Promise<void> {
     await api.delete(
       `/api/workout-plan/days/${input.dayID}/items/${input.itemID}`
     );

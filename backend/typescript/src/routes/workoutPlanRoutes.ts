@@ -2,7 +2,7 @@ import { Router } from "express";
 import { WorkoutPlanController } from "../controllers/workoutPlanController";
 import { asyncHandler } from "../middleware/errors";
 import {
-  validatePositivePathID,
+  validateUUIDPathID,
   validateWorkoutPlanDayBody,
   validateWorkoutPlanItemBody,
 } from "../middleware/validation";
@@ -20,18 +20,18 @@ workoutPlanRoutes.post(
 );
 workoutPlanRoutes.delete(
   "/days/:id",
-  validatePositivePathID("id", "day id"),
+  validateUUIDPathID("id", "day id"),
   asyncHandler(WorkoutPlanController.deleteWorkoutPlanDay)
 );
 workoutPlanRoutes.post(
   "/days/:id/items",
-  validatePositivePathID("id", "day id"),
+  validateUUIDPathID("id", "day id"),
   validateWorkoutPlanItemBody,
   asyncHandler(WorkoutPlanController.createWorkoutPlanItem)
 );
 workoutPlanRoutes.delete(
   "/days/:id/items/:itemID",
-  validatePositivePathID("id", "day id"),
-  validatePositivePathID("itemID", "item id"),
+  validateUUIDPathID("id", "day id"),
+  validateUUIDPathID("itemID", "item id"),
   asyncHandler(WorkoutPlanController.deleteWorkoutPlanItem)
 );

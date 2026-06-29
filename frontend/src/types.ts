@@ -1,4 +1,5 @@
 export type ExerciseValue = string;
+export type ID = string;
 
 export type Exercise = {
   value: ExerciseValue;
@@ -7,14 +8,14 @@ export type Exercise = {
 };
 
 export type WorkoutSet = {
-  id: number;
+  id: ID;
   weight: number;
   reps: number;
   createdAt: string;
 };
 
 export type Workout = {
-  id: number;
+  id: ID;
   trainingDate: string;
   exerciseType: ExerciseValue;
   sets: WorkoutSet[];
@@ -44,22 +45,22 @@ export type WorkoutSetRequest = {
 };
 
 export type CreateWorkoutSetRequest = WorkoutSetRequest & {
-  workoutID: number;
+  workoutID: ID;
 };
 
 export type UpdateWorkoutSetRequest = WorkoutSetRequest & {
-  workoutID: number;
-  setID: number;
+  workoutID: ID;
+  setID: ID;
 };
 
 export type WorkoutPlanItem = {
-  id: number;
+  id: ID;
   exerciseType: ExerciseValue;
   createdAt: string;
 };
 
 export type WorkoutPlanDay = {
-  id: number;
+  id: ID;
   name: string;
   items: WorkoutPlanItem[];
   createdAt: string;
@@ -70,6 +71,6 @@ export type CreateWorkoutPlanDayRequest = {
 };
 
 export type CreateWorkoutPlanItemRequest = {
-  dayID: number;
+  dayID: ID;
   exerciseType: ExerciseValue;
 };

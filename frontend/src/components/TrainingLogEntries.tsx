@@ -1,6 +1,7 @@
 import type {
   CreateWorkoutSetRequest,
   Exercise,
+  ID,
   SetForm,
   UpdateWorkoutSetRequest,
   Workout,
@@ -15,20 +16,20 @@ type TrainingLogEntriesProps = {
   selectedPlanDayName: string | null;
   pending: {
     savingEntry: boolean;
-    savingSetId: number | null;
-    updatingSetId: number | null;
-    deletingWorkoutId: number | null;
-    deletingSetId: number | null;
+    savingSetId: ID | null;
+    updatingSetId: ID | null;
+    deletingWorkoutId: ID | null;
+    deletingSetId: ID | null;
   };
-  entryErrors: Record<number, string>;
-  openWorkoutId: number | null;
+  entryErrors: Record<ID, string>;
+  openWorkoutId: ID | null;
   onRefresh: () => void;
   onAddNextPlanWorkout: () => void;
-  onToggleWorkout: (workoutID: number) => void;
+  onToggleWorkout: (workoutID: ID) => void;
   onAddSet: (input: CreateWorkoutSetRequest) => Promise<boolean>;
   onUpdateSet: (input: UpdateWorkoutSetRequest) => Promise<void>;
-  onDeleteWorkout: (workoutID: number) => void;
-  onDeleteSet: (workoutID: number, setID: number) => void;
+  onDeleteWorkout: (workoutID: ID) => void;
+  onDeleteSet: (workoutID: ID, setID: ID) => void;
 };
 
 export function TrainingLogEntries({
@@ -61,14 +62,14 @@ export function TrainingLogEntries({
       onRefresh={onRefresh}
       onAddNextPlanWorkout={onAddNextPlanWorkout}
       onToggleWorkout={onToggleWorkout}
-      onAddSet={(workoutID: number, form: SetForm) =>
+      onAddSet={(workoutID: ID, form: SetForm) =>
         onAddSet({
           workoutID,
           weight: Number(form.weight),
           reps: Number(form.reps),
         })
       }
-      onUpdateSet={(workoutID: number, setID: number, form: SetForm) =>
+      onUpdateSet={(workoutID: ID, setID: ID, form: SetForm) =>
         onUpdateSet({
           workoutID,
           setID,

@@ -2,6 +2,7 @@ import { api } from "../api";
 import type {
   CreateWorkoutRequest,
   CreateWorkoutSetRequest,
+  ID,
   UpdateWorkoutSetRequest,
   Workout,
   WorkoutSet,
@@ -18,7 +19,7 @@ export const workoutsService = {
     return response.data;
   },
 
-  async delete(input: { workoutID: number }): Promise<void> {
+  async delete(input: { workoutID: ID }): Promise<void> {
     await api.delete(`/api/workouts/${input.workoutID}`);
   },
 
@@ -38,7 +39,7 @@ export const workoutsService = {
     return response.data;
   },
 
-  async deleteSet(input: { workoutID: number; setID: number }): Promise<void> {
+  async deleteSet(input: { workoutID: ID; setID: ID }): Promise<void> {
     await api.delete(`/api/workouts/${input.workoutID}/sets/${input.setID}`);
   },
 };

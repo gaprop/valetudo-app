@@ -5,16 +5,17 @@ import { sortWorkoutSets, sortWorkouts } from "../sorting";
 import type {
   CreateWorkoutRequest,
   CreateWorkoutSetRequest,
+  ID,
   UpdateWorkoutSetRequest,
   Workout,
 } from "../types";
 
 type PendingState = {
   savingEntry: boolean;
-  savingSetId: number | null;
-  updatingSetId: number | null;
-  deletingWorkoutId: number | null;
-  deletingSetId: number | null;
+  savingSetId: ID | null;
+  updatingSetId: ID | null;
+  deletingWorkoutId: ID | null;
+  deletingSetId: ID | null;
 };
 
 const initialPendingState: PendingState = {
@@ -27,7 +28,7 @@ const initialPendingState: PendingState = {
 
 function updateWorkoutSets(
   workouts: Workout[],
-  workoutID: number,
+  workoutID: ID,
   update: (workout: Workout) => Workout
 ): Workout[] {
   return workouts.map((workout) =>
@@ -40,14 +41,14 @@ export function useWorkouts() {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<PendingState>(initialPendingState);
   const [formError, setFormError] = useState("");
-  const [entryErrors, setEntryErrors] = useState<Record<number, string>>({});
-  const [openWorkoutId, setOpenWorkoutId] = useState<number | null>(null);
+  const [entryErrors, setEntryErrors] = useState<Record<ID, string>>({});
+  const [openWorkoutId, setOpenWorkoutId] = useState<ID | null>(null);
 
-  const setEntryError = useCallback((workoutID: number, message: string) => {
+  const setEntryError = useCallback((workoutID: ID, message: string) => {
     setEntryErrors((current) => ({ ...current, [workoutID]: message }));
   }, []);
 
-  const clearEntryError = useCallback((workoutID: number) => {
+  const clearEntryError = useCallback((workoutID: ID) => {
     setEntryErrors((current) => {
       const next = { ...current };
       delete next[workoutID];
@@ -88,7 +89,7 @@ export function useWorkouts() {
     }
   }
 
-  async function deleteEntry(workoutID: number): Promise<void> {
+  async function deleteEntry(workoutID: ID): Promise<void> {
     setPending((current) => ({ ...current, deletingWorkoutId: workoutID }));
     clearEntryError(workoutID);
 
@@ -147,7 +148,7 @@ export function useWorkouts() {
     }
   }
 
-  async function removeSet(workoutID: number, setID: number): Promise<void> {
+  async function removeSet(workoutID: ID, setID: ID): Promise<void> {
     setPending((current) => ({ ...current, deletingSetId: setID }));
     clearEntryError(workoutID);
 
@@ -166,7 +167,7 @@ export function useWorkouts() {
     }
   }
 
-  function toggleWorkout(workoutID: number): void {
+  function toggleWorkout(workoutID: ID): void {
     setOpenWorkoutId((current) => (current === workoutID ? null : workoutID));
   }
 

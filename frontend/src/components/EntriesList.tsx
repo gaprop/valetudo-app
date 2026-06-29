@@ -1,4 +1,5 @@
 import type {
+  ID,
   SetForm,
   Exercise,
   Workout,
@@ -13,24 +14,24 @@ type EntriesListProps = {
   selectedPlanDayName: string | null;
   pending: {
     savingEntry: boolean;
-    savingSetId: number | null;
-    updatingSetId: number | null;
-    deletingWorkoutId: number | null;
-    deletingSetId: number | null;
+    savingSetId: ID | null;
+    updatingSetId: ID | null;
+    deletingWorkoutId: ID | null;
+    deletingSetId: ID | null;
   };
-  entryErrors: Record<number, string>;
-  openWorkoutId: number | null;
+  entryErrors: Record<ID, string>;
+  openWorkoutId: ID | null;
   onRefresh: () => void;
   onAddNextPlanWorkout: () => void;
-  onToggleWorkout: (workoutID: number) => void;
-  onAddSet: (workoutID: number, form: SetForm) => Promise<boolean>;
+  onToggleWorkout: (workoutID: ID) => void;
+  onAddSet: (workoutID: ID, form: SetForm) => Promise<boolean>;
   onUpdateSet: (
-    workoutID: number,
-    setID: number,
+    workoutID: ID,
+    setID: ID,
     form: SetForm
   ) => Promise<void>;
-  onDeleteWorkout: (workoutID: number) => void;
-  onDeleteSet: (workoutID: number, setID: number) => void;
+  onDeleteWorkout: (workoutID: ID) => void;
+  onDeleteSet: (workoutID: ID, setID: ID) => void;
 };
 
 export function EntriesList({

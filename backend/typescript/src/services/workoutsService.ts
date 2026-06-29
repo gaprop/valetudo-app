@@ -23,7 +23,7 @@ type WorkoutSetRow = {
 
 function mapWorkout(row: WorkoutRow): Workout {
   return {
-    id: Number(row.id),
+    id: row.id,
     trainingDate: formatDate(row.trainingDate),
     exerciseType: row.exerciseType,
     sets: [],
@@ -33,7 +33,7 @@ function mapWorkout(row: WorkoutRow): Workout {
 
 function mapWorkoutSet(row: WorkoutSetRow): WorkoutSet {
   return {
-    id: Number(row.id),
+    id: row.id,
     weight: Number(row.weight),
     reps: row.reps,
     createdAt: row.createdAt,
@@ -55,7 +55,7 @@ async function loadSets(workouts: Workout[]) {
   }
 }
 
-async function getWorkout(id: number) {
+async function getWorkout(id: string) {
   const result = await pool.query<WorkoutRow>(
     `
       SELECT
@@ -106,10 +106,10 @@ export class WorkoutsService {
       [trainingDate, exerciseType]
     );
 
-    return getWorkout(Number(result.rows[0].id));
+    return getWorkout(result.rows[0].id);
   }
 
-  static async deleteWorkout(workoutID: number) {
+  static async deleteWorkout(workoutID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_entries
@@ -123,7 +123,7 @@ export class WorkoutsService {
   }
 
   static async createWorkoutSet(
-    workoutID: number,
+    workoutID: string,
     { weight, reps }: ValidatedWorkoutSetBody
   ) {
     const client = await pool.connect();
@@ -163,8 +163,8 @@ export class WorkoutsService {
   }
 
   static async updateWorkoutSet(
-    workoutID: number,
-    setID: number,
+    workoutID: string,
+    setID: string,
     { weight, reps }: ValidatedWorkoutSetBody
   ) {
     const result = await pool.query<WorkoutSetRow>(
@@ -183,7 +183,7 @@ export class WorkoutsService {
     return mapWorkoutSet(result.rows[0]);
   }
 
-  static async deleteWorkoutSet(workoutID: number, setID: number) {
+  static async deleteWorkoutSet(workoutID: string, setID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_sets

@@ -175,18 +175,18 @@ function handleValidation(
     });
 }
 
-export function validatePositivePathID(name: string, label: string) {
+export function validateUUIDPathID(name: string, label: string) {
   return (req: Request, res: Response, next: NextFunction) => {
     handleValidation(res, next, () => {
       const schema = Joi.object({
-        [name]: Joi.number().integer().greater(0).required().messages({
-          "any.required": `${label} must be a positive number`,
-          "number.base": `${label} must be a positive number`,
-          "number.integer": `${label} must be a positive number`,
-          "number.greater": `${label} must be a positive number`,
+        [name]: Joi.string().uuid().required().messages({
+          "any.required": `${label} must be a valid id`,
+          "string.base": `${label} must be a valid id`,
+          "string.empty": `${label} must be a valid id`,
+          "string.guid": `${label} must be a valid id`,
         }),
       });
-      const { [name]: value } = validateSchema<Record<string, number>>(
+      const { [name]: value } = validateSchema<Record<string, string>>(
         schema,
         req.params
       );

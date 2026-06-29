@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import type { Exercise, Workout, WorkoutForm, WorkoutPlanDay } from "../types";
+import type {
+  Exercise,
+  ID,
+  Workout,
+  WorkoutForm,
+  WorkoutPlanDay,
+} from "../types";
 import { findPreviousWorkoutForSelection } from "../trainingLog";
 import { useWorkoutPlanProgress } from "./useWorkoutPlanProgress";
 
@@ -8,7 +14,7 @@ type UseTrainingLogPageInput = {
   exercises: Exercise[];
   workouts: Workout[];
   planDays: WorkoutPlanDay[];
-  openWorkoutId: number | null;
+  openWorkoutId: ID | null;
   createEntry: (input: WorkoutForm) => Promise<boolean>;
 };
 
@@ -24,9 +30,7 @@ export function useTrainingLogPage({
     trainingDate: today,
     exerciseType: "bench",
   });
-  const [selectedPlanDayId, setSelectedPlanDayId] = useState<number | null>(
-    null
-  );
+  const [selectedPlanDayId, setSelectedPlanDayId] = useState<ID | null>(null);
 
   const selectedPlanDay = useMemo(() => {
     return (

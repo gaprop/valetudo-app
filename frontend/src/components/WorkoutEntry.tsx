@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type { Exercise, SetForm, Workout } from "../types";
+import type { Exercise, ID, SetForm, Workout } from "../types";
 import { formatWeight, labelFor, maxWeight } from "../workouts";
 import { ActionButton } from "./ActionButton";
 import { IconButton } from "./IconButton";
@@ -11,16 +11,16 @@ type WorkoutEntryProps = {
   workout: Workout;
   exercises: Exercise[];
   error: string;
-  savingSetId: number | null;
-  updatingSetId: number | null;
-  deletingWorkoutId: number | null;
-  deletingSetId: number | null;
+  savingSetId: ID | null;
+  updatingSetId: ID | null;
+  deletingWorkoutId: ID | null;
+  deletingSetId: ID | null;
   isOpen: boolean;
   onToggle: () => void;
   onAddSet: (form: SetForm) => Promise<boolean>;
-  onUpdateSet: (setID: number, form: SetForm) => void;
+  onUpdateSet: (setID: ID, form: SetForm) => void;
   onDeleteWorkout: () => void;
-  onDeleteSet: (setID: number) => void;
+  onDeleteSet: (setID: ID) => void;
 };
 
 export function WorkoutEntry({

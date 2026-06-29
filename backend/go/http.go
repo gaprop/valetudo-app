@@ -5,13 +5,15 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"strconv"
+	"regexp"
 )
 
-func parsePositivePathID(r *http.Request, name string, label string) (int64, error) {
-	id, err := strconv.ParseInt(r.PathValue(name), 10, 64)
-	if err != nil || id <= 0 {
-		return 0, errors.New(label + " must be a positive number")
+var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
+
+func parseUUIDPathID(r *http.Request, name string, label string) (string, error) {
+	id := r.PathValue(name)
+	if !uuidPattern.MatchString(id) {
+		return "", errors.New(label + " must be a valid id")
 	}
 
 	return id, nil

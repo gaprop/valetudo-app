@@ -72,7 +72,7 @@ func (s *Server) createWorkoutPlanDay(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteWorkoutPlanDay(w http.ResponseWriter, r *http.Request) {
-	dayID, err := parsePositivePathID(r, "id", "day id")
+	dayID, err := parseUUIDPathID(r, "id", "day id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -95,7 +95,7 @@ func (s *Server) deleteWorkoutPlanDay(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) createWorkoutPlanItem(w http.ResponseWriter, r *http.Request) {
-	dayID, err := parsePositivePathID(r, "id", "day id")
+	dayID, err := parseUUIDPathID(r, "id", "day id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -155,12 +155,12 @@ func (s *Server) createWorkoutPlanItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteWorkoutPlanItem(w http.ResponseWriter, r *http.Request) {
-	dayID, err := parsePositivePathID(r, "id", "day id")
+	dayID, err := parseUUIDPathID(r, "id", "day id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	itemID, err := parsePositivePathID(r, "itemID", "item id")
+	itemID, err := parseUUIDPathID(r, "itemID", "item id")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return

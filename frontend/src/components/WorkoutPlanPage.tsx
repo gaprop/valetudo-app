@@ -2,6 +2,7 @@ import type {
   CreateWorkoutPlanDayRequest,
   CreateWorkoutPlanItemRequest,
   Exercise,
+  ID,
   WorkoutPlanDay,
 } from "../types";
 import type { PlanPendingState } from "../hooks";
@@ -21,9 +22,9 @@ type WorkoutPlanPageProps = {
   deletingExerciseValue: string | null;
   onRefresh: () => void;
   onAddDay: (input: CreateWorkoutPlanDayRequest) => Promise<boolean>;
-  onDeleteDay: (dayID: number) => void;
+  onDeleteDay: (dayID: ID) => void;
   onAddItem: (input: CreateWorkoutPlanItemRequest) => Promise<boolean>;
-  onDeleteItem: (dayID: number, itemID: number) => void;
+  onDeleteItem: (dayID: ID, itemID: ID) => void;
   onAddExercise: (label: string) => Promise<boolean>;
   onDeleteExercise: (value: string) => void;
 };
