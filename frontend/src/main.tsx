@@ -60,7 +60,7 @@ function App() {
         <header className="flex flex-col gap-3 border-b border-neutral-800 pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary-400">
-              Fitness tracker
+              Valetudo
             </p>
             <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">
               {page === "log" ? "Training log" : "Workout plan"}
