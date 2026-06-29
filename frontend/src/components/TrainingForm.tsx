@@ -46,7 +46,7 @@ export function TrainingForm({
         </label>
 
         <label className="grid gap-2 text-sm font-medium text-neutral-300">
-          TrainingSession day
+          Workout plan
           <select
             className="input"
             value={selectedPlanDayId ?? ""}
@@ -58,7 +58,7 @@ export function TrainingForm({
             disabled={planDays.length === 0}
           >
             {planDays.length === 0 ? (
-              <option value="">No trainingSession days</option>
+              <option value="">No workout plan</option>
             ) : (
               planDays.map((day) => (
                 <option key={day.id} value={day.id}>
