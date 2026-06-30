@@ -30,6 +30,7 @@ export function PlanDayCard({
   onDeleteItem,
 }: PlanDayCardProps) {
   const [exerciseValue, setExerciseValue] = useState<ExerciseValue>("bench");
+  const [exerciseSearch, setExerciseSearch] = useState("");
 
   useEffect(() => {
     if (
@@ -40,12 +41,20 @@ export function PlanDayCard({
     }
   }, [exerciseValue, exercises]);
 
+  const filteredExercises = exercises.filter((exercise) =>
+    exercise.label.toLowerCase().includes(exerciseSearch.trim().toLowerCase())
+  );
+  const selectedExercise = exercises.find(
+    (exercise) => exercise.value === exerciseValue
+  );
+
   async function handleAddItem(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!exerciseValue) {
       return;
     }
     await onAddItem({ dayID: day.id, exerciseType: exerciseValue });
+    setExerciseSearch("");
   }
 
   return (
@@ -93,24 +102,51 @@ export function PlanDayCard({
       )}
 
       <form
-        className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3 sm:grid-cols-[1fr_auto] sm:items-end"
+        className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3 sm:grid-cols-[1fr_auto] sm:items-start"
         onSubmit={handleAddItem}
       >
-        <label className="grid gap-2 text-sm font-medium text-neutral-300">
+        <div className="grid gap-2 text-sm font-medium text-neutral-300">
           Exercise
-          <select
+          <input
             className="input"
-            value={exerciseValue}
-            onChange={(event) => setExerciseValue(event.target.value)}
+            value={exerciseSearch}
+            onChange={(event) => setExerciseSearch(event.target.value)}
             disabled={exercises.length === 0}
-          >
-            {exercises.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            placeholder={selectedExercise?.label || "Search exercises"}
+          />
+          {exercises.length > 0 && exerciseSearch.trim() !== "" && (
+            <div className="max-h-48 overflow-y-auto rounded border border-neutral-800 bg-neutral-900">
+              {filteredExercises.length === 0 ? (
+                <p className="px-3 py-3 text-sm text-neutral-500">
+                  No exercises found.
+                </p>
+              ) : (
+                filteredExercises.map((exercise) => (
+                  <button
+                    className={`block w-full px-3 py-2 text-left text-sm transition hover:bg-neutral-800 ${
+                      exercise.value === exerciseValue
+                        ? "bg-primary-950/60 text-primary-100"
+                        : "text-neutral-200"
+                    }`}
+                    key={exercise.value}
+                    type="button"
+                    onClick={() => {
+                      setExerciseValue(exercise.value);
+                      setExerciseSearch(exercise.label);
+                    }}
+                  >
+                    {exercise.label}
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+          {selectedExercise && (
+            <p className="text-xs text-neutral-500">
+              Selected: {selectedExercise.label}
+            </p>
+          )}
+        </div>
         <div className="grid gap-2 sm:w-40">
           <ActionButton
             type="submit"
