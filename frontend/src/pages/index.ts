@@ -1,3 +1,3 @@
-export { RecipesRoutePage } from "./RecipesRoutePage";
+export { RecipesPage } from "./RecipesPage";
 export { TrainingLogPage } from "./TrainingLogPage";
 export { WorkoutPlanPage } from "./WorkoutPlanPage";

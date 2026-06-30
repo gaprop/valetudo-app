@@ -2,10 +2,11 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import {
-  RecipesRoutePage,
+  RecipesPage,
   TrainingLogPage,
   WorkoutPlanPage,
 } from "./pages";
+import { appRoutes } from "./routes";
 import "./styles.css";
 
 function AppShell() {
@@ -13,11 +14,17 @@ function AppShell() {
     <main className="min-h-screen bg-neutral-950 text-neutral-100">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
         <Routes>
-          <Route path="/" element={<Navigate replace to="/training-log" />} />
-          <Route path="/training-log" element={<TrainingLogPage />} />
-          <Route path="/workout-plan" element={<WorkoutPlanPage />} />
-          <Route path="/recipes" element={<RecipesRoutePage />} />
-          <Route path="*" element={<Navigate replace to="/training-log" />} />
+          <Route
+            path="/"
+            element={<Navigate replace to={appRoutes.trainingLog} />}
+          />
+          <Route path={appRoutes.trainingLog} element={<TrainingLogPage />} />
+          <Route path={appRoutes.workoutPlan} element={<WorkoutPlanPage />} />
+          <Route path={appRoutes.recipes} element={<RecipesPage />} />
+          <Route
+            path="*"
+            element={<Navigate replace to={appRoutes.trainingLog} />}
+          />
         </Routes>
       </div>
     </main>

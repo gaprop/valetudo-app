@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { errorMessage } from "../api";
 import { planDaysService } from "../services";
 import { sortPlanDays, sortPlanItems } from "../sorting";
+import { setPendingField } from "./pending";
 import type {
   CreatePlanDayRequest,
   CreatePlanExerciseRequest,
@@ -54,7 +55,7 @@ export function usePlanDays() {
   }, [load]);
 
   async function addDay(input: CreatePlanDayRequest): Promise<boolean> {
-    setPending((current) => ({ ...current, creatingDay: true }));
+    setPendingField(setPending, "creatingDay", true);
     setError("");
 
     try {
@@ -65,12 +66,12 @@ export function usePlanDays() {
       setError(errorMessage(err));
       return false;
     } finally {
-      setPending((current) => ({ ...current, creatingDay: false }));
+      setPendingField(setPending, "creatingDay", false);
     }
   }
 
   async function removeDay(dayID: ID): Promise<void> {
-    setPending((current) => ({ ...current, deletingDayId: dayID }));
+    setPendingField(setPending, "deletingDayId", dayID);
     setError("");
 
     try {
@@ -79,12 +80,12 @@ export function usePlanDays() {
     } catch (err) {
       setError(errorMessage(err));
     } finally {
-      setPending((current) => ({ ...current, deletingDayId: null }));
+      setPendingField(setPending, "deletingDayId", null);
     }
   }
 
   async function addItem(input: CreatePlanExerciseRequest): Promise<boolean> {
-    setPending((current) => ({ ...current, addingItemDayId: input.dayID }));
+    setPendingField(setPending, "addingItemDayId", input.dayID);
     setError("");
 
     try {
@@ -100,12 +101,12 @@ export function usePlanDays() {
       setError(errorMessage(err));
       return false;
     } finally {
-      setPending((current) => ({ ...current, addingItemDayId: null }));
+      setPendingField(setPending, "addingItemDayId", null);
     }
   }
 
   async function removeItem(dayID: ID, itemID: ID): Promise<void> {
-    setPending((current) => ({ ...current, deletingItemId: itemID }));
+    setPendingField(setPending, "deletingItemId", itemID);
     setError("");
 
     try {
@@ -119,7 +120,7 @@ export function usePlanDays() {
     } catch (err) {
       setError(errorMessage(err));
     } finally {
-      setPending((current) => ({ ...current, deletingItemId: null }));
+      setPendingField(setPending, "deletingItemId", null);
     }
   }
 

@@ -1,7 +1,8 @@
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { Pencil, Plus, X } from "lucide-react";
 import type { Ingredient, IngredientRequest } from "../types";
 import { IconButton } from "./IconButton";
+import { IngredientFormModal } from "./IngredientFormModal";
 
 type IngredientCatalogProps = {
   ingredients: Ingredient[];
@@ -31,15 +32,7 @@ export function IngredientCatalog({
 }: IngredientCatalogProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [ingredientName, setIngredientName] = useState("");
-  const [ingredientCalories, setIngredientCalories] = useState("");
-  const [ingredientProtein, setIngredientProtein] = useState("");
   const [selectedIngredientValue, setSelectedIngredientValue] = useState("");
-  const [selectedLabel, setSelectedLabel] = useState("");
-  const [selectedCalories, setSelectedCalories] = useState("");
-  const [selectedProtein, setSelectedProtein] = useState("");
-  const createTitleId = useId();
-  const editTitleId = useId();
 
   useEffect(() => {
     if (
@@ -60,66 +53,11 @@ export function IngredientCatalog({
       (ingredient) => ingredient.value === selectedIngredientValue
     ) || null;
 
-  useEffect(() => {
-    if (!selectedIngredient) {
-      setSelectedLabel("");
-      setSelectedCalories("");
-      setSelectedProtein("");
-      return;
-    }
-
-    setSelectedLabel(selectedIngredient.label);
-    setSelectedCalories(String(selectedIngredient.caloriesPer100g));
-    setSelectedProtein(String(selectedIngredient.proteinPer100g));
-  }, [selectedIngredient]);
-
-  useEffect(() => {
-    if (!isCreateModalOpen && !isEditModalOpen) {
-      return;
-    }
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsCreateModalOpen(false);
-        setIsEditModalOpen(false);
-      }
-    }
-
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [isCreateModalOpen, isEditModalOpen]);
-
-  async function handleAddIngredient(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (
-      await onAddIngredient({
-        label: ingredientName,
-        caloriesPer100g: Number(ingredientCalories),
-        proteinPer100g: Number(ingredientProtein),
-      })
-    ) {
-      setIngredientName("");
-      setIngredientCalories("");
-      setIngredientProtein("");
-      setIsCreateModalOpen(false);
-    }
-  }
-
-  async function handleUpdateIngredientSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleUpdateIngredient(input: IngredientRequest) {
     if (!selectedIngredientValue) {
-      return;
+      return false;
     }
-
-    if (
-      await onUpdateIngredient(selectedIngredientValue, {
-        label: selectedLabel,
-        caloriesPer100g: Number(selectedCalories),
-        proteinPer100g: Number(selectedProtein),
-      })
-    ) {
-      setIsEditModalOpen(false);
-    }
+    return onUpdateIngredient(selectedIngredientValue, input);
   }
 
   return (
@@ -167,14 +105,17 @@ export function IngredientCatalog({
                 </select>
               </label>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                <div className="rounded border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm text-neutral-300">
-                  <span className="font-semibold text-white">
-                    {selectedLabel}
-                  </span>
-                  <span className="mt-1 block text-neutral-400">
-                    {selectedCalories} kcal, {selectedProtein}g protein per 100g
-                  </span>
-                </div>
+                {selectedIngredient && (
+                  <div className="rounded border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm text-neutral-300">
+                    <span className="font-semibold text-white">
+                      {selectedIngredient.label}
+                    </span>
+                    <span className="mt-1 block text-neutral-400">
+                      {selectedIngredient.caloriesPer100g} kcal,{" "}
+                      {selectedIngredient.proteinPer100g}g protein per 100g
+                    </span>
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <IconButton
                     label="Edit selected ingredient"
@@ -203,221 +144,34 @@ export function IngredientCatalog({
       </section>
 
       {isCreateModalOpen && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4 py-6"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setIsCreateModalOpen(false);
-            }
-          }}
-        >
-          <form
-            aria-labelledby={createTitleId}
-            aria-modal="true"
-            className="grid max-h-[85vh] w-full max-w-lg gap-0 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950 shadow-2xl shadow-black"
-            role="dialog"
-            onSubmit={handleAddIngredient}
-          >
-            <header className="flex items-start justify-between gap-3 border-b border-neutral-800 px-5 py-4">
-              <div>
-                <h2
-                  id={createTitleId}
-                  className="text-lg font-semibold text-white"
-                >
-                  Add ingredient
-                </h2>
-              </div>
-              <IconButton
-                label="Close ingredient form"
-                title="Close"
-                onClick={() => setIsCreateModalOpen(false)}
-              >
-                <X aria-hidden="true" size={16} strokeWidth={2.25} />
-              </IconButton>
-            </header>
-
-            <div className="grid gap-4 overflow-y-auto p-5">
-              <label className="grid gap-2 text-sm font-medium text-neutral-300">
-                Ingredient
-                <input
-                  className="input"
-                  value={ingredientName}
-                  onChange={(event) => setIngredientName(event.target.value)}
-                  placeholder="Chicken breast"
-                  required
-                />
-              </label>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-2 text-sm font-medium text-neutral-300">
-                  Calories per 100g
-                  <input
-                    className="input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={ingredientCalories}
-                    onChange={(event) =>
-                      setIngredientCalories(event.target.value)
-                    }
-                    placeholder="kcal"
-                    required
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-medium text-neutral-300">
-                  Protein per 100g
-                  <input
-                    className="input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={ingredientProtein}
-                    onChange={(event) =>
-                      setIngredientProtein(event.target.value)
-                    }
-                    placeholder="g"
-                    required
-                  />
-                </label>
-              </div>
-
-              {error && (
-                <p className="rounded border border-primary-700 bg-primary-950 px-3 py-2 text-sm text-primary-100">
-                  {error}
-                </p>
-              )}
-            </div>
-
-            <footer className="grid gap-3 border-t border-neutral-800 px-5 py-4 sm:grid-cols-[1fr_auto]">
-              <button
-                className="rounded border border-neutral-700 px-4 py-3 text-sm font-bold text-neutral-300 transition hover:border-primary-500 hover:text-white"
-                type="button"
-                onClick={() => setIsCreateModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="rounded bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
-                type="submit"
-                disabled={creating}
-              >
-                {creating ? "Creating..." : "Create ingredient"}
-              </button>
-            </footer>
-          </form>
-        </div>
+        <IngredientFormModal
+          closeLabel="Close ingredient form"
+          error={error}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={onAddIngredient}
+          saving={creating}
+          savingLabel="Creating..."
+          submitLabel="Create ingredient"
+          title="Add ingredient"
+        />
       )}
 
       {isEditModalOpen && selectedIngredient && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4 py-6"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setIsEditModalOpen(false);
-            }
+        <IngredientFormModal
+          closeLabel="Close ingredient editor"
+          error={error}
+          initialValue={{
+            label: selectedIngredient.label,
+            caloriesPer100g: selectedIngredient.caloriesPer100g,
+            proteinPer100g: selectedIngredient.proteinPer100g,
           }}
-        >
-          <form
-            aria-labelledby={editTitleId}
-            aria-modal="true"
-            className="grid max-h-[85vh] w-full max-w-lg gap-0 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950 shadow-2xl shadow-black"
-            role="dialog"
-            onSubmit={handleUpdateIngredientSubmit}
-          >
-            <header className="flex items-start justify-between gap-3 border-b border-neutral-800 px-5 py-4">
-              <div>
-                <h2
-                  id={editTitleId}
-                  className="text-lg font-semibold text-white"
-                >
-                  Edit ingredient
-                </h2>
-              </div>
-              <IconButton
-                label="Close ingredient editor"
-                title="Close"
-                onClick={() => setIsEditModalOpen(false)}
-              >
-                <X aria-hidden="true" size={16} strokeWidth={2.25} />
-              </IconButton>
-            </header>
-
-            <div className="grid gap-4 overflow-y-auto p-5">
-              <label className="grid gap-2 text-sm font-medium text-neutral-300">
-                Ingredient
-                <input
-                  className="input"
-                  value={selectedLabel}
-                  onChange={(event) => setSelectedLabel(event.target.value)}
-                  required
-                />
-              </label>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-2 text-sm font-medium text-neutral-300">
-                  Calories per 100g
-                  <input
-                    className="input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={selectedCalories}
-                    onChange={(event) =>
-                      setSelectedCalories(event.target.value)
-                    }
-                    required
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-medium text-neutral-300">
-                  Protein per 100g
-                  <input
-                    className="input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={selectedProtein}
-                    onChange={(event) =>
-                      setSelectedProtein(event.target.value)
-                    }
-                    required
-                  />
-                </label>
-              </div>
-
-              {error && (
-                <p className="rounded border border-primary-700 bg-primary-950 px-3 py-2 text-sm text-primary-100">
-                  {error}
-                </p>
-              )}
-            </div>
-
-            <footer className="grid gap-3 border-t border-neutral-800 px-5 py-4 sm:grid-cols-[1fr_auto]">
-              <button
-                className="rounded border border-neutral-700 px-4 py-3 text-sm font-bold text-neutral-300 transition hover:border-primary-500 hover:text-white"
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="rounded bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
-                type="submit"
-                disabled={
-                  updatingValue === selectedIngredientValue ||
-                  !selectedLabel ||
-                  !selectedCalories ||
-                  !selectedProtein
-                }
-              >
-                {updatingValue === selectedIngredientValue
-                  ? "Saving..."
-                  : "Save ingredient"}
-              </button>
-            </footer>
-          </form>
-        </div>
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleUpdateIngredient}
+          saving={updatingValue === selectedIngredientValue}
+          savingLabel="Saving..."
+          submitLabel="Save ingredient"
+          title="Edit ingredient"
+        />
       )}
     </>
   );

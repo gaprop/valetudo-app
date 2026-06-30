@@ -8,6 +8,7 @@ import type {
   UpdateRecipeIngredientRequest,
 } from "../types";
 import type { RecipesPendingState } from "../hooks";
+import { nutritionForGrams } from "../recipeNutrition";
 import { IconButton } from "./IconButton";
 import { RecipeIngredientRow } from "./RecipeIngredientRow";
 
@@ -61,13 +62,12 @@ export function RecipeCard({
       return;
     }
 
-    const grams = Number(amountGrams);
-    if (!Number.isFinite(grams)) {
-      return;
-    }
-
-    setCalories(String((grams / 100) * selectedIngredient.caloriesPer100g));
-    setProtein(String((grams / 100) * selectedIngredient.proteinPer100g));
+    setCalories(
+      String(nutritionForGrams(selectedIngredient.caloriesPer100g, amountGrams))
+    );
+    setProtein(
+      String(nutritionForGrams(selectedIngredient.proteinPer100g, amountGrams))
+    );
   }, [amountGrams, nutritionEdited, selectedIngredient]);
 
   const totals = useMemo(

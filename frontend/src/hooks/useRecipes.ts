@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { errorMessage } from "../api";
 import { recipesService } from "../services";
+import { setPendingField } from "./pending";
 import type {
   CreateRecipeIngredientRequest,
   CreateRecipeRequest,
@@ -76,7 +77,7 @@ export function useRecipes() {
   }, [load]);
 
   async function addRecipe(input: CreateRecipeRequest): Promise<boolean> {
-    setPending((current) => ({ ...current, creatingRecipe: true }));
+    setPendingField(setPending, "creatingRecipe", true);
     setError("");
 
     try {
@@ -87,12 +88,12 @@ export function useRecipes() {
       setError(errorMessage(err));
       return false;
     } finally {
-      setPending((current) => ({ ...current, creatingRecipe: false }));
+      setPendingField(setPending, "creatingRecipe", false);
     }
   }
 
   async function removeRecipe(recipeID: ID): Promise<void> {
-    setPending((current) => ({ ...current, deletingRecipeId: recipeID }));
+    setPendingField(setPending, "deletingRecipeId", recipeID);
     setError("");
 
     try {
@@ -101,17 +102,14 @@ export function useRecipes() {
     } catch (err) {
       setError(errorMessage(err));
     } finally {
-      setPending((current) => ({ ...current, deletingRecipeId: null }));
+      setPendingField(setPending, "deletingRecipeId", null);
     }
   }
 
   async function addRecipeIngredient(
     input: CreateRecipeIngredientRequest
   ): Promise<boolean> {
-    setPending((current) => ({
-      ...current,
-      addingIngredientRecipeId: input.recipeID,
-    }));
+    setPendingField(setPending, "addingIngredientRecipeId", input.recipeID);
     setError("");
 
     try {
@@ -127,20 +125,14 @@ export function useRecipes() {
       setError(errorMessage(err));
       return false;
     } finally {
-      setPending((current) => ({
-        ...current,
-        addingIngredientRecipeId: null,
-      }));
+      setPendingField(setPending, "addingIngredientRecipeId", null);
     }
   }
 
   async function updateRecipeIngredient(
     input: UpdateRecipeIngredientRequest
   ): Promise<boolean> {
-    setPending((current) => ({
-      ...current,
-      updatingIngredientId: input.ingredientID,
-    }));
+    setPendingField(setPending, "updatingIngredientId", input.ingredientID);
     setError("");
 
     try {
@@ -160,7 +152,7 @@ export function useRecipes() {
       setError(errorMessage(err));
       return false;
     } finally {
-      setPending((current) => ({ ...current, updatingIngredientId: null }));
+      setPendingField(setPending, "updatingIngredientId", null);
     }
   }
 
@@ -168,10 +160,7 @@ export function useRecipes() {
     recipeID: ID,
     ingredientID: ID
   ): Promise<void> {
-    setPending((current) => ({
-      ...current,
-      deletingIngredientId: ingredientID,
-    }));
+    setPendingField(setPending, "deletingIngredientId", ingredientID);
     setError("");
 
     try {
@@ -187,7 +176,7 @@ export function useRecipes() {
     } catch (err) {
       setError(errorMessage(err));
     } finally {
-      setPending((current) => ({ ...current, deletingIngredientId: null }));
+      setPendingField(setPending, "deletingIngredientId", null);
     }
   }
 

@@ -5,6 +5,7 @@ import type {
   ValidatedRecipeIngredientBody,
 } from "../middleware/validation";
 import type { Recipe, RecipeIngredient } from "../types/api";
+import { loadChildrenForParents } from "./helpers";
 
 type RecipeRow = {
   id: string;
@@ -42,7 +43,9 @@ function mapRecipeIngredient(row: RecipeIngredientRow): RecipeIngredient {
 }
 
 async function loadRecipeIngredients(recipes: Recipe[]) {
-  for (const recipe of recipes) {
+  await loadChildrenForParents(
+    recipes,
+    async (recipe) => {
     const result = await pool.query<RecipeIngredientRow>(
       `
         SELECT
@@ -58,8 +61,12 @@ async function loadRecipeIngredients(recipes: Recipe[]) {
       `,
       [recipe.id]
     );
-    recipe.ingredients = result.rows.map(mapRecipeIngredient);
-  }
+      return result.rows.map(mapRecipeIngredient);
+    },
+    (recipe, ingredients) => {
+      recipe.ingredients = ingredients;
+    }
+  );
 }
 
 async function getRecipe(recipeID: string) {

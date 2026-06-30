@@ -6,6 +6,7 @@ import type {
   RecipeIngredient,
   UpdateRecipeIngredientRequest,
 } from "../types";
+import { nutritionForGrams } from "../recipeNutrition";
 import { IconButton } from "./IconButton";
 
 type RecipeIngredientRowProps = {
@@ -55,13 +56,12 @@ export function RecipeIngredientRow({
     if (!catalogIngredient || !gramsInput) {
       return;
     }
-    const grams = Number(gramsInput);
-    if (!Number.isFinite(grams)) {
-      return;
-    }
-
-    setCalories(String((grams / 100) * catalogIngredient.caloriesPer100g));
-    setProtein(String((grams / 100) * catalogIngredient.proteinPer100g));
+    setCalories(
+      String(nutritionForGrams(catalogIngredient.caloriesPer100g, gramsInput))
+    );
+    setProtein(
+      String(nutritionForGrams(catalogIngredient.proteinPer100g, gramsInput))
+    );
   }
 
   const hasChanges =

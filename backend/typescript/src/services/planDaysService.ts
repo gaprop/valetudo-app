@@ -5,6 +5,7 @@ import type {
   ValidatedPlanExerciseBody,
 } from "../middleware/validation";
 import type { PlanDay, PlanExercise } from "../types/api";
+import { loadChildrenForParents } from "./helpers";
 
 type PlanDayRow = {
   id: string;
@@ -36,7 +37,9 @@ function mapPlanExercise(row: PlanExerciseRow): PlanExercise {
 }
 
 async function loadPlanExercises(days: PlanDay[]) {
-  for (const day of days) {
+  await loadChildrenForParents(
+    days,
+    async (day) => {
     const result = await pool.query<PlanExerciseRow>(
       `
         SELECT
@@ -49,8 +52,12 @@ async function loadPlanExercises(days: PlanDay[]) {
       `,
       [day.id]
     );
-    day.items = result.rows.map(mapPlanExercise);
-  }
+      return result.rows.map(mapPlanExercise);
+    },
+    (day, items) => {
+      day.items = items;
+    }
+  );
 }
 
 export class PlanDaysService {

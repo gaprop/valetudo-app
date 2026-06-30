@@ -5,7 +5,7 @@ import type {
   ValidatedTrainingSetBody,
 } from "../middleware/validation";
 import type { TrainingSession, TrainingSet } from "../types/api";
-import { formatDate } from "./helpers";
+import { formatDate, loadChildrenForParents } from "./helpers";
 
 type TrainingSessionRow = {
   id: string;
@@ -41,7 +41,9 @@ function mapTrainingSet(row: TrainingSetRow): TrainingSet {
 }
 
 async function loadTrainingSets(trainingSessions: TrainingSession[]) {
-  for (const trainingSession of trainingSessions) {
+  await loadChildrenForParents(
+    trainingSessions,
+    async (trainingSession) => {
     const result = await pool.query<TrainingSetRow>(
       `
         SELECT id, weight, reps, created_at AS "createdAt"
@@ -51,8 +53,12 @@ async function loadTrainingSets(trainingSessions: TrainingSession[]) {
       `,
       [trainingSession.id]
     );
-    trainingSession.sets = result.rows.map(mapTrainingSet);
-  }
+      return result.rows.map(mapTrainingSet);
+    },
+    (trainingSession, sets) => {
+      trainingSession.sets = sets;
+    }
+  );
 }
 
 async function getTrainingSession(id: string) {

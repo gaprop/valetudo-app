@@ -1,10 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-
-const navItems = [
-  { to: "/training-log", label: "Training log" },
-  { to: "/workout-plan", label: "Workout plan" },
-  { to: "/recipes", label: "Recipes" },
-];
+import { navItems } from "../routes";
 
 export function PageNavigation() {
   const location = useLocation();
