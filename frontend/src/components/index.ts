@@ -3,6 +3,7 @@ export { TrainingSessionList } from "./TrainingSessionList";
 export { ExerciseCatalog } from "./ExerciseCatalog";
 export { IngredientCatalog } from "./IngredientCatalog";
 export { IconButton } from "./IconButton";
+export { PageNavigation } from "./PageNavigation";
 export { RecipeCard } from "./RecipeCard";
 export { RecipeForm } from "./RecipeForm";
 export { RecipeIngredientRow } from "./RecipeIngredientRow";
