@@ -46,16 +46,22 @@ const trainingSetBodySchema = Joi.object({
   }),
 });
 
+export function validateTrainingSessionInput(body: unknown) {
+  return validateSchema(trainingSessionBodySchema, body);
+}
+
+export function validateTrainingSetInput(body: unknown): ValidatedTrainingSetBody {
+  return validateSchema(trainingSetBodySchema, body);
+}
+
 export function validateTrainingSessionBody(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   handleValidation(res, next, async () => {
-    const { trainingDate, exerciseType: exerciseInput } = validateSchema(
-      trainingSessionBodySchema,
-      req.body
-    );
+    const { trainingDate, exerciseType: exerciseInput } =
+      validateTrainingSessionInput(req.body);
     const exerciseType = await validateExerciseValue(exerciseInput);
     res.locals.trainingSessionBody = { trainingDate, exerciseType };
   });
@@ -67,6 +73,6 @@ export function validateTrainingSetBody(
   next: NextFunction
 ) {
   handleValidation(res, next, () => {
-    res.locals.trainingSetBody = validateSchema(trainingSetBodySchema, req.body);
+    res.locals.trainingSetBody = validateTrainingSetInput(req.body);
   });
 }

@@ -49,15 +49,21 @@ const recipeIngredientBodySchema = Joi.object({
   }),
 });
 
+export function validateRecipeInput(body: unknown): ValidatedRecipeBody {
+  return validateSchema(recipeBodySchema, { name: (body as { name?: unknown })?.name });
+}
+
+export function validateRecipeIngredientInput(body: unknown) {
+  return validateSchema(recipeIngredientBodySchema, body);
+}
+
 export function validateRecipeBody(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   handleValidation(res, next, () => {
-    res.locals.recipeBody = validateSchema(recipeBodySchema, {
-      name: req.body?.name,
-    });
+    res.locals.recipeBody = validateRecipeInput(req.body);
   });
 }
 
@@ -72,7 +78,7 @@ export function validateRecipeIngredientBody(
       amountGrams,
       calories,
       protein,
-    } = validateSchema(recipeIngredientBodySchema, req.body);
+    } = validateRecipeIngredientInput(req.body);
     const ingredientValue = await validateIngredientValue(ingredientInput);
     res.locals.recipeIngredientBody = {
       ingredientValue,
