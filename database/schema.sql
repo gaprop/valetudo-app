@@ -58,6 +58,30 @@ CREATE TABLE IF NOT EXISTS workout_plan_items (
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS ingredients (
+	value TEXT PRIMARY KEY,
+	label TEXT NOT NULL UNIQUE CHECK (length(trim(label)) > 0),
+	calories_per_100g NUMERIC(8, 2) NOT NULL CHECK (calories_per_100g >= 0),
+	protein_per_100g NUMERIC(8, 2) NOT NULL CHECK (protein_per_100g >= 0),
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS recipes (
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS recipe_ingredients (
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	recipe_id UUID NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+	ingredient_value TEXT NOT NULL REFERENCES ingredients(value) ON UPDATE CASCADE,
+	amount_grams NUMERIC(8, 2) NOT NULL CHECK (amount_grams > 0),
+	calories NUMERIC(8, 2) NOT NULL CHECK (calories >= 0),
+	protein NUMERIC(8, 2) NOT NULL CHECK (protein >= 0),
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE INDEX IF NOT EXISTS workout_entries_exercise_date_idx
 	ON workout_entries (exercise_type, training_date DESC, created_at DESC, id DESC);
 
@@ -69,3 +93,12 @@ CREATE INDEX IF NOT EXISTS workout_plan_days_created_idx
 
 CREATE INDEX IF NOT EXISTS workout_plan_items_day_idx
 	ON workout_plan_items (day_id, created_at, id);
+
+CREATE INDEX IF NOT EXISTS ingredients_label_idx
+	ON ingredients (label, value);
+
+CREATE INDEX IF NOT EXISTS recipes_created_idx
+	ON recipes (created_at, id);
+
+CREATE INDEX IF NOT EXISTS recipe_ingredients_recipe_idx
+	ON recipe_ingredients (recipe_id, created_at, id);

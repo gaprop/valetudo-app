@@ -2,12 +2,15 @@ import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   PreviousSessionSummary,
+  RecipesPage,
   TrainingForm,
   TrainingSessionPanel,
   PlanPage,
 } from "./components";
 import {
   useExerciseCatalog,
+  useIngredients,
+  useRecipes,
   useTrainingLogState,
   usePlanDays,
   useTrainingSessions,
@@ -15,7 +18,7 @@ import {
 import { labelFor } from "./trainingSessions";
 import "./styles.css";
 
-type Page = "log" | "plan";
+type Page = "log" | "plan" | "recipes";
 
 function App() {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -45,6 +48,8 @@ function App() {
     toggleTrainingSession,
   } = useTrainingSessions();
   const planDays = usePlanDays();
+  const ingredients = useIngredients();
+  const recipes = useRecipes();
   const trainingLog = useTrainingLogState({
     today,
     exercises,
@@ -63,7 +68,11 @@ function App() {
               Valetudo
             </p>
             <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">
-              {page === "log" ? "Training log" : "Workout plan"}
+              {page === "log"
+                ? "Training log"
+                : page === "plan"
+                  ? "Workout plan"
+                  : "Recipes"}
             </h1>
           </div>
           {page === "log" && (
@@ -97,6 +106,17 @@ function App() {
             onClick={() => setPage("plan")}
           >
             Workout plan
+          </button>
+          <button
+            className={`rounded border px-3 py-2 text-sm font-semibold transition ${
+              page === "recipes"
+                ? "border-primary-700 bg-primary-950/60 text-primary-100"
+                : "border-neutral-700 text-neutral-300 hover:border-primary-500 hover:text-white"
+            }`}
+            type="button"
+            onClick={() => setPage("recipes")}
+          >
+            Recipes
           </button>
         </nav>
 
@@ -135,7 +155,7 @@ function App() {
               onDeleteSet={removeSet}
             />
           </section>
-        ) : (
+        ) : page === "plan" ? (
           <PlanPage
             exercises={exercises}
             days={planDays.days}
@@ -155,6 +175,29 @@ function App() {
             }
             onAddExercise={addExercise}
             onDeleteExercise={(value) => void removeExercise(value)}
+          />
+        ) : (
+          <RecipesPage
+            recipes={recipes.recipes}
+            ingredients={ingredients.ingredients}
+            loading={recipes.loading}
+            error={recipes.error}
+            pending={recipes.pending}
+            ingredientLoading={ingredients.loading}
+            ingredientError={ingredients.error}
+            creatingIngredient={ingredients.creating}
+            updatingIngredientValue={ingredients.updatingValue}
+            deletingIngredientValue={ingredients.deletingValue}
+            onAddRecipe={recipes.addRecipe}
+            onDeleteRecipe={(recipeID) => void recipes.removeRecipe(recipeID)}
+            onAddRecipeIngredient={recipes.addRecipeIngredient}
+            onUpdateRecipeIngredient={recipes.updateRecipeIngredient}
+            onDeleteRecipeIngredient={(recipeID, ingredientID) =>
+              void recipes.removeRecipeIngredient(recipeID, ingredientID)
+            }
+            onAddIngredient={ingredients.addIngredient}
+            onUpdateIngredient={ingredients.updateIngredient}
+            onDeleteIngredient={(value) => void ingredients.removeIngredient(value)}
           />
         )}
       </div>

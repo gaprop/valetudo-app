@@ -1,6 +1,9 @@
 export { useExerciseCatalog } from "./useExerciseCatalog";
+export { useIngredients } from "./useIngredients";
 export { useTrainingLogState } from "./useTrainingLogState";
 export { usePlanDays } from "./usePlanDays";
 export { usePlanProgress } from "./usePlanProgress";
+export { useRecipes } from "./useRecipes";
 export { useTrainingSessions } from "./useTrainingSessions";
 export type { PlanPendingState } from "./usePlanDays";
+export type { RecipesPendingState } from "./useRecipes";

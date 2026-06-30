@@ -25,3 +25,27 @@ export type PlanDay = {
   items: PlanExercise[];
   createdAt: Date;
 };
+
+export type Ingredient = {
+  value: string;
+  label: string;
+  caloriesPer100g: number;
+  proteinPer100g: number;
+  createdAt: Date;
+};
+
+export type RecipeIngredient = {
+  id: string;
+  ingredientValue: string;
+  amountGrams: number;
+  calories: number;
+  protein: number;
+  createdAt: Date;
+};
+
+export type Recipe = {
+  id: string;
+  name: string;
+  ingredients: RecipeIngredient[];
+  createdAt: Date;
+};

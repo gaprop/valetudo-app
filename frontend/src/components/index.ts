@@ -1,7 +1,12 @@
 export { ActionButton } from "./ActionButton";
 export { TrainingSessionList } from "./TrainingSessionList";
 export { ExerciseCatalog } from "./ExerciseCatalog";
+export { IngredientCatalog } from "./IngredientCatalog";
 export { IconButton } from "./IconButton";
+export { RecipeCard } from "./RecipeCard";
+export { RecipeForm } from "./RecipeForm";
+export { RecipeIngredientRow } from "./RecipeIngredientRow";
+export { RecipesPage } from "./RecipesPage";
 export { SetMetricInputs } from "./SetMetricInputs";
 export { PreviousSessionSummary } from "./PreviousSessionSummary";
 export { TrainingForm } from "./TrainingForm";

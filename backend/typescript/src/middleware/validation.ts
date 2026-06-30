@@ -10,6 +10,13 @@ export type ValidatedExerciseBody = {
   value: string;
 };
 
+export type ValidatedIngredientBody = {
+  label: string;
+  value: string;
+  caloriesPer100g: number;
+  proteinPer100g: number;
+};
+
 export type ValidatedTrainingSessionBody = {
   trainingDate: string;
   exerciseType: string;
@@ -28,6 +35,17 @@ export type ValidatedPlanExerciseBody = {
   exerciseType: string;
 };
 
+export type ValidatedRecipeBody = {
+  name: string;
+};
+
+export type ValidatedRecipeIngredientBody = {
+  ingredientValue: string;
+  amountGrams: number;
+  calories: number;
+  protein: number;
+};
+
 const exerciseBodySchema = Joi.object({
   label: Joi.string().trim().max(80).required().messages({
     "any.required": "exercise name is required",
@@ -42,6 +60,35 @@ const exercisePathSchema = Joi.object({
     "any.required": "exercise is required",
     "string.base": "exercise is required",
     "string.empty": "exercise is required",
+  }),
+});
+
+const ingredientBodySchema = Joi.object({
+  label: Joi.string().trim().max(120).required().messages({
+    "any.required": "ingredient name is required",
+    "string.base": "ingredient name is required",
+    "string.empty": "ingredient name is required",
+    "string.max": "ingredient name is too long",
+  }),
+  caloriesPer100g: Joi.number().min(0).max(999999.99).required().messages({
+    "any.required": "calories per 100g must be a number",
+    "number.base": "calories per 100g must be a number",
+    "number.min": "calories per 100g cannot be negative",
+    "number.max": "calories per 100g is too large",
+  }),
+  proteinPer100g: Joi.number().min(0).max(999999.99).required().messages({
+    "any.required": "protein per 100g must be a number",
+    "number.base": "protein per 100g must be a number",
+    "number.min": "protein per 100g cannot be negative",
+    "number.max": "protein per 100g is too large",
+  }),
+});
+
+const ingredientPathSchema = Joi.object({
+  value: Joi.string().trim().required().messages({
+    "any.required": "ingredient is required",
+    "string.base": "ingredient is required",
+    "string.empty": "ingredient is required",
   }),
 });
 
@@ -95,6 +142,41 @@ const planExerciseBodySchema = Joi.object({
   }),
 });
 
+const recipeBodySchema = Joi.object({
+  name: Joi.string().trim().max(120).required().messages({
+    "any.required": "recipe name is required",
+    "string.base": "recipe name is required",
+    "string.empty": "recipe name is required",
+    "string.max": "recipe name is too long",
+  }),
+});
+
+const recipeIngredientBodySchema = Joi.object({
+  ingredientValue: Joi.string().trim().required().messages({
+    "any.required": "ingredient is required",
+    "string.base": "ingredient is required",
+    "string.empty": "ingredient is required",
+  }),
+  amountGrams: Joi.number().greater(0).max(999999.99).required().messages({
+    "any.required": "grams must be a number",
+    "number.base": "grams must be a number",
+    "number.greater": "grams must be greater than zero",
+    "number.max": "grams is too large",
+  }),
+  calories: Joi.number().min(0).max(999999.99).required().messages({
+    "any.required": "calories must be a number",
+    "number.base": "calories must be a number",
+    "number.min": "calories cannot be negative",
+    "number.max": "calories is too large",
+  }),
+  protein: Joi.number().min(0).max(999999.99).required().messages({
+    "any.required": "protein must be a number",
+    "number.base": "protein must be a number",
+    "number.min": "protein cannot be negative",
+    "number.max": "protein is too large",
+  }),
+});
+
 function validateSchema<T>(schema: Joi.ObjectSchema<T>, value: unknown) {
   const result = schema.validate(value, {
     abortEarly: true,
@@ -116,6 +198,14 @@ function slugifyExerciseLabel(label: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function slugifyIngredientLabel(label: string) {
+  return label
+    .trim()
+    .toLowerCase()
+    .replace(nonSlugCharacters, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function validateExerciseLabel(labelInput: unknown): ValidatedExerciseBody {
   const { label } = validateSchema(exerciseBodySchema, { label: labelInput });
   const value = slugifyExerciseLabel(label);
@@ -126,12 +216,29 @@ function validateExerciseLabel(labelInput: unknown): ValidatedExerciseBody {
   return { label, value };
 }
 
+function validateIngredientInput(body: unknown): ValidatedIngredientBody {
+  const { label, caloriesPer100g, proteinPer100g } = validateSchema(
+    ingredientBodySchema,
+    body
+  );
+  const value = slugifyIngredientLabel(label);
+  if (!value) {
+    throw new HttpError(400, "ingredient name must include letters or numbers");
+  }
+
+  return { label, value, caloriesPer100g, proteinPer100g };
+}
+
 function validateTrainingSetInput(body: unknown): ValidatedTrainingSetBody {
   return validateSchema(trainingSetBodySchema, body);
 }
 
 function validatePlanDayName(value: unknown): ValidatedPlanDayBody {
   return validateSchema(planDayBodySchema, { name: value });
+}
+
+function validateRecipeName(value: unknown): ValidatedRecipeBody {
+  return validateSchema(recipeBodySchema, { name: value });
 }
 
 async function validateExerciseValue(value: string) {
@@ -155,6 +262,29 @@ async function validateExerciseValue(value: string) {
   }
 
   return exerciseValue;
+}
+
+async function validateIngredientValue(value: string) {
+  const ingredientValue = value.trim();
+  if (!ingredientValue) {
+    throw new HttpError(400, "ingredient is required");
+  }
+
+  const result = await pool.query<{ exists: boolean }>(
+    `
+      SELECT EXISTS (
+        SELECT 1
+        FROM ingredients
+        WHERE value = $1
+      )
+    `,
+    [ingredientValue]
+  );
+  if (!result.rows[0]?.exists) {
+    throw new HttpError(400, "ingredient does not exist");
+  }
+
+  return ingredientValue;
 }
 
 function handleValidation(
@@ -216,6 +346,27 @@ export function validateExercisePathValue(
   });
 }
 
+export function validateIngredientBody(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  handleValidation(res, next, () => {
+    res.locals.ingredientBody = validateIngredientInput(req.body);
+  });
+}
+
+export function validateIngredientPathValue(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  handleValidation(res, next, () => {
+    const { value } = validateSchema(ingredientPathSchema, req.params);
+    res.locals.ingredientValue = value;
+  });
+}
+
 export function validateTrainingSessionBody(
   req: Request,
   res: Response,
@@ -263,5 +414,37 @@ export function validatePlanExerciseBody(
     );
     const exerciseType = await validateExerciseValue(exerciseInput);
     res.locals.planExerciseBody = { exerciseType };
+  });
+}
+
+export function validateRecipeBody(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  handleValidation(res, next, () => {
+    res.locals.recipeBody = validateRecipeName(req.body?.name);
+  });
+}
+
+export function validateRecipeIngredientBody(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  handleValidation(res, next, async () => {
+    const {
+      ingredientValue: ingredientInput,
+      amountGrams,
+      calories,
+      protein,
+    } = validateSchema(recipeIngredientBodySchema, req.body);
+    const ingredientValue = await validateIngredientValue(ingredientInput);
+    res.locals.recipeIngredientBody = {
+      ingredientValue,
+      amountGrams,
+      calories,
+      protein,
+    };
   });
 }
