@@ -40,18 +40,19 @@ function mapTrainingSet(row: TrainingSetRow): TrainingSet {
   };
 }
 
-async function loadTrainingSets(trainingSessions: TrainingSession[]) {
+async function loadTrainingSets(userID: string, trainingSessions: TrainingSession[]) {
   await loadChildrenForParents(
     trainingSessions,
     async (trainingSession) => {
       const result = await pool.query<TrainingSetRow>(
         `
-        SELECT id, weight, reps, created_at AS "createdAt"
-        FROM workout_sets
-        WHERE workout_id = $1
-        ORDER BY created_at, id
+          SELECT set.id, set.weight, set.reps, set.created_at AS "createdAt"
+          FROM workout_sets set
+          JOIN workout_entries entry ON entry.id = set.workout_id
+          WHERE set.workout_id = $1 AND entry.user_id = $2
+          ORDER BY set.created_at, set.id
       `,
-        [trainingSession.id]
+        [trainingSession.id, userID]
       );
       return result.rows.map(mapTrainingSet);
     },
@@ -61,7 +62,7 @@ async function loadTrainingSets(trainingSessions: TrainingSession[]) {
   );
 }
 
-async function getTrainingSession(id: string) {
+async function getTrainingSession(userID: string, id: string) {
   const result = await pool.query<TrainingSessionRow>(
     `
       SELECT
@@ -70,9 +71,9 @@ async function getTrainingSession(id: string) {
         exercise_type AS "exerciseType",
         created_at AS "createdAt"
       FROM workout_entries
-      WHERE id = $1
+      WHERE id = $1 AND user_id = $2
     `,
-    [id]
+    [id, userID]
   );
   const row = result.rows[0];
   if (!row) {
@@ -80,12 +81,12 @@ async function getTrainingSession(id: string) {
   }
 
   const trainingSession = mapTrainingSession(row);
-  await loadTrainingSets([trainingSession]);
+  await loadTrainingSets(userID, [trainingSession]);
   return trainingSession;
 }
 
 export class TrainingSessionsService {
-  static async listTrainingSessions() {
+  static async listTrainingSessions(userID: string) {
     const result = await pool.query<TrainingSessionRow>(
       `
         SELECT
@@ -94,34 +95,39 @@ export class TrainingSessionsService {
           exercise_type AS "exerciseType",
           created_at AS "createdAt"
         FROM workout_entries
+        WHERE user_id = $1
         ORDER BY training_date, created_at, id
-      `
+      `,
+      [userID]
     );
     const trainingSessions = result.rows.map(mapTrainingSession);
-    await loadTrainingSets(trainingSessions);
+    await loadTrainingSets(userID, trainingSessions);
     return trainingSessions;
   }
 
-  static async createTrainingSession({ trainingDate, exerciseType }: ValidatedTrainingSessionBody) {
+  static async createTrainingSession(
+    userID: string,
+    { trainingDate, exerciseType }: ValidatedTrainingSessionBody
+  ) {
     const result = await pool.query<{ id: string }>(
       `
-        INSERT INTO workout_entries (training_date, exercise_type)
-        VALUES ($1, $2)
+        INSERT INTO workout_entries (user_id, training_date, exercise_type)
+        VALUES ($1, $2, $3)
         RETURNING id
       `,
-      [trainingDate, exerciseType]
+      [userID, trainingDate, exerciseType]
     );
 
-    return getTrainingSession(result.rows[0].id);
+    return getTrainingSession(userID, result.rows[0].id);
   }
 
-  static async deleteTrainingSession(trainingSessionID: string) {
+  static async deleteTrainingSession(userID: string, trainingSessionID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_entries
-        WHERE id = $1
+        WHERE id = $1 AND user_id = $2
       `,
-      [trainingSessionID]
+      [trainingSessionID, userID]
     );
     if (result.rowCount === 0) {
       throw new HttpError(404, "training session was not found");
@@ -129,6 +135,7 @@ export class TrainingSessionsService {
   }
 
   static async createTrainingSet(
+    userID: string,
     trainingSessionID: string,
     { weight, reps }: ValidatedTrainingSetBody
   ) {
@@ -141,10 +148,10 @@ export class TrainingSessionsService {
           SELECT EXISTS (
             SELECT 1
             FROM workout_entries
-            WHERE id = $1
+            WHERE id = $1 AND user_id = $2
           )
         `,
-        [trainingSessionID]
+        [trainingSessionID, userID]
       );
       if (!exists.rows[0]?.exists) {
         throw new HttpError(404, "training session was not found");
@@ -169,6 +176,7 @@ export class TrainingSessionsService {
   }
 
   static async updateTrainingSet(
+    userID: string,
     trainingSessionID: string,
     setID: string,
     { weight, reps }: ValidatedTrainingSetBody
@@ -177,10 +185,14 @@ export class TrainingSessionsService {
       `
         UPDATE workout_sets
         SET weight = $3, reps = $4
-        WHERE workout_id = $1 AND id = $2
-        RETURNING id, weight, reps, created_at AS "createdAt"
+        FROM workout_entries entry
+        WHERE workout_sets.workout_id = $1
+          AND workout_sets.id = $2
+          AND entry.id = workout_sets.workout_id
+          AND entry.user_id = $5
+        RETURNING workout_sets.id, workout_sets.weight, workout_sets.reps, workout_sets.created_at AS "createdAt"
       `,
-      [trainingSessionID, setID, weight, reps]
+      [trainingSessionID, setID, weight, reps, userID]
     );
     if (!result.rows[0]) {
       throw new HttpError(404, "training set was not found");
@@ -189,13 +201,17 @@ export class TrainingSessionsService {
     return mapTrainingSet(result.rows[0]);
   }
 
-  static async deleteTrainingSet(trainingSessionID: string, setID: string) {
+  static async deleteTrainingSet(userID: string, trainingSessionID: string, setID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_sets
-        WHERE workout_id = $1 AND id = $2
+        USING workout_entries entry
+        WHERE workout_sets.workout_id = $1
+          AND workout_sets.id = $2
+          AND entry.id = workout_sets.workout_id
+          AND entry.user_id = $3
       `,
-      [trainingSessionID, setID]
+      [trainingSessionID, setID, userID]
     );
     if (result.rowCount === 0) {
       throw new HttpError(404, "training set was not found");

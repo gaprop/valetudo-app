@@ -41,6 +41,10 @@ services:
     environment:
       DATABASE_URL: postgres://fitness:fitness@database:5432/fitness?sslmode=disable
       PORT: "8080"
+      AUTH_USERNAME: admin
+      AUTH_PASSWORD: password
+      AUTH_JWT_SECRET: change-this-secret
+      AUTH_COOKIE_SECURE: "false"
     ports:
       - "8080:8080"
     depends_on:

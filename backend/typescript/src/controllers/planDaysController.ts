@@ -9,7 +9,7 @@ import { handleControllerError } from "./helpers";
 export class PlanDaysController {
   static async listPlanDays(_req: Request, res: Response) {
     try {
-      const days = await PlanDaysService.listPlanDays();
+      const days = await PlanDaysService.listPlanDays(res.locals.userID as string);
       res.json(days);
     } catch (error) {
       handleControllerError(error, res);
@@ -19,6 +19,7 @@ export class PlanDaysController {
   static async createPlanDay(_req: Request, res: Response) {
     try {
       const day = await PlanDaysService.createPlanDay(
+        res.locals.userID as string,
         res.locals.planDayBody as ValidatedPlanDayBody
       );
       res.status(201).json(day);
@@ -30,7 +31,7 @@ export class PlanDaysController {
   static async deletePlanDay(_req: Request, res: Response) {
     try {
       const dayID = res.locals.id as string;
-      await PlanDaysService.deletePlanDay(dayID);
+      await PlanDaysService.deletePlanDay(res.locals.userID as string, dayID);
       res.status(204).send();
     } catch (error) {
       handleControllerError(error, res);
@@ -41,6 +42,7 @@ export class PlanDaysController {
     try {
       const dayID = res.locals.id as string;
       const item = await PlanDaysService.createPlanExercise(
+        res.locals.userID as string,
         dayID,
         res.locals.planExerciseBody as ValidatedPlanExerciseBody
       );
@@ -54,7 +56,7 @@ export class PlanDaysController {
     try {
       const dayID = res.locals.id as string;
       const itemID = res.locals.itemID as string;
-      await PlanDaysService.deletePlanExercise(dayID, itemID);
+      await PlanDaysService.deletePlanExercise(res.locals.userID as string, dayID, itemID);
       res.status(204).send();
     } catch (error) {
       handleControllerError(error, res);

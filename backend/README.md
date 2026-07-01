@@ -29,6 +29,15 @@ npm run dev
 
 The API defaults to `http://localhost:8080`.
 
+When running outside Docker, set the authentication environment variables before starting the backend:
+
+```sh
+export AUTH_USERNAME=admin
+export AUTH_PASSWORD=password
+export AUTH_JWT_SECRET=change-this-secret
+export AUTH_COOKIE_SECURE=false
+```
+
 To run the Go backend instead:
 
 ```sh
@@ -55,6 +64,10 @@ src/
 
 - `DATABASE_URL`: PostgreSQL connection string
 - `PORT`: HTTP port, default `8080`
+- `AUTH_USERNAME`: Seeded login username
+- `AUTH_PASSWORD`: Seeded login password
+- `AUTH_JWT_SECRET`: Secret used to sign session cookies
+- `AUTH_COOKIE_SECURE`: Set to `true` when serving the app over HTTPS
 
 Default database URL when `DATABASE_URL` is not set:
 
@@ -73,6 +86,27 @@ Returns a basic health response:
   "status": "ok"
 }
 ```
+
+### `POST /api/auth/login`
+
+Logs in and sets an HttpOnly session cookie.
+
+```json
+{
+  "username": "admin",
+  "password": "password"
+}
+```
+
+### `GET /api/auth/me`
+
+Returns the logged-in user.
+
+### `POST /api/auth/logout`
+
+Clears the session cookie.
+
+All other `/api/*` routes require a valid login session.
 
 ### `GET /api/exercises`
 

@@ -6,6 +6,7 @@ export { IconButton } from "./IconButton";
 export { IngredientFormModal } from "./IngredientFormModal";
 export { Modal } from "./Modal";
 export { PageNavigation } from "./PageNavigation";
+export { ProtectedRoute } from "./ProtectedRoute";
 export { RecipeCard } from "./RecipeCard";
 export { RecipeForm } from "./RecipeForm";
 export { RecipeIngredientRow } from "./RecipeIngredientRow";

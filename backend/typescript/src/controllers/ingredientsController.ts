@@ -6,7 +6,7 @@ import { handleControllerError } from "./helpers";
 export class IngredientsController {
   static async listIngredients(_req: Request, res: Response) {
     try {
-      const ingredients = await IngredientsService.listIngredients();
+      const ingredients = await IngredientsService.listIngredients(res.locals.userID as string);
       res.json(ingredients);
     } catch (error) {
       handleControllerError(error, res);
@@ -16,6 +16,7 @@ export class IngredientsController {
   static async createIngredient(_req: Request, res: Response) {
     try {
       const ingredient = await IngredientsService.createIngredient(
+        res.locals.userID as string,
         res.locals.ingredientBody as ValidatedIngredientBody
       );
       res.status(201).json(ingredient);
@@ -28,6 +29,7 @@ export class IngredientsController {
     try {
       const ingredientValue = res.locals.ingredientValue as string;
       const ingredient = await IngredientsService.updateIngredient(
+        res.locals.userID as string,
         ingredientValue,
         res.locals.ingredientBody as ValidatedIngredientBody
       );
@@ -40,7 +42,7 @@ export class IngredientsController {
   static async deleteIngredient(_req: Request, res: Response) {
     try {
       const ingredientValue = res.locals.ingredientValue as string;
-      await IngredientsService.deleteIngredient(ingredientValue);
+      await IngredientsService.deleteIngredient(res.locals.userID as string, ingredientValue);
       res.status(204).send();
     } catch (error) {
       handleControllerError(error, res);

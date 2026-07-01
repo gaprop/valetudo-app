@@ -1,4 +1,5 @@
 export type { ApiError, ID } from "./types/common";
+export type { AuthUser, LoginRequest } from "./types/auth";
 export type { Exercise, ExerciseValue } from "./types/exercises";
 export type {
   CreatePlanDayRequest,

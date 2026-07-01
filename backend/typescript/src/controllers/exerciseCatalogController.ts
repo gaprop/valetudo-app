@@ -6,7 +6,7 @@ import { handleControllerError } from "./helpers";
 export class ExerciseCatalogController {
   static async listExercises(_req: Request, res: Response) {
     try {
-      const exercises = await ExerciseCatalogService.listExercises();
+      const exercises = await ExerciseCatalogService.listExercises(res.locals.userID as string);
       res.json(exercises);
     } catch (error) {
       handleControllerError(error, res);
@@ -16,6 +16,7 @@ export class ExerciseCatalogController {
   static async createExercise(_req: Request, res: Response) {
     try {
       const exercise = await ExerciseCatalogService.createExercise(
+        res.locals.userID as string,
         res.locals.exerciseBody as ValidatedExerciseBody
       );
       res.status(201).json(exercise);
@@ -26,7 +27,10 @@ export class ExerciseCatalogController {
 
   static async deleteExercise(_req: Request, res: Response) {
     try {
-      await ExerciseCatalogService.deleteExercise(res.locals.exerciseValue as string);
+      await ExerciseCatalogService.deleteExercise(
+        res.locals.userID as string,
+        res.locals.exerciseValue as string
+      );
       res.status(204).send();
     } catch (error) {
       handleControllerError(error, res);

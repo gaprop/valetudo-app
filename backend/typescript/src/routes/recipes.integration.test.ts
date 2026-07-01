@@ -1,30 +1,26 @@
 import request from "supertest";
-import type { Express } from "express";
-import { startIntegrationDatabase } from "../test/integrationDatabase";
+import { startIntegrationApp } from "../test/integrationApp";
 
 describe("recipes API integration", () => {
-  let app: Express;
-  let stopDatabase: (() => Promise<void>) | null = null;
-  let closePool: (() => Promise<void>) | null = null;
+  let closeApp: (() => Promise<void>) | null = null;
+  let agent: request.Agent;
+  let loginAgent: (username?: string, password?: string) => Promise<request.Agent>;
+  let seedUser: (username: string, password: string) => Promise<void>;
 
   beforeAll(async () => {
-    const database = await startIntegrationDatabase();
-    stopDatabase = database.stop;
-    process.env.DATABASE_URL = database.connectionString;
-
-    const appModule = await import("../app");
-    const poolModule = await import("../db/pool");
-    app = appModule.createApp();
-    closePool = () => poolModule.pool.end();
+    const integration = await startIntegrationApp();
+    closeApp = integration.close;
+    loginAgent = integration.loginAgent;
+    seedUser = integration.seedUser;
+    agent = await integration.loginAgent();
   }, 60000);
 
   afterAll(async () => {
-    await closePool?.();
-    await stopDatabase?.();
+    await closeApp?.();
   }, 30000);
 
   it("creates ingredients, recipes, recipe ingredients, and cascades recipe ingredients on delete", async () => {
-    const ingredientResponse = await request(app)
+    const ingredientResponse = await agent
       .post("/api/ingredients")
       .send({
         label: "Chicken breast",
@@ -40,14 +36,14 @@ describe("recipes API integration", () => {
       proteinPer100g: "31.00",
     });
 
-    const recipeResponse = await request(app)
+    const recipeResponse = await agent
       .post("/api/recipes")
       .send({ name: "Chicken bowl" })
       .expect(201);
 
     const recipeID = recipeResponse.body.id as string;
 
-    const recipeIngredientResponse = await request(app)
+    const recipeIngredientResponse = await agent
       .post(`/api/recipes/${recipeID}/ingredients`)
       .send({
         ingredientValue: "chicken-breast",
@@ -64,13 +60,12 @@ describe("recipes API integration", () => {
       protein: 46.5,
     });
 
-    await request(app).delete(`/api/recipes/${recipeID}`).expect(204);
-
-    await request(app).delete("/api/ingredients/chicken-breast").expect(204);
+    await agent.delete(`/api/recipes/${recipeID}`).expect(204);
+    await agent.delete("/api/ingredients/chicken-breast").expect(204);
   });
 
   it("rejects duplicate ingredients and invalid recipe ingredient input", async () => {
-    await request(app)
+    await agent
       .post("/api/ingredients")
       .send({
         label: "Rice",
@@ -79,7 +74,7 @@ describe("recipes API integration", () => {
       })
       .expect(201);
 
-    await request(app)
+    await agent
       .post("/api/ingredients")
       .send({
         label: "Rice",
@@ -88,12 +83,12 @@ describe("recipes API integration", () => {
       })
       .expect(409);
 
-    const recipeResponse = await request(app)
+    const recipeResponse = await agent
       .post("/api/recipes")
       .send({ name: "Rice bowl" })
       .expect(201);
 
-    await request(app)
+    await agent
       .post(`/api/recipes/${recipeResponse.body.id}/ingredients`)
       .send({
         ingredientValue: "rice",
@@ -102,5 +97,36 @@ describe("recipes API integration", () => {
         protein: 0,
       })
       .expect(400);
+  });
+
+  it("isolates recipe and ingredient data between users", async () => {
+    await seedUser("second", "password");
+    const secondAgent = await loginAgent("second", "password");
+
+    await agent
+      .post("/api/ingredients")
+      .send({
+        label: "Isolated oats",
+        caloriesPer100g: 389,
+        proteinPer100g: 16.9,
+      })
+      .expect(201);
+
+    await agent.post("/api/recipes").send({ name: "Admin oats" }).expect(201);
+
+    const secondIngredients = await secondAgent.get("/api/ingredients").expect(200);
+    const secondRecipes = await secondAgent.get("/api/recipes").expect(200);
+
+    expect(secondIngredients.body).toEqual([]);
+    expect(secondRecipes.body).toEqual([]);
+
+    await secondAgent
+      .post("/api/ingredients")
+      .send({
+        label: "Isolated oats",
+        caloriesPer100g: 389,
+        proteinPer100g: 16.9,
+      })
+      .expect(201);
   });
 });

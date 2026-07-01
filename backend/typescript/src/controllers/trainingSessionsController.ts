@@ -9,7 +9,9 @@ import { handleControllerError } from "./helpers";
 export class TrainingSessionsController {
   static async listTrainingSessions(_req: Request, res: Response) {
     try {
-      const trainingSessions = await TrainingSessionsService.listTrainingSessions();
+      const trainingSessions = await TrainingSessionsService.listTrainingSessions(
+        res.locals.userID as string
+      );
       res.json(trainingSessions);
     } catch (error) {
       handleControllerError(error, res);
@@ -19,6 +21,7 @@ export class TrainingSessionsController {
   static async createTrainingSession(_req: Request, res: Response) {
     try {
       const trainingSession = await TrainingSessionsService.createTrainingSession(
+        res.locals.userID as string,
         res.locals.trainingSessionBody as ValidatedTrainingSessionBody
       );
       res.status(201).json(trainingSession);
@@ -30,7 +33,10 @@ export class TrainingSessionsController {
   static async deleteTrainingSession(_req: Request, res: Response) {
     try {
       const trainingSessionID = res.locals.id as string;
-      await TrainingSessionsService.deleteTrainingSession(trainingSessionID);
+      await TrainingSessionsService.deleteTrainingSession(
+        res.locals.userID as string,
+        trainingSessionID
+      );
       res.status(204).send();
     } catch (error) {
       handleControllerError(error, res);
@@ -41,6 +47,7 @@ export class TrainingSessionsController {
     try {
       const trainingSessionID = res.locals.id as string;
       const trainingSet = await TrainingSessionsService.createTrainingSet(
+        res.locals.userID as string,
         trainingSessionID,
         res.locals.trainingSetBody as ValidatedTrainingSetBody
       );
@@ -55,6 +62,7 @@ export class TrainingSessionsController {
       const trainingSessionID = res.locals.id as string;
       const setID = res.locals.setID as string;
       const trainingSet = await TrainingSessionsService.updateTrainingSet(
+        res.locals.userID as string,
         trainingSessionID,
         setID,
         res.locals.trainingSetBody as ValidatedTrainingSetBody
@@ -69,7 +77,11 @@ export class TrainingSessionsController {
     try {
       const trainingSessionID = res.locals.id as string;
       const setID = res.locals.setID as string;
-      await TrainingSessionsService.deleteTrainingSet(trainingSessionID, setID);
+      await TrainingSessionsService.deleteTrainingSet(
+        res.locals.userID as string,
+        trainingSessionID,
+        setID
+      );
       res.status(204).send();
     } catch (error) {
       handleControllerError(error, res);

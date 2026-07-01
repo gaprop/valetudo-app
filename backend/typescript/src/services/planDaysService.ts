@@ -36,22 +36,23 @@ function mapPlanExercise(row: PlanExerciseRow): PlanExercise {
   };
 }
 
-async function loadPlanExercises(days: PlanDay[]) {
+async function loadPlanExercises(userID: string, days: PlanDay[]) {
   await loadChildrenForParents(
     days,
     async (day) => {
-    const result = await pool.query<PlanExerciseRow>(
-      `
-        SELECT
-          id,
-          exercise_type AS "exerciseType",
-          created_at AS "createdAt"
-        FROM workout_plan_items
-        WHERE day_id = $1
-        ORDER BY created_at, id
+      const result = await pool.query<PlanExerciseRow>(
+        `
+          SELECT
+            item.id,
+            item.exercise_type AS "exerciseType",
+            item.created_at AS "createdAt"
+          FROM workout_plan_items item
+          JOIN workout_plan_days day ON day.id = item.day_id
+          WHERE item.day_id = $1 AND day.user_id = $2
+          ORDER BY item.created_at, item.id
       `,
-      [day.id]
-    );
+        [day.id, userID]
+      );
       return result.rows.map(mapPlanExercise);
     },
     (day, items) => {
@@ -61,39 +62,41 @@ async function loadPlanExercises(days: PlanDay[]) {
 }
 
 export class PlanDaysService {
-  static async listPlanDays() {
+  static async listPlanDays(userID: string) {
     const result = await pool.query<PlanDayRow>(
       `
         SELECT id, name, created_at AS "createdAt"
         FROM workout_plan_days
+        WHERE user_id = $1
         ORDER BY created_at, id
-      `
+      `,
+      [userID]
     );
     const days = result.rows.map(mapPlanDay);
-    await loadPlanExercises(days);
+    await loadPlanExercises(userID, days);
     return days;
   }
 
-  static async createPlanDay({ name }: ValidatedPlanDayBody) {
+  static async createPlanDay(userID: string, { name }: ValidatedPlanDayBody) {
     const result = await pool.query<PlanDayRow>(
       `
-        INSERT INTO workout_plan_days (name)
-        VALUES ($1)
+        INSERT INTO workout_plan_days (user_id, name)
+        VALUES ($1, $2)
         RETURNING id, name, created_at AS "createdAt"
       `,
-      [name]
+      [userID, name]
     );
 
     return mapPlanDay(result.rows[0]);
   }
 
-  static async deletePlanDay(dayID: string) {
+  static async deletePlanDay(userID: string, dayID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_plan_days
-        WHERE id = $1
+        WHERE id = $1 AND user_id = $2
       `,
-      [dayID]
+      [dayID, userID]
     );
     if (result.rowCount === 0) {
       throw new HttpError(404, "workout plan day was not found");
@@ -101,6 +104,7 @@ export class PlanDaysService {
   }
 
   static async createPlanExercise(
+    userID: string,
     dayID: string,
     { exerciseType }: ValidatedPlanExerciseBody
   ) {
@@ -113,10 +117,10 @@ export class PlanDaysService {
           SELECT EXISTS (
             SELECT 1
             FROM workout_plan_days
-            WHERE id = $1
+            WHERE id = $1 AND user_id = $2
           )
         `,
-        [dayID]
+        [dayID, userID]
       );
       if (!exists.rows[0]?.exists) {
         throw new HttpError(404, "workout plan day was not found");
@@ -143,13 +147,17 @@ export class PlanDaysService {
     }
   }
 
-  static async deletePlanExercise(dayID: string, itemID: string) {
+  static async deletePlanExercise(userID: string, dayID: string, itemID: string) {
     const result = await pool.query(
       `
         DELETE FROM workout_plan_items
-        WHERE day_id = $1 AND id = $2
+        USING workout_plan_days day
+        WHERE workout_plan_items.day_id = $1
+          AND workout_plan_items.id = $2
+          AND day.id = workout_plan_items.day_id
+          AND day.user_id = $3
       `,
-      [dayID, itemID]
+      [dayID, itemID, userID]
     );
     if (result.rowCount === 0) {
       throw new HttpError(404, "workout plan item was not found");

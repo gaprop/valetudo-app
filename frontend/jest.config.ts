@@ -3,6 +3,7 @@ import type { Config } from "jest";
 const config: Config = {
   extensionsToTreatAsEsm: [".ts", ".tsx"],
   moduleNameMapper: {
+    "^\\./env$": "<rootDir>/src/test/env.ts",
     "\\.(css|less|sass|scss)$": "identity-obj-proxy",
   },
   preset: "ts-jest/presets/default-esm",

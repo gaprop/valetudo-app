@@ -1,5 +1,9 @@
 export { validateUUIDPathID } from "./validation/common";
 export {
+  validateLoginBody,
+  type ValidatedLoginBody,
+} from "./validation/authValidation";
+export {
   validateExerciseBody,
   validateExercisePathValue,
   type ValidatedExerciseBody,

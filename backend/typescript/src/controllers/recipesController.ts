@@ -9,7 +9,7 @@ import { handleControllerError } from "./helpers";
 export class RecipesController {
   static async listRecipes(_req: Request, res: Response) {
     try {
-      const recipes = await RecipesService.listRecipes();
+      const recipes = await RecipesService.listRecipes(res.locals.userID as string);
       res.json(recipes);
     } catch (error) {
       handleControllerError(error, res);
@@ -19,6 +19,7 @@ export class RecipesController {
   static async createRecipe(_req: Request, res: Response) {
     try {
       const recipe = await RecipesService.createRecipe(
+        res.locals.userID as string,
         res.locals.recipeBody as ValidatedRecipeBody
       );
       res.status(201).json(recipe);
@@ -30,7 +31,7 @@ export class RecipesController {
   static async deleteRecipe(_req: Request, res: Response) {
     try {
       const recipeID = res.locals.id as string;
-      await RecipesService.deleteRecipe(recipeID);
+      await RecipesService.deleteRecipe(res.locals.userID as string, recipeID);
       res.status(204).send();
     } catch (error) {
       handleControllerError(error, res);
@@ -41,6 +42,7 @@ export class RecipesController {
     try {
       const recipeID = res.locals.id as string;
       const ingredient = await RecipesService.createRecipeIngredient(
+        res.locals.userID as string,
         recipeID,
         res.locals.recipeIngredientBody as ValidatedRecipeIngredientBody
       );
@@ -55,6 +57,7 @@ export class RecipesController {
       const recipeID = res.locals.id as string;
       const ingredientID = res.locals.ingredientID as string;
       const ingredient = await RecipesService.updateRecipeIngredient(
+        res.locals.userID as string,
         recipeID,
         ingredientID,
         res.locals.recipeIngredientBody as ValidatedRecipeIngredientBody
@@ -69,7 +72,11 @@ export class RecipesController {
     try {
       const recipeID = res.locals.id as string;
       const ingredientID = res.locals.ingredientID as string;
-      await RecipesService.deleteRecipeIngredient(recipeID, ingredientID);
+      await RecipesService.deleteRecipeIngredient(
+        res.locals.userID as string,
+        recipeID,
+        ingredientID
+      );
       res.status(204).send();
     } catch (error) {
       handleControllerError(error, res);

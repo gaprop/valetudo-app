@@ -2,6 +2,13 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { PageNavigation } from "./PageNavigation";
 
+jest.mock("../hooks/useAuth", () => ({
+  useAuth: () => ({
+    user: null,
+    logout: jest.fn(),
+  }),
+}));
+
 describe("PageNavigation", () => {
   it("renders links for the primary pages", () => {
     render(

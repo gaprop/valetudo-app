@@ -1,4 +1,5 @@
 export const appRoutes = {
+  login: "/login",
   trainingLog: "/training-log",
   workoutPlan: "/workout-plan",
   recipes: "/recipes",

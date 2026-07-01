@@ -32,6 +32,13 @@ Then open:
 - Frontend: http://localhost:5173
 - Backend health check: http://localhost:8080/health
 
+The Docker Compose development login is:
+
+```text
+username: admin
+password: password
+```
+
 PostgreSQL is exposed on `localhost:5432` with these local credentials:
 
 ```text

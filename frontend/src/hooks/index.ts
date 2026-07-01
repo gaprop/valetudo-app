@@ -1,3 +1,4 @@
+export { AuthProvider, useAuth } from "./useAuth";
 export { useExerciseCatalog } from "./useExerciseCatalog";
 export { useIngredients } from "./useIngredients";
 export { useTrainingLogState } from "./useTrainingLogState";
