@@ -5,11 +5,11 @@ import type {
   ValidatedTrainingSetBody,
 } from "../middleware/validation";
 import type { TrainingSession, TrainingSet } from "../types/api";
-import { formatDate, loadChildrenForParents } from "./helpers";
+import { loadChildrenForParents } from "./helpers";
 
 type TrainingSessionRow = {
   id: string;
-  trainingDate: Date;
+  trainingDate: string;
   exerciseType: string;
   createdAt: Date;
 };
@@ -24,7 +24,7 @@ type TrainingSetRow = {
 function mapTrainingSession(row: TrainingSessionRow): TrainingSession {
   return {
     id: row.id,
-    trainingDate: formatDate(row.trainingDate),
+    trainingDate: row.trainingDate,
     exerciseType: row.exerciseType,
     sets: [],
     createdAt: row.createdAt,
@@ -44,15 +44,15 @@ async function loadTrainingSets(trainingSessions: TrainingSession[]) {
   await loadChildrenForParents(
     trainingSessions,
     async (trainingSession) => {
-    const result = await pool.query<TrainingSetRow>(
-      `
+      const result = await pool.query<TrainingSetRow>(
+        `
         SELECT id, weight, reps, created_at AS "createdAt"
         FROM workout_sets
         WHERE workout_id = $1
         ORDER BY created_at, id
       `,
-      [trainingSession.id]
-    );
+        [trainingSession.id]
+      );
       return result.rows.map(mapTrainingSet);
     },
     (trainingSession, sets) => {
@@ -66,7 +66,7 @@ async function getTrainingSession(id: string) {
     `
       SELECT
         id,
-        training_date AS "trainingDate",
+        training_date::text AS "trainingDate",
         exercise_type AS "exerciseType",
         created_at AS "createdAt"
       FROM workout_entries
@@ -90,7 +90,7 @@ export class TrainingSessionsService {
       `
         SELECT
           id,
-          training_date AS "trainingDate",
+          training_date::text AS "trainingDate",
           exercise_type AS "exerciseType",
           created_at AS "createdAt"
         FROM workout_entries
