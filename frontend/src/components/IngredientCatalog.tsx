@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Pencil, Plus, X } from "lucide-react";
 import type { Ingredient, IngredientRequest } from "../types";
+import { SelectField } from "./FormFields";
 import { IconButton } from "./IconButton";
 import { IngredientFormModal } from "./IngredientFormModal";
 
@@ -88,22 +89,19 @@ export function IngredientCatalog({
             <p className="text-sm text-neutral-500">No ingredients yet.</p>
           ) : (
             <div className="grid gap-3">
-              <label className="grid gap-2 text-sm font-medium text-neutral-300">
-                Existing ingredient
-                <select
-                  className="input"
-                  value={selectedIngredientValue}
-                  onChange={(event) =>
-                    setSelectedIngredientValue(event.target.value)
-                  }
-                >
-                  {ingredients.map((ingredient) => (
-                    <option key={ingredient.value} value={ingredient.value}>
-                      {ingredient.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <SelectField
+                label="Existing ingredient"
+                value={selectedIngredientValue}
+                onChange={(event) =>
+                  setSelectedIngredientValue(event.target.value)
+                }
+              >
+                {ingredients.map((ingredient) => (
+                  <option key={ingredient.value} value={ingredient.value}>
+                    {ingredient.label}
+                  </option>
+                ))}
+              </SelectField>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                 {selectedIngredient && (
                   <div className="rounded border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm text-neutral-300">

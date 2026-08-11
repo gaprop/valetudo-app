@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { ActionButton } from "../components";
+import { ActionButton, TextField } from "../components";
 import { useAuth } from "../hooks";
 import { appRoutes } from "../routes";
 
@@ -40,26 +40,22 @@ export function LoginPage() {
         </h1>
 
         <form className="mt-5 grid gap-3 sm:mt-6 sm:gap-4" onSubmit={submit}>
-          <label className="grid gap-2 text-sm font-semibold text-neutral-200">
-            Username
-            <input
-              className="input"
-              autoComplete="username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-            />
-          </label>
+          <TextField
+            autoComplete="username"
+            label="Username"
+            labelClassName="font-semibold text-neutral-200"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+          />
 
-          <label className="grid gap-2 text-sm font-semibold text-neutral-200">
-            Password
-            <input
-              className="input"
-              autoComplete="current-password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </label>
+          <TextField
+            autoComplete="current-password"
+            label="Password"
+            labelClassName="font-semibold text-neutral-200"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
 
           {error && (
             <p className="rounded border border-primary-700 bg-primary-950 px-3 py-2 text-sm text-primary-100">

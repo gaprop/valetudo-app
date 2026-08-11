@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import type { CreatePlanDayRequest } from "../types";
+import { TextField } from "./FormFields";
 
 type PlanDayFormProps = {
   error: string;
@@ -27,16 +28,14 @@ export function PlanDayForm({
       onSubmit={handleAddDay}
     >
       <h2 className="text-lg font-semibold text-white">Add day</h2>
-      <label className="mt-4 grid gap-2 text-sm font-medium text-neutral-300 sm:mt-5">
-        Day
-        <input
-          className="input"
-          value={dayName}
-          onChange={(event) => setDayName(event.target.value)}
-          placeholder="Push day"
-          required
-        />
-      </label>
+      <TextField
+        label="Day"
+        labelClassName="mt-4 sm:mt-5"
+        value={dayName}
+        onChange={(event) => setDayName(event.target.value)}
+        placeholder="Push day"
+        required
+      />
       {error && (
         <p className="mt-4 rounded border border-primary-700 bg-primary-950 px-3 py-2 text-sm text-primary-100">
           {error}

@@ -1,4 +1,4 @@
-import { PageNavigation, PlanPage } from "../components";
+import { PageHeader, PlanPage } from "../components";
 import { useExerciseCatalog, usePlanDays } from "../hooks";
 
 export function WorkoutPlanPage() {
@@ -15,15 +15,7 @@ export function WorkoutPlanPage() {
 
   return (
     <div className="grid gap-5 sm:gap-8">
-      <header className="border-b border-neutral-800 pb-4 sm:pb-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary-400">
-          Valetudo
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-white sm:mt-2 sm:text-4xl">
-          Workout plan
-        </h1>
-        <PageNavigation />
-      </header>
+      <PageHeader title="Workout plan" />
 
       <PlanPage
         exercises={exercises}

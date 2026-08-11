@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import type { IngredientRequest } from "../types";
+import { NumberField, TextField } from "./FormFields";
 import { Modal } from "./Modal";
 
 type IngredientFormModalProps = {
@@ -71,44 +72,33 @@ export function IngredientFormModal({
       title={title}
     >
       <form className="grid gap-3 sm:gap-4" id="ingredient-form" onSubmit={handleSubmit}>
-        <label className="grid gap-2 text-sm font-medium text-neutral-300">
-          Ingredient
-          <input
-            className="input"
-            value={label}
-            onChange={(event) => setLabel(event.target.value)}
-            placeholder="Chicken breast"
-            required
-          />
-        </label>
+        <TextField
+          label="Ingredient"
+          value={label}
+          onChange={(event) => setLabel(event.target.value)}
+          placeholder="Chicken breast"
+          required
+        />
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-2 text-sm font-medium text-neutral-300">
-            Calories per 100g
-            <input
-              className="input"
-              type="number"
-              min="0"
-              step="0.01"
-              value={caloriesPer100g}
-              onChange={(event) => setCaloriesPer100g(event.target.value)}
-              placeholder="kcal"
-              required
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-medium text-neutral-300">
-            Protein per 100g
-            <input
-              className="input"
-              type="number"
-              min="0"
-              step="0.01"
-              value={proteinPer100g}
-              onChange={(event) => setProteinPer100g(event.target.value)}
-              placeholder="g"
-              required
-            />
-          </label>
+          <NumberField
+            label="Calories per 100g"
+            min="0"
+            step="0.01"
+            value={caloriesPer100g}
+            onChange={(event) => setCaloriesPer100g(event.target.value)}
+            placeholder="kcal"
+            required
+          />
+          <NumberField
+            label="Protein per 100g"
+            min="0"
+            step="0.01"
+            value={proteinPer100g}
+            onChange={(event) => setProteinPer100g(event.target.value)}
+            placeholder="g"
+            required
+          />
         </div>
 
         {error && (
