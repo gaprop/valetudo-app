@@ -1,11 +1,15 @@
 import { pool } from "../db/pool";
-import { HttpError } from "../middleware/errors";
 import type {
   ValidatedPlanDayBody,
   ValidatedPlanExerciseBody,
 } from "../middleware/validation";
 import type { PlanDay, PlanExercise } from "../types/api";
-import { loadChildrenForParents } from "./helpers";
+import {
+  assertExists,
+  assertRowsAffected,
+  loadChildrenForParents,
+  withTransaction,
+} from "./helpers";
 
 type PlanDayRow = {
   id: string;
@@ -98,9 +102,7 @@ export class PlanDaysService {
       `,
       [dayID, userID]
     );
-    if (result.rowCount === 0) {
-      throw new HttpError(404, "workout plan day was not found");
-    }
+    assertRowsAffected(result, "workout plan day was not found");
   }
 
   static async createPlanExercise(
@@ -108,11 +110,9 @@ export class PlanDaysService {
     dayID: string,
     { exerciseType }: ValidatedPlanExerciseBody
   ) {
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
-
-      const exists = await client.query<{ exists: boolean }>(
+    return withTransaction(async (client) => {
+      await assertExists(
+        client,
         `
           SELECT EXISTS (
             SELECT 1
@@ -120,11 +120,9 @@ export class PlanDaysService {
             WHERE id = $1 AND user_id = $2
           )
         `,
-        [dayID, userID]
+        [dayID, userID],
+        "workout plan day was not found"
       );
-      if (!exists.rows[0]?.exists) {
-        throw new HttpError(404, "workout plan day was not found");
-      }
 
       const result = await client.query<PlanExerciseRow>(
         `
@@ -137,14 +135,8 @@ export class PlanDaysService {
         `,
         [dayID, exerciseType]
       );
-      await client.query("COMMIT");
       return mapPlanExercise(result.rows[0]);
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
   }
 
   static async deletePlanExercise(userID: string, dayID: string, itemID: string) {
@@ -159,8 +151,6 @@ export class PlanDaysService {
       `,
       [dayID, itemID, userID]
     );
-    if (result.rowCount === 0) {
-      throw new HttpError(404, "workout plan item was not found");
-    }
+    assertRowsAffected(result, "workout plan item was not found");
   }
 }
