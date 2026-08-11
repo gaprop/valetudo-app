@@ -9,6 +9,7 @@ export { PageNavigation } from "./PageNavigation";
 export { ProtectedRoute } from "./ProtectedRoute";
 export { RecipeCard } from "./RecipeCard";
 export { RecipeForm } from "./RecipeForm";
+export { RecipeIngredientForm } from "./RecipeIngredientForm";
 export { RecipeIngredientRow } from "./RecipeIngredientRow";
 export { SetMetricInputs } from "./SetMetricInputs";
 export { PreviousSessionSummary } from "./PreviousSessionSummary";

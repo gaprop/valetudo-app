@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
 import { Save, X } from "lucide-react";
+import { useRecipeIngredientForm } from "../hooks";
 import type {
   ID,
   Ingredient,
   RecipeIngredient,
   UpdateRecipeIngredientRequest,
 } from "../types";
-import { nutritionForGrams } from "../recipeNutrition";
 import { IconButton } from "./IconButton";
 
 type RecipeIngredientRowProps = {
@@ -36,56 +35,12 @@ export function RecipeIngredientRow({
   onUpdateIngredient,
   onDeleteIngredient,
 }: RecipeIngredientRowProps) {
-  const [ingredientValue, setIngredientValue] = useState(
-    ingredient.ingredientValue
-  );
-  const [amountGrams, setAmountGrams] = useState(String(ingredient.amountGrams));
-  const [calories, setCalories] = useState(String(ingredient.calories));
-  const [protein, setProtein] = useState(String(ingredient.protein));
-
-  useEffect(() => {
-    setIngredientValue(ingredient.ingredientValue);
-    setAmountGrams(String(ingredient.amountGrams));
-    setCalories(String(ingredient.calories));
-    setProtein(String(ingredient.protein));
-  }, [ingredient]);
-
-  function applyIngredientDefaults(value: string, gramsInput: string) {
-    const catalogIngredient =
-      ingredients.find((item) => item.value === value) || null;
-    if (!catalogIngredient || !gramsInput) {
-      return;
-    }
-    setCalories(
-      String(nutritionForGrams(catalogIngredient.caloriesPer100g, gramsInput))
-    );
-    setProtein(
-      String(nutritionForGrams(catalogIngredient.proteinPer100g, gramsInput))
-    );
-  }
-
-  const hasChanges =
-    ingredientValue !== ingredient.ingredientValue ||
-    Number(amountGrams) !== ingredient.amountGrams ||
-    Number(calories) !== ingredient.calories ||
-    Number(protein) !== ingredient.protein;
-
-  async function handleSave() {
-    const saved = await onUpdateIngredient({
-      recipeID,
-      ingredientID: ingredient.id,
-      ingredientValue,
-      amountGrams: Number(amountGrams),
-      calories: Number(calories),
-      protein: Number(protein),
-    });
-    if (!saved) {
-      setIngredientValue(ingredient.ingredientValue);
-      setAmountGrams(String(ingredient.amountGrams));
-      setCalories(String(ingredient.calories));
-      setProtein(String(ingredient.protein));
-    }
-  }
+  const recipeIngredientForm = useRecipeIngredientForm({
+    recipeID,
+    ingredient,
+    ingredients,
+    onUpdateIngredient,
+  });
 
   return (
     <div className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 p-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_0.8fr_0.8fr_auto] lg:items-end">
@@ -93,17 +48,15 @@ export function RecipeIngredientRow({
         Ingredient
         <select
           className="input py-2"
-          value={ingredientValue}
+          value={recipeIngredientForm.form.ingredientValue}
           onChange={(event) => {
-            const nextValue = event.target.value;
-            setIngredientValue(nextValue);
-            applyIngredientDefaults(nextValue, amountGrams);
+            recipeIngredientForm.setIngredientValue(event.target.value);
           }}
           disabled={ingredients.length === 0}
         >
           {ingredients.length === 0 ? (
-            <option value={ingredientValue}>
-              {labelFor(ingredients, ingredientValue)}
+            <option value={recipeIngredientForm.form.ingredientValue}>
+              {labelFor(ingredients, recipeIngredientForm.form.ingredientValue)}
             </option>
           ) : (
             ingredients.map((item) => (
@@ -121,11 +74,9 @@ export function RecipeIngredientRow({
           type="number"
           min="0.01"
           step="0.01"
-          value={amountGrams}
+          value={recipeIngredientForm.form.amountGrams}
           onChange={(event) => {
-            const nextAmount = event.target.value;
-            setAmountGrams(nextAmount);
-            applyIngredientDefaults(ingredientValue, nextAmount);
+            recipeIngredientForm.setAmountGrams(event.target.value);
           }}
           placeholder="100"
           required
@@ -138,9 +89,9 @@ export function RecipeIngredientRow({
           type="number"
           min="0"
           step="0.01"
-          value={calories}
+          value={recipeIngredientForm.form.calories}
           onChange={(event) => {
-            setCalories(event.target.value);
+            recipeIngredientForm.setCalories(event.target.value);
           }}
           placeholder="kcal"
           required
@@ -153,9 +104,9 @@ export function RecipeIngredientRow({
           type="number"
           min="0"
           step="0.01"
-          value={protein}
+          value={recipeIngredientForm.form.protein}
           onChange={(event) => {
-            setProtein(event.target.value);
+            recipeIngredientForm.setProtein(event.target.value);
           }}
           placeholder="g"
           required
@@ -165,9 +116,13 @@ export function RecipeIngredientRow({
         <IconButton
           label="Save ingredient"
           title="Save ingredient"
-          onClick={handleSave}
+          onClick={recipeIngredientForm.save}
           disabled={
-            !hasChanges || saving || !amountGrams || !calories || !protein
+            !recipeIngredientForm.hasChanges ||
+            saving ||
+            !recipeIngredientForm.form.amountGrams ||
+            !recipeIngredientForm.form.calories ||
+            !recipeIngredientForm.form.protein
           }
         >
           <Save aria-hidden="true" size={16} strokeWidth={2.25} />
