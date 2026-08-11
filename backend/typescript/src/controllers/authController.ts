@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import {
+  authCookieSameSite,
   authCookieName,
   authSessionMaxAgeMs,
   useSecureAuthCookie,
@@ -12,7 +13,7 @@ function sessionCookieOptions() {
   return {
     httpOnly: true,
     maxAge: authSessionMaxAgeMs,
-    sameSite: "lax" as const,
+    sameSite: authCookieSameSite(),
     secure: useSecureAuthCookie(),
   };
 }
@@ -20,7 +21,7 @@ function sessionCookieOptions() {
 function clearSessionCookieOptions() {
   return {
     httpOnly: true,
-    sameSite: "lax" as const,
+    sameSite: authCookieSameSite(),
     secure: useSecureAuthCookie(),
   };
 }

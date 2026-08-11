@@ -21,5 +21,17 @@ export function seededAuthCredentials() {
 }
 
 export function useSecureAuthCookie() {
-  return process.env.AUTH_COOKIE_SECURE === "true" || process.env.NODE_ENV === "production";
+  return (
+    process.env.AUTH_COOKIE_SECURE === "true" ||
+    process.env.NODE_ENV === "production"
+  );
+}
+
+export function authCookieSameSite(): "lax" | "none" | "strict" {
+  const sameSite = process.env.AUTH_COOKIE_SAME_SITE?.toLowerCase();
+  if (sameSite === "lax" || sameSite === "none" || sameSite === "strict") {
+    return sameSite;
+  }
+
+  return useSecureAuthCookie() ? "none" : "lax";
 }

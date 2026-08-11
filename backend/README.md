@@ -36,6 +36,7 @@ export AUTH_USERNAME=admin
 export AUTH_PASSWORD=password
 export AUTH_JWT_SECRET=change-this-secret
 export AUTH_COOKIE_SECURE=false
+export AUTH_COOKIE_SAME_SITE=lax
 ```
 
 To run the Go backend instead:
@@ -68,6 +69,7 @@ src/
 - `AUTH_PASSWORD`: Seeded login password
 - `AUTH_JWT_SECRET`: Secret used to sign session cookies
 - `AUTH_COOKIE_SECURE`: Set to `true` when serving the app over HTTPS
+- `AUTH_COOKIE_SAME_SITE`: Cookie SameSite policy. Use `none` when frontend and backend are on separate HTTPS domains.
 
 Default database URL when `DATABASE_URL` is not set:
 
@@ -93,6 +95,7 @@ AUTH_USERNAME=<your username>
 AUTH_PASSWORD=<your password>
 AUTH_JWT_SECRET=<long random secret>
 AUTH_COOKIE_SECURE=true
+AUTH_COOKIE_SAME_SITE=none
 NODE_ENV=production
 ```
 

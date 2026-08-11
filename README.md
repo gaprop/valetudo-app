@@ -63,6 +63,7 @@ AUTH_USERNAME=<your username>
 AUTH_PASSWORD=<your password>
 AUTH_JWT_SECRET=<long random secret>
 AUTH_COOKIE_SECURE=true
+AUTH_COOKIE_SAME_SITE=none
 NODE_ENV=production
 ```
 

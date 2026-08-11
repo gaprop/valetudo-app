@@ -9,4 +9,4 @@ declare global {
 export const API_URL =
   window.VALETUDO_CONFIG?.apiUrl ||
   import.meta.env.VITE_API_URL ||
-  "http://localhost:8080";
+  "";
