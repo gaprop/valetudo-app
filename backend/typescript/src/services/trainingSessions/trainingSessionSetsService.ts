@@ -1,11 +1,6 @@
 import { pool } from "../../db/pool";
+import { HttpError } from "../../middleware/errors";
 import type { ValidatedTrainingSetBody } from "../../middleware/validation";
-import {
-  assertExists,
-  assertRowsAffected,
-  firstRowOrNotFound,
-  withTransaction,
-} from "../helpers";
 import {
   mapTrainingSet,
   type TrainingSetRow,
@@ -17,9 +12,11 @@ export class TrainingSessionSetsService {
     trainingSessionID: string,
     { weight, reps }: ValidatedTrainingSetBody
   ) {
-    return withTransaction(async (client) => {
-      await assertExists(
-        client,
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const exists = await client.query<{ exists: boolean }>(
         `
           SELECT EXISTS (
             SELECT 1
@@ -27,9 +24,11 @@ export class TrainingSessionSetsService {
             WHERE id = $1 AND user_id = $2
           )
         `,
-        [trainingSessionID, userID],
-        "training session was not found"
+        [trainingSessionID, userID]
       );
+      if (!exists.rows[0]?.exists) {
+        throw new HttpError(404, "training session was not found");
+      }
 
       const result = await client.query<TrainingSetRow>(
         `
@@ -39,8 +38,14 @@ export class TrainingSessionSetsService {
         `,
         [trainingSessionID, weight, reps]
       );
+      await client.query("COMMIT");
       return mapTrainingSet(result.rows[0]);
-    });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   static async update(
@@ -62,10 +67,11 @@ export class TrainingSessionSetsService {
       `,
       [trainingSessionID, setID, weight, reps, userID]
     );
+    if (!result.rows[0]) {
+      throw new HttpError(404, "training set was not found");
+    }
 
-    return mapTrainingSet(
-      firstRowOrNotFound(result.rows, "training set was not found")
-    );
+    return mapTrainingSet(result.rows[0]);
   }
 
   static async delete(userID: string, trainingSessionID: string, setID: string) {
@@ -80,6 +86,8 @@ export class TrainingSessionSetsService {
       `,
       [trainingSessionID, setID, userID]
     );
-    assertRowsAffected(result, "training set was not found");
+    if (result.rowCount === 0) {
+      throw new HttpError(404, "training set was not found");
+    }
   }
 }

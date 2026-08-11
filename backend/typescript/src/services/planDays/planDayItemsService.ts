@@ -1,10 +1,6 @@
 import { pool } from "../../db/pool";
+import { HttpError } from "../../middleware/errors";
 import type { ValidatedPlanExerciseBody } from "../../middleware/validation";
-import {
-  assertExists,
-  assertRowsAffected,
-  withTransaction,
-} from "../helpers";
 import { mapPlanExercise, type PlanExerciseRow } from "./planDayRows";
 
 export class PlanDayItemsService {
@@ -13,9 +9,11 @@ export class PlanDayItemsService {
     dayID: string,
     { exerciseType }: ValidatedPlanExerciseBody
   ) {
-    return withTransaction(async (client) => {
-      await assertExists(
-        client,
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const exists = await client.query<{ exists: boolean }>(
         `
           SELECT EXISTS (
             SELECT 1
@@ -23,9 +21,11 @@ export class PlanDayItemsService {
             WHERE id = $1 AND user_id = $2
           )
         `,
-        [dayID, userID],
-        "workout plan day was not found"
+        [dayID, userID]
       );
+      if (!exists.rows[0]?.exists) {
+        throw new HttpError(404, "workout plan day was not found");
+      }
 
       const result = await client.query<PlanExerciseRow>(
         `
@@ -38,8 +38,14 @@ export class PlanDayItemsService {
         `,
         [dayID, exerciseType]
       );
+      await client.query("COMMIT");
       return mapPlanExercise(result.rows[0]);
-    });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   static async delete(userID: string, dayID: string, itemID: string) {
@@ -54,6 +60,8 @@ export class PlanDayItemsService {
       `,
       [dayID, itemID, userID]
     );
-    assertRowsAffected(result, "workout plan item was not found");
+    if (result.rowCount === 0) {
+      throw new HttpError(404, "workout plan item was not found");
+    }
   }
 }

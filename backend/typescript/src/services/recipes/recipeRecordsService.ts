@@ -1,9 +1,6 @@
 import { pool } from "../../db/pool";
+import { HttpError } from "../../middleware/errors";
 import type { ValidatedRecipeBody } from "../../middleware/validation";
-import {
-  assertRowsAffected,
-  firstRowOrNotFound,
-} from "../helpers";
 import {
   loadRecipeIngredients,
   mapRecipe,
@@ -36,7 +33,7 @@ export class RecipeRecordsService {
       [userID, name]
     );
 
-    return mapRecipe(firstRowOrNotFound(result.rows, "recipe was not created"));
+    return mapRecipe(result.rows[0]);
   }
 
   static async delete(userID: string, recipeID: string) {
@@ -47,7 +44,9 @@ export class RecipeRecordsService {
       `,
       [recipeID, userID]
     );
-    assertRowsAffected(result, "recipe was not found");
+    if (result.rowCount === 0) {
+      throw new HttpError(404, "recipe was not found");
+    }
   }
 
   static async get(userID: string, recipeID: string) {
@@ -59,9 +58,12 @@ export class RecipeRecordsService {
       `,
       [recipeID, userID]
     );
-    const recipe = mapRecipe(
-      firstRowOrNotFound(result.rows, "recipe was not found")
-    );
+    const row = result.rows[0];
+    if (!row) {
+      throw new HttpError(404, "recipe was not found");
+    }
+
+    const recipe = mapRecipe(row);
     await loadRecipeIngredients(userID, [recipe]);
     return recipe;
   }

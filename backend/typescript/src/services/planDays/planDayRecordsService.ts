@@ -1,6 +1,6 @@
 import { pool } from "../../db/pool";
+import { HttpError } from "../../middleware/errors";
 import type { ValidatedPlanDayBody } from "../../middleware/validation";
-import { assertRowsAffected, firstRowOrNotFound } from "../helpers";
 import {
   loadPlanExercises,
   mapPlanDay,
@@ -33,9 +33,7 @@ export class PlanDayRecordsService {
       [userID, name]
     );
 
-    return mapPlanDay(
-      firstRowOrNotFound(result.rows, "workout plan day was not created")
-    );
+    return mapPlanDay(result.rows[0]);
   }
 
   static async delete(userID: string, dayID: string) {
@@ -46,6 +44,8 @@ export class PlanDayRecordsService {
       `,
       [dayID, userID]
     );
-    assertRowsAffected(result, "workout plan day was not found");
+    if (result.rowCount === 0) {
+      throw new HttpError(404, "workout plan day was not found");
+    }
   }
 }

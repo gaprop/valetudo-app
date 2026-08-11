@@ -1,11 +1,6 @@
 import { pool } from "../db/pool";
 import { HttpError } from "../middleware/errors";
 import type { ValidatedExerciseBody } from "../middleware/validation";
-import {
-  assertNotExists,
-  assertRowsAffected,
-  firstRowOrNotFound,
-} from "./helpers";
 
 export class ExerciseCatalogService {
   static async listExercises(userID: string) {
@@ -31,7 +26,7 @@ export class ExerciseCatalogService {
         `,
         [userID, value, label]
       );
-      return firstRowOrNotFound(result.rows, "exercise was not created");
+      return result.rows[0];
     } catch (error) {
       if (error instanceof Error && error.message.includes("duplicate key")) {
         throw new HttpError(409, "exercise already exists");
@@ -41,8 +36,7 @@ export class ExerciseCatalogService {
   }
 
   static async deleteExercise(userID: string, value: string) {
-    await assertNotExists(
-      pool,
+    const used = await pool.query<{ exists: boolean }>(
       `
         SELECT EXISTS (
           SELECT 1 FROM workout_entries WHERE user_id = $1 AND exercise_type = $2
@@ -53,10 +47,11 @@ export class ExerciseCatalogService {
           WHERE day.user_id = $1 AND item.exercise_type = $2
         )
       `,
-      [userID, value],
-      400,
-      "exercise is used by trainingSessions or plans"
+      [userID, value]
     );
+    if (used.rows[0]?.exists) {
+      throw new HttpError(400, "exercise is used by trainingSessions or plans");
+    }
 
     const result = await pool.query(
       `
@@ -65,6 +60,8 @@ export class ExerciseCatalogService {
       `,
       [userID, value]
     );
-    assertRowsAffected(result, "exercise was not found");
+    if (result.rowCount === 0) {
+      throw new HttpError(404, "exercise was not found");
+    }
   }
 }

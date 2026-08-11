@@ -1,11 +1,6 @@
 import { pool } from "../db/pool";
 import { HttpError } from "../middleware/errors";
 import type { ValidatedIngredientBody } from "../middleware/validation";
-import {
-  assertNotExists,
-  assertRowsAffected,
-  firstRowOrNotFound,
-} from "./helpers";
 
 export class IngredientsService {
   static async listIngredients(userID: string) {
@@ -50,7 +45,7 @@ export class IngredientsService {
         `,
         [userID, value, label, caloriesPer100g, proteinPer100g]
       );
-      return firstRowOrNotFound(result.rows, "ingredient was not created");
+      return result.rows[0];
     } catch (error) {
       if (error instanceof Error && error.message.includes("duplicate key")) {
         throw new HttpError(409, "ingredient already exists");
@@ -83,7 +78,10 @@ export class IngredientsService {
         `,
         [currentValue, value, label, caloriesPer100g, proteinPer100g, userID]
       );
-      return firstRowOrNotFound(result.rows, "ingredient was not found");
+      if (!result.rows[0]) {
+        throw new HttpError(404, "ingredient was not found");
+      }
+      return result.rows[0];
     } catch (error) {
       if (error instanceof Error && error.message.includes("duplicate key")) {
         throw new HttpError(409, "ingredient already exists");
@@ -93,8 +91,7 @@ export class IngredientsService {
   }
 
   static async deleteIngredient(userID: string, value: string) {
-    await assertNotExists(
-      pool,
+    const used = await pool.query<{ exists: boolean }>(
       `
         SELECT EXISTS (
           SELECT 1
@@ -102,10 +99,11 @@ export class IngredientsService {
           WHERE user_id = $1 AND ingredient_value = $2
         )
       `,
-      [userID, value],
-      400,
-      "ingredient is used by recipes"
+      [userID, value]
     );
+    if (used.rows[0]?.exists) {
+      throw new HttpError(400, "ingredient is used by recipes");
+    }
 
     const result = await pool.query(
       `
@@ -114,6 +112,8 @@ export class IngredientsService {
       `,
       [userID, value]
     );
-    assertRowsAffected(result, "ingredient was not found");
+    if (result.rowCount === 0) {
+      throw new HttpError(404, "ingredient was not found");
+    }
   }
 }

@@ -1,9 +1,6 @@
 import { pool } from "../../db/pool";
+import { HttpError } from "../../middleware/errors";
 import type { ValidatedTrainingSessionBody } from "../../middleware/validation";
-import {
-  assertRowsAffected,
-  firstRowOrNotFound,
-} from "../helpers";
 import {
   loadTrainingSets,
   mapTrainingSession,
@@ -54,7 +51,9 @@ export class TrainingSessionEntriesService {
       `,
       [trainingSessionID, userID]
     );
-    assertRowsAffected(result, "training session was not found");
+    if (result.rowCount === 0) {
+      throw new HttpError(404, "training session was not found");
+    }
   }
 
   static async get(userID: string, id: string) {
@@ -70,9 +69,12 @@ export class TrainingSessionEntriesService {
       `,
       [id, userID]
     );
-    const trainingSession = mapTrainingSession(
-      firstRowOrNotFound(result.rows, "training session was not found")
-    );
+    const row = result.rows[0];
+    if (!row) {
+      throw new HttpError(404, "training session was not found");
+    }
+
+    const trainingSession = mapTrainingSession(row);
     await loadTrainingSets(userID, [trainingSession]);
     return trainingSession;
   }

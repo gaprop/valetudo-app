@@ -1,11 +1,6 @@
 import { pool } from "../../db/pool";
+import { HttpError } from "../../middleware/errors";
 import type { ValidatedRecipeIngredientBody } from "../../middleware/validation";
-import {
-  assertExists,
-  assertRowsAffected,
-  firstRowOrNotFound,
-  withTransaction,
-} from "../helpers";
 import {
   mapRecipeIngredient,
   type RecipeIngredientRow,
@@ -17,9 +12,11 @@ export class RecipeIngredientsService {
     recipeID: string,
     { ingredientValue, amountGrams, calories, protein }: ValidatedRecipeIngredientBody
   ) {
-    return withTransaction(async (client) => {
-      await assertExists(
-        client,
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const exists = await client.query<{ exists: boolean }>(
         `
           SELECT EXISTS (
             SELECT 1
@@ -27,9 +24,11 @@ export class RecipeIngredientsService {
             WHERE id = $1 AND user_id = $2
           )
         `,
-        [recipeID, userID],
-        "recipe was not found"
+        [recipeID, userID]
       );
+      if (!exists.rows[0]?.exists) {
+        throw new HttpError(404, "recipe was not found");
+      }
 
       const result = await client.query<RecipeIngredientRow>(
         `
@@ -52,8 +51,14 @@ export class RecipeIngredientsService {
         `,
         [userID, recipeID, ingredientValue, amountGrams, calories, protein]
       );
+      await client.query("COMMIT");
       return mapRecipeIngredient(result.rows[0]);
-    });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   static async update(
@@ -81,10 +86,11 @@ export class RecipeIngredientsService {
       `,
       [recipeID, ingredientID, ingredientValue, amountGrams, calories, protein, userID]
     );
+    if (!result.rows[0]) {
+      throw new HttpError(404, "recipe ingredient was not found");
+    }
 
-    return mapRecipeIngredient(
-      firstRowOrNotFound(result.rows, "recipe ingredient was not found")
-    );
+    return mapRecipeIngredient(result.rows[0]);
   }
 
   static async delete(userID: string, recipeID: string, ingredientID: string) {
@@ -95,6 +101,8 @@ export class RecipeIngredientsService {
       `,
       [recipeID, ingredientID, userID]
     );
-    assertRowsAffected(result, "recipe ingredient was not found");
+    if (result.rowCount === 0) {
+      throw new HttpError(404, "recipe ingredient was not found");
+    }
   }
 }
