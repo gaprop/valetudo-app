@@ -75,6 +75,35 @@ Default database URL when `DATABASE_URL` is not set:
 postgres://fitness:fitness@localhost:5432/fitness?sslmode=disable
 ```
 
+## Railway
+
+The TypeScript backend includes `backend/typescript/railway.json` for Railway config-as-code.
+
+Use these Railway service settings:
+
+- Root Directory: `/backend/typescript`
+- Config File: `/backend/typescript/railway.json`
+- Database: Railway Postgres
+
+Set these backend variables:
+
+```text
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+AUTH_USERNAME=<your username>
+AUTH_PASSWORD=<your password>
+AUTH_JWT_SECRET=<long random secret>
+AUTH_COOKIE_SECURE=true
+NODE_ENV=production
+```
+
+The Railway pre-deploy command is:
+
+```sh
+npm run db:init
+```
+
+This command uses a non-destructive schema initializer and only creates missing tables/indexes.
+
 ## API
 
 ### `GET /health`

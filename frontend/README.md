@@ -18,6 +18,22 @@ The development server defaults to `http://localhost:5173`.
 
 - `VITE_API_URL`: Backend API base URL, default `http://localhost:8080`
 
+## Railway
+
+The frontend includes `frontend/railway.json` for Railway config-as-code.
+
+Use these Railway service settings:
+
+- Root Directory: `/frontend`
+- Config File: `/frontend/railway.json`
+- Public domain enabled
+
+Set `VITE_API_URL` to the backend Railway public URL:
+
+```text
+VITE_API_URL=https://${{<backend-service-name>.RAILWAY_PUBLIC_DOMAIN}}
+```
+
 ## Scripts
 
 Run from `frontend/`:

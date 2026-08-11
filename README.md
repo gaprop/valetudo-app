@@ -47,6 +47,33 @@ password: fitness
 database: fitness
 ```
 
+## Railway Deployment
+
+Deploy this repository as separate Railway services:
+
+- PostgreSQL: create a Railway Postgres service.
+- Backend: use root directory `/backend/typescript` and config file `/backend/typescript/railway.json`.
+- Frontend: use root directory `/frontend` and config file `/frontend/railway.json`.
+
+Backend variables:
+
+```text
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+AUTH_USERNAME=<your username>
+AUTH_PASSWORD=<your password>
+AUTH_JWT_SECRET=<long random secret>
+AUTH_COOKIE_SECURE=true
+NODE_ENV=production
+```
+
+Frontend variables:
+
+```text
+VITE_API_URL=https://${{<backend-service-name>.RAILWAY_PUBLIC_DOMAIN}}
+```
+
+The backend Railway pre-deploy command runs a non-destructive schema init. It does not use the local reset schema in `database/schema.sql`.
+
 ## Project Docs
 
 - Backend setup, configuration, and API: [backend/README.md](backend/README.md)
