@@ -1,11 +1,16 @@
 import { pool } from "../db/pool";
-import { HttpError } from "../middleware/errors";
 import type {
   ValidatedTrainingSessionBody,
   ValidatedTrainingSetBody,
 } from "../middleware/validation";
 import type { TrainingSession, TrainingSet } from "../types/api";
-import { loadChildrenForParents } from "./helpers";
+import {
+  assertExists,
+  assertRowsAffected,
+  firstRowOrNotFound,
+  loadChildrenForParents,
+  withTransaction,
+} from "./helpers";
 
 type TrainingSessionRow = {
   id: string;
@@ -75,12 +80,9 @@ async function getTrainingSession(userID: string, id: string) {
     `,
     [id, userID]
   );
-  const row = result.rows[0];
-  if (!row) {
-    throw new HttpError(404, "training session was not found");
-  }
-
-  const trainingSession = mapTrainingSession(row);
+  const trainingSession = mapTrainingSession(
+    firstRowOrNotFound(result.rows, "training session was not found")
+  );
   await loadTrainingSets(userID, [trainingSession]);
   return trainingSession;
 }
@@ -129,9 +131,7 @@ export class TrainingSessionsService {
       `,
       [trainingSessionID, userID]
     );
-    if (result.rowCount === 0) {
-      throw new HttpError(404, "training session was not found");
-    }
+    assertRowsAffected(result, "training session was not found");
   }
 
   static async createTrainingSet(
@@ -139,11 +139,9 @@ export class TrainingSessionsService {
     trainingSessionID: string,
     { weight, reps }: ValidatedTrainingSetBody
   ) {
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
-
-      const exists = await client.query<{ exists: boolean }>(
+    return withTransaction(async (client) => {
+      await assertExists(
+        client,
         `
           SELECT EXISTS (
             SELECT 1
@@ -151,11 +149,9 @@ export class TrainingSessionsService {
             WHERE id = $1 AND user_id = $2
           )
         `,
-        [trainingSessionID, userID]
+        [trainingSessionID, userID],
+        "training session was not found"
       );
-      if (!exists.rows[0]?.exists) {
-        throw new HttpError(404, "training session was not found");
-      }
 
       const result = await client.query<TrainingSetRow>(
         `
@@ -165,14 +161,8 @@ export class TrainingSessionsService {
         `,
         [trainingSessionID, weight, reps]
       );
-      await client.query("COMMIT");
       return mapTrainingSet(result.rows[0]);
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
   }
 
   static async updateTrainingSet(
@@ -194,11 +184,7 @@ export class TrainingSessionsService {
       `,
       [trainingSessionID, setID, weight, reps, userID]
     );
-    if (!result.rows[0]) {
-      throw new HttpError(404, "training set was not found");
-    }
-
-    return mapTrainingSet(result.rows[0]);
+    return mapTrainingSet(firstRowOrNotFound(result.rows, "training set was not found"));
   }
 
   static async deleteTrainingSet(userID: string, trainingSessionID: string, setID: string) {
@@ -213,8 +199,6 @@ export class TrainingSessionsService {
       `,
       [trainingSessionID, setID, userID]
     );
-    if (result.rowCount === 0) {
-      throw new HttpError(404, "training set was not found");
-    }
+    assertRowsAffected(result, "training set was not found");
   }
 }

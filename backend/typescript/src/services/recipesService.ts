@@ -1,11 +1,16 @@
 import { pool } from "../db/pool";
-import { HttpError } from "../middleware/errors";
 import type {
   ValidatedRecipeBody,
   ValidatedRecipeIngredientBody,
 } from "../middleware/validation";
 import type { Recipe, RecipeIngredient } from "../types/api";
-import { loadChildrenForParents } from "./helpers";
+import {
+  assertExists,
+  assertRowsAffected,
+  firstRowOrNotFound,
+  loadChildrenForParents,
+  withTransaction,
+} from "./helpers";
 
 type RecipeRow = {
   id: string;
@@ -78,12 +83,9 @@ async function getRecipe(userID: string, recipeID: string) {
     `,
     [recipeID, userID]
   );
-  const row = result.rows[0];
-  if (!row) {
-    throw new HttpError(404, "recipe was not found");
-  }
-
-  const recipe = mapRecipe(row);
+  const recipe = mapRecipe(
+    firstRowOrNotFound(result.rows, "recipe was not found")
+  );
   await loadRecipeIngredients(userID, [recipe]);
   return recipe;
 }
@@ -125,9 +127,7 @@ export class RecipesService {
       `,
       [recipeID, userID]
     );
-    if (result.rowCount === 0) {
-      throw new HttpError(404, "recipe was not found");
-    }
+    assertRowsAffected(result, "recipe was not found");
   }
 
   static async createRecipeIngredient(
@@ -135,11 +135,9 @@ export class RecipesService {
     recipeID: string,
     { ingredientValue, amountGrams, calories, protein }: ValidatedRecipeIngredientBody
   ) {
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
-
-      const exists = await client.query<{ exists: boolean }>(
+    return withTransaction(async (client) => {
+      await assertExists(
+        client,
         `
           SELECT EXISTS (
             SELECT 1
@@ -147,11 +145,9 @@ export class RecipesService {
             WHERE id = $1 AND user_id = $2
           )
         `,
-        [recipeID, userID]
+        [recipeID, userID],
+        "recipe was not found"
       );
-      if (!exists.rows[0]?.exists) {
-        throw new HttpError(404, "recipe was not found");
-      }
 
       const result = await client.query<RecipeIngredientRow>(
         `
@@ -174,14 +170,8 @@ export class RecipesService {
         `,
         [userID, recipeID, ingredientValue, amountGrams, calories, protein]
       );
-      await client.query("COMMIT");
       return mapRecipeIngredient(result.rows[0]);
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
   }
 
   static async updateRecipeIngredient(
@@ -209,11 +199,9 @@ export class RecipesService {
       `,
       [recipeID, ingredientID, ingredientValue, amountGrams, calories, protein, userID]
     );
-    if (!result.rows[0]) {
-      throw new HttpError(404, "recipe ingredient was not found");
-    }
-
-    return mapRecipeIngredient(result.rows[0]);
+    return mapRecipeIngredient(
+      firstRowOrNotFound(result.rows, "recipe ingredient was not found")
+    );
   }
 
   static async deleteRecipeIngredient(userID: string, recipeID: string, ingredientID: string) {
@@ -224,9 +212,7 @@ export class RecipesService {
       `,
       [recipeID, ingredientID, userID]
     );
-    if (result.rowCount === 0) {
-      throw new HttpError(404, "recipe ingredient was not found");
-    }
+    assertRowsAffected(result, "recipe ingredient was not found");
   }
 
   static async getRecipe(userID: string, recipeID: string) {
