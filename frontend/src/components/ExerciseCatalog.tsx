@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { X } from "lucide-react";
 import type { Exercise } from "../types";
+import { SelectField, TextField } from "./FormFields";
 import { IconButton } from "./IconButton";
 
 type ExerciseCatalogProps = {
@@ -50,16 +51,14 @@ export function ExerciseCatalog({
       onSubmit={handleAddExercise}
     >
       <h2 className="text-lg font-semibold text-white">Exercises</h2>
-      <label className="mt-4 grid gap-2 text-sm font-medium text-neutral-300 sm:mt-5">
-        Exercise
-        <input
-          className="input"
-          value={exerciseName}
-          onChange={(event) => setExerciseName(event.target.value)}
-          placeholder="Squat"
-          required
-        />
-      </label>
+      <TextField
+        label="Exercise"
+        labelClassName="mt-4 sm:mt-5"
+        value={exerciseName}
+        onChange={(event) => setExerciseName(event.target.value)}
+        placeholder="Squat"
+        required
+      />
       {error && (
         <p className="mt-4 rounded border border-primary-700 bg-primary-950 px-3 py-2 text-sm text-primary-100">
           {error}
@@ -80,20 +79,17 @@ export function ExerciseCatalog({
           <p className="text-sm text-neutral-500">No exercises yet.</p>
         ) : (
           <div className="grid grid-cols-[1fr_auto] items-end gap-2 sm:gap-3">
-            <label className="grid min-w-0 gap-2 text-sm font-medium text-neutral-300">
-              Existing exercise
-              <select
-                className="input"
-                value={selectedExerciseValue}
-                onChange={(event) => setSelectedExerciseValue(event.target.value)}
-              >
-                {exercises.map((exercise) => (
-                  <option key={exercise.value} value={exercise.value}>
-                    {exercise.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SelectField
+              label="Existing exercise"
+              value={selectedExerciseValue}
+              onChange={(event) => setSelectedExerciseValue(event.target.value)}
+            >
+              {exercises.map((exercise) => (
+                <option key={exercise.value} value={exercise.value}>
+                  {exercise.label}
+                </option>
+              ))}
+            </SelectField>
             <IconButton
               className="h-[42px] w-10 sm:h-[46px]"
               label="Delete selected exercise"

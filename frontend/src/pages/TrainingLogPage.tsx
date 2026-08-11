@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import {
-  PageNavigation,
+  PageHeader,
   PreviousSessionSummary,
   TrainingForm,
   TrainingSessionPanel,
@@ -46,22 +46,16 @@ export function TrainingLogPage() {
 
   return (
     <div className="grid gap-5 sm:gap-8">
-      <header className="flex flex-col gap-3 border-b border-neutral-800 pb-4 sm:flex-row sm:items-end sm:justify-between sm:pb-6">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary-400">
-            Valetudo
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-white sm:mt-2 sm:text-4xl">
-            Training log
-          </h1>
-          <PageNavigation />
-        </div>
-        <PreviousSessionSummary
-          exercises={exercises}
-          previousSession={trainingLog.previousSession}
-          hasSelection={trainingLog.selectedVisibleSession != null}
-        />
-      </header>
+      <PageHeader
+        title="Training log"
+        aside={
+          <PreviousSessionSummary
+            exercises={exercises}
+            previousSession={trainingLog.previousSession}
+            hasSelection={trainingLog.selectedVisibleSession != null}
+          />
+        }
+      />
 
       <section className="grid gap-4 sm:gap-6 lg:grid-cols-[340px_1fr]">
         <TrainingForm

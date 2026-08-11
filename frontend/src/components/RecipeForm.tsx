@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import type { CreateRecipeRequest } from "../types";
+import { TextField } from "./FormFields";
 
 type RecipeFormProps = {
   creating: boolean;
@@ -22,16 +23,14 @@ export function RecipeForm({ creating, onAddRecipe }: RecipeFormProps) {
       onSubmit={handleSubmit}
     >
       <h2 className="text-lg font-semibold text-white">Add recipe</h2>
-      <label className="mt-4 grid gap-2 text-sm font-medium text-neutral-300 sm:mt-5">
-        Recipe
-        <input
-          className="input"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Chicken bowl"
-          required
-        />
-      </label>
+      <TextField
+        label="Recipe"
+        labelClassName="mt-4 sm:mt-5"
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+        placeholder="Chicken bowl"
+        required
+      />
       <button
         className="mt-4 w-full rounded bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700 sm:mt-5"
         type="submit"

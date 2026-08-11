@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { formatDdMmYyyyDate, parseDdMmYyyyDate } from "../dateFormatting";
 import type { Exercise, ID, TrainingSessionForm, PlanDay } from "../types";
+import { SelectField, TextField } from "./FormFields";
 
 type TrainingFormProps = {
   form: TrainingSessionForm;
@@ -41,71 +42,63 @@ export function TrainingForm({
       <h2 className="text-lg font-semibold text-white">Add training</h2>
 
       <div className="mt-4 grid gap-3 sm:mt-5 sm:gap-4">
-        <label className="grid min-w-0 gap-2 text-sm font-medium text-neutral-300">
-          Date
-          <input
-            className="input date-input"
-            inputMode="numeric"
-            pattern="\\d{2}/\\d{2}/\\d{4}"
-            placeholder="dd/mm/yyyy"
-            type="text"
-            value={displayDate}
-            onChange={(event) => {
-              const nextDate = event.target.value;
-              setDisplayDate(nextDate);
-              const parsedDate = parseDdMmYyyyDate(nextDate);
-              if (parsedDate) {
-                onChange({ ...form, trainingDate: parsedDate });
-              }
-            }}
-            required
-          />
-        </label>
-
-        <label className="grid min-w-0 gap-2 text-sm font-medium text-neutral-300">
-          Workout plan
-          <select
-            className="input"
-            value={selectedPlanDayId ?? ""}
-            onChange={(event) =>
-              onPlanDayChange(
-                event.target.value === "" ? null : event.target.value
-              )
+        <TextField
+          className="date-input"
+          inputMode="numeric"
+          label="Date"
+          pattern="\\d{2}/\\d{2}/\\d{4}"
+          placeholder="dd/mm/yyyy"
+          type="text"
+          value={displayDate}
+          onChange={(event) => {
+            const nextDate = event.target.value;
+            setDisplayDate(nextDate);
+            const parsedDate = parseDdMmYyyyDate(nextDate);
+            if (parsedDate) {
+              onChange({ ...form, trainingDate: parsedDate });
             }
-            disabled={planDays.length === 0}
-          >
-            {planDays.length === 0 ? (
-              <option value="">No workout plan</option>
-            ) : (
-              planDays.map((day) => (
-                <option key={day.id} value={day.id}>
-                  {day.name}
-                </option>
-              ))
-            )}
-          </select>
-        </label>
+          }}
+          required
+        />
 
-        <label className="grid min-w-0 gap-2 text-sm font-medium text-neutral-300">
-          Exercise
-          <select
-            className="input"
-            value={form.exerciseType}
-            onChange={(event) =>
-              onChange({
-                ...form,
-                exerciseType: event.target.value,
-              })
-            }
-            disabled={exercises.length === 0}
-          >
-            {exercises.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
+        <SelectField
+          label="Workout plan"
+          value={selectedPlanDayId ?? ""}
+          onChange={(event) =>
+            onPlanDayChange(
+              event.target.value === "" ? null : event.target.value
+            )
+          }
+          disabled={planDays.length === 0}
+        >
+          {planDays.length === 0 ? (
+            <option value="">No workout plan</option>
+          ) : (
+            planDays.map((day) => (
+              <option key={day.id} value={day.id}>
+                {day.name}
               </option>
-            ))}
-          </select>
-        </label>
+            ))
+          )}
+        </SelectField>
+
+        <SelectField
+          label="Exercise"
+          value={form.exerciseType}
+          onChange={(event) =>
+            onChange({
+              ...form,
+              exerciseType: event.target.value,
+            })
+          }
+          disabled={exercises.length === 0}
+        >
+          {exercises.map((type) => (
+            <option key={type.value} value={type.value}>
+              {type.label}
+            </option>
+          ))}
+        </SelectField>
       </div>
 
       {error && (

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { CreateRecipeIngredientRequest, ID, Ingredient } from "../types";
 import { nutritionForGrams } from "../recipeNutrition";
+import { NumberField, SelectField } from "./FormFields";
 
 type RecipeIngredientFormProps = {
   recipeID: ID;
@@ -72,77 +73,70 @@ export function RecipeIngredientForm({
       className="grid gap-3 border-t border-neutral-800 pt-4 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_0.8fr_0.8fr_auto] lg:items-end"
       onSubmit={handleAddIngredient}
     >
-      <label className="grid gap-2 text-xs font-semibold text-neutral-400">
-        Ingredient
-        <select
-          className="input py-2"
-          value={ingredientValue}
-          onChange={(event) => {
-            setIngredientValue(event.target.value);
-            setNutritionEdited(false);
-          }}
-          disabled={ingredients.length === 0}
-          required
-        >
-          {ingredients.length === 0 ? (
-            <option value="">No ingredients</option>
-          ) : (
-            ingredients.map((ingredient) => (
-              <option key={ingredient.value} value={ingredient.value}>
-                {ingredient.label}
-              </option>
-            ))
-          )}
-        </select>
-      </label>
-      <label className="grid gap-2 text-xs font-semibold text-neutral-400">
-        Grams
-        <input
-          className="input py-2"
-          type="number"
-          min="0.01"
-          step="0.01"
-          value={amountGrams}
-          onChange={(event) => {
-            setAmountGrams(event.target.value);
-            setNutritionEdited(false);
-          }}
-          placeholder="100"
-          required
-        />
-      </label>
-      <label className="grid gap-2 text-xs font-semibold text-neutral-400">
-        Calories
-        <input
-          className="input py-2"
-          type="number"
-          min="0"
-          step="0.01"
-          value={calories}
-          onChange={(event) => {
-            setCalories(event.target.value);
-            setNutritionEdited(true);
-          }}
-          placeholder="kcal"
-          required
-        />
-      </label>
-      <label className="grid gap-2 text-xs font-semibold text-neutral-400">
-        Protein
-        <input
-          className="input py-2"
-          type="number"
-          min="0"
-          step="0.01"
-          value={protein}
-          onChange={(event) => {
-            setProtein(event.target.value);
-            setNutritionEdited(true);
-          }}
-          placeholder="g"
-          required
-        />
-      </label>
+      <SelectField
+        fieldSize="compact"
+        label="Ingredient"
+        labelClassName="text-xs font-semibold text-neutral-400"
+        value={ingredientValue}
+        onChange={(event) => {
+          setIngredientValue(event.target.value);
+          setNutritionEdited(false);
+        }}
+        disabled={ingredients.length === 0}
+        required
+      >
+        {ingredients.length === 0 ? (
+          <option value="">No ingredients</option>
+        ) : (
+          ingredients.map((ingredient) => (
+            <option key={ingredient.value} value={ingredient.value}>
+              {ingredient.label}
+            </option>
+          ))
+        )}
+      </SelectField>
+      <NumberField
+        fieldSize="compact"
+        label="Grams"
+        labelClassName="text-xs font-semibold text-neutral-400"
+        min="0.01"
+        step="0.01"
+        value={amountGrams}
+        onChange={(event) => {
+          setAmountGrams(event.target.value);
+          setNutritionEdited(false);
+        }}
+        placeholder="100"
+        required
+      />
+      <NumberField
+        fieldSize="compact"
+        label="Calories"
+        labelClassName="text-xs font-semibold text-neutral-400"
+        min="0"
+        step="0.01"
+        value={calories}
+        onChange={(event) => {
+          setCalories(event.target.value);
+          setNutritionEdited(true);
+        }}
+        placeholder="kcal"
+        required
+      />
+      <NumberField
+        fieldSize="compact"
+        label="Protein"
+        labelClassName="text-xs font-semibold text-neutral-400"
+        min="0"
+        step="0.01"
+        value={protein}
+        onChange={(event) => {
+          setProtein(event.target.value);
+          setNutritionEdited(true);
+        }}
+        placeholder="g"
+        required
+      />
       <button
         className="h-11 rounded bg-primary-600 px-4 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700 sm:col-span-2 lg:col-span-1"
         type="submit"
