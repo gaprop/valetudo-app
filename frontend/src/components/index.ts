@@ -1,4 +1,5 @@
 export { ActionButton } from "./ActionButton";
+export { AnalogClock } from "./AnalogClock";
 export { TrainingSessionList } from "./TrainingSessionList";
 export { ExerciseCatalog } from "./ExerciseCatalog";
 export { IngredientCatalog } from "./IngredientCatalog";
