@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { errorMessage } from "../api";
 import { planDaysService } from "../services";
 import { sortPlanDays, sortPlanItems } from "../sorting";
+import { runAsyncAction } from "./asyncAction";
 import { setPendingField } from "./pending";
 import type {
   CreatePlanDayRequest,
@@ -39,15 +40,18 @@ export function usePlanDays() {
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      setDays(sortPlanDays(await planDaysService.listDays()));
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setLoading(false);
-    }
+    await runAsyncAction({
+      before: () => {
+        setLoading(true);
+        setError("");
+      },
+      action: async () => {
+        setDays(sortPlanDays(await planDaysService.listDays()));
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setLoading(false),
+      fallback: undefined,
+    });
   }, []);
 
   useEffect(() => {
@@ -55,73 +59,79 @@ export function usePlanDays() {
   }, [load]);
 
   async function addDay(input: CreatePlanDayRequest): Promise<boolean> {
-    setPendingField(setPending, "creatingDay", true);
-    setError("");
-
-    try {
-      const day = await planDaysService.createDay(input);
-      setDays((current) => sortPlanDays([...current, day]));
-      return true;
-    } catch (err) {
-      setError(errorMessage(err));
-      return false;
-    } finally {
-      setPendingField(setPending, "creatingDay", false);
-    }
+    return runAsyncAction({
+      before: () => {
+        setPendingField(setPending, "creatingDay", true);
+        setError("");
+      },
+      action: async () => {
+        const day = await planDaysService.createDay(input);
+        setDays((current) => sortPlanDays([...current, day]));
+        return true;
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setPendingField(setPending, "creatingDay", false),
+      fallback: false,
+    });
   }
 
   async function removeDay(dayID: ID): Promise<void> {
-    setPendingField(setPending, "deletingDayId", dayID);
-    setError("");
-
-    try {
-      await planDaysService.deleteDay({ dayID });
-      setDays((current) => current.filter((day) => day.id !== dayID));
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setPendingField(setPending, "deletingDayId", null);
-    }
+    await runAsyncAction({
+      before: () => {
+        setPendingField(setPending, "deletingDayId", dayID);
+        setError("");
+      },
+      action: async () => {
+        await planDaysService.deleteDay({ dayID });
+        setDays((current) => current.filter((day) => day.id !== dayID));
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setPendingField(setPending, "deletingDayId", null),
+      fallback: undefined,
+    });
   }
 
   async function addItem(input: CreatePlanExerciseRequest): Promise<boolean> {
-    setPendingField(setPending, "addingItemDayId", input.dayID);
-    setError("");
-
-    try {
-      const item = await planDaysService.createItem(input);
-      setDays((current) =>
-        updatePlanDay(current, input.dayID, (day) => ({
-          ...day,
-          items: sortPlanItems([...day.items, item]),
-        }))
-      );
-      return true;
-    } catch (err) {
-      setError(errorMessage(err));
-      return false;
-    } finally {
-      setPendingField(setPending, "addingItemDayId", null);
-    }
+    return runAsyncAction({
+      before: () => {
+        setPendingField(setPending, "addingItemDayId", input.dayID);
+        setError("");
+      },
+      action: async () => {
+        const item = await planDaysService.createItem(input);
+        setDays((current) =>
+          updatePlanDay(current, input.dayID, (day) => ({
+            ...day,
+            items: sortPlanItems([...day.items, item]),
+          }))
+        );
+        return true;
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setPendingField(setPending, "addingItemDayId", null),
+      fallback: false,
+    });
   }
 
   async function removeItem(dayID: ID, itemID: ID): Promise<void> {
-    setPendingField(setPending, "deletingItemId", itemID);
-    setError("");
-
-    try {
-      await planDaysService.deleteItem({ dayID, itemID });
-      setDays((current) =>
-        updatePlanDay(current, dayID, (day) => ({
-          ...day,
-          items: day.items.filter((item) => item.id !== itemID),
-        }))
-      );
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setPendingField(setPending, "deletingItemId", null);
-    }
+    await runAsyncAction({
+      before: () => {
+        setPendingField(setPending, "deletingItemId", itemID);
+        setError("");
+      },
+      action: async () => {
+        await planDaysService.deleteItem({ dayID, itemID });
+        setDays((current) =>
+          updatePlanDay(current, dayID, (day) => ({
+            ...day,
+            items: day.items.filter((item) => item.id !== itemID),
+          }))
+        );
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setPendingField(setPending, "deletingItemId", null),
+      fallback: undefined,
+    });
   }
 
   return {
