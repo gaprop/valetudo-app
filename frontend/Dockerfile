@@ -17,4 +17,4 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 EXPOSE 8080
-CMD ["sh", "-c", ": \"${PORT:=8080}\" && envsubst '$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", ": \"${PORT:=8080}\" && : \"${VITE_API_URL:=http://localhost:8080}\" && escaped_api_url=$(printf '%s' \"$VITE_API_URL\" | sed 's/[\\\\\"]/\\\\&/g') && printf 'window.VALETUDO_CONFIG = { apiUrl: \"%s\" };\\n' \"$escaped_api_url\" > /usr/share/nginx/html/config.js && envsubst '$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
