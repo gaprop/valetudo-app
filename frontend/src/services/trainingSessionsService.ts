@@ -7,11 +7,12 @@ import type {
   TrainingSession,
   TrainingSet,
 } from "../types";
+import { expectArrayResponse } from "./responseGuards";
 
 export const trainingSessionsService = {
   async list(): Promise<TrainingSession[]> {
-    const response = await api.get<TrainingSession[]>("/api/workouts");
-    return response.data;
+    const response = await api.get<unknown>("/api/workouts");
+    return expectArrayResponse<TrainingSession>(response.data, "Training sessions");
   },
 
   async create(input: CreateTrainingSessionRequest): Promise<TrainingSession> {

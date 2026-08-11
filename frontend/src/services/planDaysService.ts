@@ -6,11 +6,12 @@ import type {
   PlanDay,
   PlanExercise,
 } from "../types";
+import { expectArrayResponse } from "./responseGuards";
 
 export const planDaysService = {
   async listDays(): Promise<PlanDay[]> {
-    const response = await api.get<PlanDay[]>("/api/workout-plan/days");
-    return response.data;
+    const response = await api.get<unknown>("/api/workout-plan/days");
+    return expectArrayResponse<PlanDay>(response.data, "Workout plan days");
   },
 
   async createDay(

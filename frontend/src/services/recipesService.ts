@@ -7,11 +7,12 @@ import type {
   RecipeIngredient,
   UpdateRecipeIngredientRequest,
 } from "../types";
+import { expectArrayResponse } from "./responseGuards";
 
 export const recipesService = {
   async listRecipes(): Promise<Recipe[]> {
-    const response = await api.get<Recipe[]>("/api/recipes");
-    return response.data;
+    const response = await api.get<unknown>("/api/recipes");
+    return expectArrayResponse<Recipe>(response.data, "Recipes");
   },
 
   async createRecipe(input: CreateRecipeRequest): Promise<Recipe> {

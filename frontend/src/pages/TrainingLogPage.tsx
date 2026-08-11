@@ -15,7 +15,10 @@ import { labelFor } from "../trainingSessions";
 
 export function TrainingLogPage() {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const { exercises } = useExerciseCatalog();
+  const {
+    exercises,
+    error: exerciseError,
+  } = useExerciseCatalog();
   const {
     trainingSessions,
     loading,
@@ -72,27 +75,34 @@ export function TrainingLogPage() {
           onPlanDayChange={trainingLog.setSelectedPlanDayId}
           onSubmit={trainingLog.submitTrainingSession}
         />
-        <TrainingSessionPanel
-          trainingSessions={trainingLog.selectedDateSessions}
-          exercises={exercises}
-          loading={loading}
-          nextPlanExerciseLabel={
-            trainingLog.nextPlanExerciseValue
-              ? labelFor(exercises, trainingLog.nextPlanExerciseValue)
-              : null
-          }
-          selectedPlanDayName={trainingLog.selectedPlanDay?.name || null}
-          pending={pending}
-          entryErrors={entryErrors}
-          openTrainingSessionId={openTrainingSessionId}
-          onRefresh={load}
-          onAddNextPlanSession={() => void trainingLog.addNextPlanSession()}
-          onToggleTrainingSession={toggleTrainingSession}
-          onAddSet={addSet}
-          onUpdateSet={updateSet}
-          onDeleteTrainingSession={deleteTrainingSession}
-          onDeleteSet={removeSet}
-        />
+        <div className="grid content-start gap-4">
+          {(exerciseError || planDays.error) && (
+            <div className="rounded border border-primary-700 bg-primary-950 px-3 py-2 text-sm text-primary-100">
+              {exerciseError || planDays.error}
+            </div>
+          )}
+          <TrainingSessionPanel
+            trainingSessions={trainingLog.selectedDateSessions}
+            exercises={exercises}
+            loading={loading}
+            nextPlanExerciseLabel={
+              trainingLog.nextPlanExerciseValue
+                ? labelFor(exercises, trainingLog.nextPlanExerciseValue)
+                : null
+            }
+            selectedPlanDayName={trainingLog.selectedPlanDay?.name || null}
+            pending={pending}
+            entryErrors={entryErrors}
+            openTrainingSessionId={openTrainingSessionId}
+            onRefresh={load}
+            onAddNextPlanSession={() => void trainingLog.addNextPlanSession()}
+            onToggleTrainingSession={toggleTrainingSession}
+            onAddSet={addSet}
+            onUpdateSet={updateSet}
+            onDeleteTrainingSession={deleteTrainingSession}
+            onDeleteSet={removeSet}
+          />
+        </div>
       </section>
     </div>
   );

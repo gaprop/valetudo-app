@@ -1,10 +1,11 @@
 import { api } from "../api";
 import type { Exercise } from "../types";
+import { expectArrayResponse } from "./responseGuards";
 
 export const exerciseCatalogService = {
   async list(): Promise<Exercise[]> {
-    const response = await api.get<Exercise[]>("/api/exercises");
-    return response.data;
+    const response = await api.get<unknown>("/api/exercises");
+    return expectArrayResponse<Exercise>(response.data, "Exercises");
   },
 
   async create(input: { label: string }): Promise<Exercise> {

@@ -1,10 +1,11 @@
 import { api } from "../api";
 import type { Ingredient, IngredientRequest } from "../types";
+import { expectArrayResponse } from "./responseGuards";
 
 export const ingredientsService = {
   async listIngredients(): Promise<Ingredient[]> {
-    const response = await api.get<Ingredient[]>("/api/ingredients");
-    return response.data;
+    const response = await api.get<unknown>("/api/ingredients");
+    return expectArrayResponse<Ingredient>(response.data, "Ingredients");
   },
 
   async createIngredient(input: IngredientRequest): Promise<Ingredient> {
