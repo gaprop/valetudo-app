@@ -16,7 +16,8 @@ The development server defaults to `http://localhost:5173`.
 
 ## Configuration
 
-- `VITE_API_URL`: Backend API base URL, default `http://localhost:8080`
+- `VITE_API_URL`: Browser API base URL. Use `http://localhost:8080` for Vite development, but leave it empty in Railway so requests use the frontend domain.
+- `BACKEND_URL`: nginx proxy target for production Docker/Railway, for example the backend Railway public URL.
 
 ## Railway
 
@@ -28,10 +29,11 @@ Use these Railway service settings:
 - Config File: `/frontend/railway.json`
 - Public domain enabled
 
-Set `VITE_API_URL` to the backend Railway public URL:
+Set the frontend nginx proxy target to the backend Railway public URL:
 
 ```text
-VITE_API_URL=https://${{<backend-service-name>.RAILWAY_PUBLIC_DOMAIN}}
+BACKEND_URL=https://${{<backend-service-name>.RAILWAY_PUBLIC_DOMAIN}}
+VITE_API_URL=
 ```
 
 ## Scripts

@@ -59,7 +59,8 @@ services:
       context: ./frontend
     container_name: fitness-frontend
     environment:
-      VITE_API_URL: http://localhost:8080
+      BACKEND_URL: http://backend:8080
+      VITE_API_URL: ""
     ports:
       - "5173:8080"
     depends_on:

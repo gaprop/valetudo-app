@@ -70,7 +70,8 @@ NODE_ENV=production
 Frontend variables:
 
 ```text
-VITE_API_URL=https://${{<backend-service-name>.RAILWAY_PUBLIC_DOMAIN}}
+BACKEND_URL=https://${{<backend-service-name>.RAILWAY_PUBLIC_DOMAIN}}
+VITE_API_URL=
 ```
 
 The backend Railway pre-deploy command runs a non-destructive schema init. It does not use the local reset schema in `database/schema.sql`.
