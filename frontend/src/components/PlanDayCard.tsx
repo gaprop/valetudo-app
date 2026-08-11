@@ -58,9 +58,9 @@ export function PlanDayCard({
   }
 
   return (
-    <article className="grid gap-4 px-5 py-5">
+    <article className="grid gap-4 px-3 py-3 sm:px-5 sm:py-5">
       <div className="flex items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h3 className="text-base font-semibold text-white">{day.name}</h3>
           <p className="mt-1 text-sm text-neutral-400">
             {day.items.length} {day.items.length === 1 ? "exercise" : "exercises"}
@@ -85,7 +85,7 @@ export function PlanDayCard({
               className="flex items-center justify-between gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3"
               key={item.id}
             >
-              <span className="text-sm font-semibold text-white">
+              <span className="min-w-0 text-sm font-semibold text-white">
                 {labelFor(exercises, item.exerciseType)}
               </span>
               <IconButton

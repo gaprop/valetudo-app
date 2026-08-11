@@ -8,13 +8,13 @@ export function PageNavigation() {
   const { logout, user } = useAuth();
 
   return (
-    <nav className="mt-5 flex flex-wrap items-center gap-2">
-      <div className="flex flex-wrap gap-2">
+    <nav className="-mx-3 mt-4 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:mt-5 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="flex shrink-0 gap-2 sm:flex-wrap">
         {navItems.map((item) => {
           const isActive = location.pathname === item.to;
           return (
             <Link
-              className={`rounded border px-3 py-2 text-sm font-semibold transition ${
+              className={`whitespace-nowrap rounded border px-2.5 py-2 text-xs font-semibold transition sm:px-3 sm:text-sm ${
                 isActive
                   ? "border-primary-700 bg-primary-950/60 text-primary-100"
                   : "border-neutral-700 text-neutral-300 hover:border-primary-500 hover:text-white"
@@ -30,7 +30,7 @@ export function PageNavigation() {
       {user && (
         <button
           aria-label="Logout"
-          className="inline-flex items-center gap-2 rounded border border-neutral-700 px-3 py-2 text-sm font-semibold text-neutral-300 transition hover:border-primary-500 hover:text-white"
+          className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded border border-neutral-700 px-2.5 py-2 text-xs font-semibold text-neutral-300 transition hover:border-primary-500 hover:text-white sm:px-3 sm:text-sm"
           onClick={() => void logout()}
           type="button"
         >

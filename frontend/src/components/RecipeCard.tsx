@@ -101,8 +101,8 @@ export function RecipeCard({
 
   return (
     <article className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900">
-      <div className="grid gap-3 border-l-4 border-primary-600 bg-neutral-800/40 px-5 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
-        <h3 className="text-lg font-semibold text-white">{recipe.name}</h3>
+      <div className="grid grid-cols-[1fr_auto] gap-3 border-l-4 border-primary-600 bg-neutral-800/40 px-3 py-3 sm:px-5 sm:py-4">
+        <h3 className="min-w-0 text-lg font-semibold text-white">{recipe.name}</h3>
         <IconButton
           label="Delete recipe"
           title="Delete recipe"
@@ -113,7 +113,7 @@ export function RecipeCard({
         </IconButton>
       </div>
 
-      <div className="grid gap-4 p-5">
+      <div className="grid gap-4 p-3 sm:p-5">
         {recipe.ingredients.length === 0 ? (
           <p className="text-sm text-neutral-500">No ingredients yet.</p>
         ) : (
@@ -136,7 +136,7 @@ export function RecipeCard({
         )}
 
         <form
-          className="grid gap-3 border-t border-neutral-800 pt-4 lg:grid-cols-[1.2fr_1fr_0.8fr_0.8fr_auto] lg:items-end"
+          className="grid gap-3 border-t border-neutral-800 pt-4 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_0.8fr_0.8fr_auto] lg:items-end"
           onSubmit={handleAddIngredient}
         >
           <label className="grid gap-2 text-xs font-semibold text-neutral-400">
@@ -211,7 +211,7 @@ export function RecipeCard({
             />
           </label>
           <button
-            className="h-11 rounded bg-primary-600 px-4 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
+            className="h-11 rounded bg-primary-600 px-4 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700 sm:col-span-2 lg:col-span-1"
             type="submit"
             disabled={
               ingredients.length === 0 ||

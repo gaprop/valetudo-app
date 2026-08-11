@@ -49,7 +49,7 @@ export function IngredientFormModal({
     <Modal
       closeLabel={closeLabel}
       footer={
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:gap-3">
           <button
             className="rounded border border-neutral-700 px-4 py-3 text-sm font-bold text-neutral-300 transition hover:border-primary-500 hover:text-white"
             type="button"
@@ -70,7 +70,7 @@ export function IngredientFormModal({
       onClose={onClose}
       title={title}
     >
-      <form className="grid gap-4" id="ingredient-form" onSubmit={handleSubmit}>
+      <form className="grid gap-3 sm:gap-4" id="ingredient-form" onSubmit={handleSubmit}>
         <label className="grid gap-2 text-sm font-medium text-neutral-300">
           Ingredient
           <input

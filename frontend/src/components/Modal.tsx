@@ -32,7 +32,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4 py-6"
+      className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-2 py-3 sm:px-4 sm:py-6"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
@@ -43,10 +43,10 @@ export function Modal({
       <section
         aria-labelledby={titleId}
         aria-modal="true"
-        className="grid max-h-[85vh] w-full max-w-lg gap-0 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950 shadow-2xl shadow-black"
+        className="grid max-h-[92vh] w-full max-w-lg gap-0 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950 shadow-2xl shadow-black sm:max-h-[85vh]"
         role="dialog"
       >
-        <header className="flex items-start justify-between gap-3 border-b border-neutral-800 px-5 py-4">
+        <header className="flex items-start justify-between gap-3 border-b border-neutral-800 px-3 py-3 sm:px-5 sm:py-4">
           <h2 id={titleId} className="text-lg font-semibold text-white">
             {title}
           </h2>
@@ -55,10 +55,10 @@ export function Modal({
           </IconButton>
         </header>
 
-        <div className="overflow-y-auto p-5">{children}</div>
+        <div className="overflow-y-auto p-3 sm:p-5">{children}</div>
 
         {footer && (
-          <footer className="border-t border-neutral-800 px-5 py-4">
+          <footer className="border-t border-neutral-800 px-3 py-3 sm:px-5 sm:py-4">
             {footer}
           </footer>
         )}

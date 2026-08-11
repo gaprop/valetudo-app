@@ -48,8 +48,8 @@ export function PlanPage({
   onDeleteExercise,
 }: PlanPageProps) {
   return (
-    <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
-      <div className="grid content-start gap-6">
+    <section className="grid gap-4 sm:gap-6 lg:grid-cols-[340px_1fr]">
+      <div className="grid content-start gap-4 sm:gap-6">
         <PlanDayForm
           error={error}
           creatingDay={pending.creatingDay}
@@ -67,10 +67,10 @@ export function PlanPage({
       </div>
 
       <section className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900 shadow-2xl shadow-black/30">
-        <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-neutral-800 px-3 py-3 sm:px-5 sm:py-4">
           <h2 className="text-lg font-semibold text-white">Workout plan</h2>
           <button
-            className="rounded border border-neutral-700 px-3 py-2 text-sm text-neutral-200 transition hover:border-primary-500 hover:text-white"
+            className="shrink-0 rounded border border-neutral-700 px-3 py-2 text-sm text-neutral-200 transition hover:border-primary-500 hover:text-white"
             onClick={onRefresh}
             type="button"
           >
@@ -79,9 +79,9 @@ export function PlanPage({
         </div>
 
         {loading ? (
-          <p className="px-5 py-8 text-sm text-neutral-400">Loading plan...</p>
+          <p className="px-3 py-6 text-sm text-neutral-400 sm:px-5 sm:py-8">Loading plan...</p>
         ) : days.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-neutral-400">
+          <p className="px-3 py-6 text-sm text-neutral-400 sm:px-5 sm:py-8">
             No plan days yet.
           </p>
         ) : (

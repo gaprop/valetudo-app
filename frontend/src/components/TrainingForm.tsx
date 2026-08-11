@@ -27,11 +27,11 @@ export function TrainingForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="rounded-lg border border-neutral-800 bg-neutral-900 p-5 shadow-2xl shadow-black/30"
+      className="rounded-lg border border-neutral-800 bg-neutral-900 p-3 shadow-2xl shadow-black/30 sm:p-5"
     >
       <h2 className="text-lg font-semibold text-white">Add training</h2>
 
-      <div className="mt-5 grid gap-4">
+      <div className="mt-4 grid gap-3 sm:mt-5 sm:gap-4">
         <label className="grid gap-2 text-sm font-medium text-neutral-300">
           Date
           <input
@@ -98,7 +98,7 @@ export function TrainingForm({
       )}
 
       <button
-        className="mt-5 w-full rounded bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
+        className="mt-4 w-full rounded bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700 sm:mt-5"
         type="submit"
         disabled={savingEntry || exercises.length === 0}
       >

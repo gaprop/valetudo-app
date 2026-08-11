@@ -62,7 +62,7 @@ export function IngredientCatalog({
 
   return (
     <>
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-5 shadow-2xl shadow-black/30">
+      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-3 shadow-2xl shadow-black/30 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-white">Ingredients</h2>
           <button
@@ -81,7 +81,7 @@ export function IngredientCatalog({
           </p>
         )}
 
-        <div className="mt-5 grid gap-3">
+        <div className="mt-4 grid gap-3 sm:mt-5">
           {loading ? (
             <p className="text-sm text-neutral-400">Loading ingredients...</p>
           ) : ingredients.length === 0 ? (
@@ -116,7 +116,7 @@ export function IngredientCatalog({
                     </span>
                   </div>
                 )}
-                <div className="flex gap-2">
+                <div className="flex justify-end gap-2 sm:justify-start">
                   <IconButton
                     label="Edit selected ingredient"
                     title="Edit ingredient"

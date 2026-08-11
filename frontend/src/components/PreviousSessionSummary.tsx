@@ -27,24 +27,26 @@ export function PreviousSessionSummary({
 
   return (
     <>
-      <div className="rounded border border-primary-800 bg-primary-950/50 text-sm text-primary-100">
-      {!hasSelection ? (
-        <span className="block px-4 py-3">Nothing is selected</span>
-      ) : previousSession ? (
-        <button
-          className="block w-full rounded px-4 py-3 text-left transition hover:bg-primary-900/60 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Latest {exerciseLabel}:{" "}
-          <strong>{previousSession.sets.length} sets</strong>, best at{" "}
-          <strong>{formatWeight(maxWeight(previousSession.sets))}</strong>
-        </button>
-      ) : (
-        <span className="block px-4 py-3">
-          No sets logged for this exercise yet.
-        </span>
-      )}
+      <div className="rounded border border-primary-800 bg-primary-950/50 text-sm text-primary-100 sm:max-w-sm">
+        {!hasSelection ? (
+          <span className="block px-3 py-2.5 sm:px-4 sm:py-3">
+            Nothing is selected
+          </span>
+        ) : previousSession ? (
+          <button
+            className="block w-full rounded px-3 py-2.5 text-left transition hover:bg-primary-900/60 focus:outline-none focus:ring-2 focus:ring-primary-500 sm:px-4 sm:py-3"
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Latest {exerciseLabel}:{" "}
+            <strong>{previousSession.sets.length} sets</strong>, best at{" "}
+            <strong>{formatWeight(maxWeight(previousSession.sets))}</strong>
+          </button>
+        ) : (
+          <span className="block px-3 py-2.5 sm:px-4 sm:py-3">
+            No sets logged for this exercise yet.
+          </span>
+        )}
       </div>
 
       {isModalOpen && previousSession && (

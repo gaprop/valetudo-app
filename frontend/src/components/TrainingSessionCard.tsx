@@ -49,7 +49,7 @@ export function TrainingSessionCard({
 
   return (
     <article className="bg-neutral-900">
-      <div className="grid gap-3 border-l-4 border-transparent bg-neutral-800/40 px-5 py-4 transition hover:border-primary-600 hover:bg-neutral-800 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+      <div className="grid gap-3 border-l-4 border-transparent bg-neutral-800/40 px-3 py-3 transition hover:border-primary-600 hover:bg-neutral-800 sm:grid-cols-[1fr_auto_auto] sm:items-center sm:px-5 sm:py-4">
         <button
           className="min-w-0 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-700"
           type="button"
@@ -61,16 +61,16 @@ export function TrainingSessionCard({
           </span>
         </button>
         <span className="flex flex-wrap items-center gap-2 text-sm text-neutral-300 sm:justify-end">
-          <span className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1">
+          <span className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs sm:text-sm">
             {trainingSession.sets.length} {trainingSession.sets.length === 1 ? "set" : "sets"}
           </span>
-          <span className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1">
+          <span className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs sm:text-sm">
             Best {formatWeight(maxWeight(trainingSession.sets))}
           </span>
         </span>
-        <div className="flex flex-wrap gap-2 sm:justify-self-end">
+        <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-wrap sm:justify-self-end">
           <button
-            className="flex h-9 min-w-24 items-center justify-center rounded border border-primary-800 bg-primary-950/60 px-3 text-sm font-semibold text-primary-100 transition hover:border-primary-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-700"
+            className="flex h-10 min-w-0 items-center justify-center rounded border border-primary-800 bg-primary-950/60 px-3 text-sm font-semibold text-primary-100 transition hover:border-primary-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-700 sm:h-9 sm:min-w-24"
             type="button"
             aria-expanded={isOpen}
             onClick={onToggle}
@@ -89,7 +89,7 @@ export function TrainingSessionCard({
       </div>
 
       {isOpen && (
-        <div className="grid gap-5 border-t border-neutral-800 bg-neutral-950/50 px-5 py-5">
+        <div className="grid gap-4 border-t border-neutral-800 bg-neutral-950/50 px-3 py-3 sm:gap-5 sm:px-5 sm:py-5">
           {error && (
             <p className="rounded border border-primary-700 bg-primary-950 px-3 py-2 text-sm text-primary-100">
               {error}

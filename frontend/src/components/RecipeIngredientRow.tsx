@@ -88,7 +88,7 @@ export function RecipeIngredientRow({
   }
 
   return (
-    <div className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 p-3 lg:grid-cols-[1.2fr_1fr_0.8fr_0.8fr_auto_auto] lg:items-end">
+    <div className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 p-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_0.8fr_0.8fr_auto] lg:items-end">
       <label className="grid gap-2 text-xs font-semibold text-neutral-400">
         Ingredient
         <select
@@ -161,24 +161,26 @@ export function RecipeIngredientRow({
           required
         />
       </label>
-      <IconButton
-        label="Save ingredient"
-        title="Save ingredient"
-        onClick={handleSave}
-        disabled={
-          !hasChanges || saving || !amountGrams || !calories || !protein
-        }
-      >
-        <Save aria-hidden="true" size={16} strokeWidth={2.25} />
-      </IconButton>
-      <IconButton
-        label="Delete ingredient from recipe"
-        title="Delete ingredient"
-        onClick={onDeleteIngredient}
-        disabled={deleting}
-      >
-        <X aria-hidden="true" size={16} strokeWidth={2.25} />
-      </IconButton>
+      <div className="flex justify-end gap-2 sm:col-span-2 lg:col-span-1">
+        <IconButton
+          label="Save ingredient"
+          title="Save ingredient"
+          onClick={handleSave}
+          disabled={
+            !hasChanges || saving || !amountGrams || !calories || !protein
+          }
+        >
+          <Save aria-hidden="true" size={16} strokeWidth={2.25} />
+        </IconButton>
+        <IconButton
+          label="Delete ingredient from recipe"
+          title="Delete ingredient"
+          onClick={onDeleteIngredient}
+          disabled={deleting}
+        >
+          <X aria-hidden="true" size={16} strokeWidth={2.25} />
+        </IconButton>
+      </div>
     </div>
   );
 }

@@ -18,7 +18,7 @@ export function ActionButton({
 
   return (
     <button
-      className={`rounded px-3 py-2 text-xs font-bold transition disabled:cursor-not-allowed ${variantClass} ${className}`}
+      className={`rounded px-3 py-2.5 text-xs font-bold transition disabled:cursor-not-allowed sm:py-2 ${variantClass} ${className}`}
       {...props}
     >
       {children}

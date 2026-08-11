@@ -53,10 +53,10 @@ export function TrainingSessionList({
 }: TrainingSessionListProps) {
   return (
     <section className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900 shadow-2xl shadow-black/30">
-      <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
+      <div className="flex items-center justify-between gap-3 border-b border-neutral-800 px-3 py-3 sm:px-5 sm:py-4">
         <h2 className="text-lg font-semibold text-white">Training sessions</h2>
         <button
-          className="rounded border border-neutral-700 px-3 py-2 text-sm text-neutral-200 transition hover:border-primary-500 hover:text-white"
+          className="shrink-0 rounded border border-neutral-700 px-3 py-2 text-sm text-neutral-200 transition hover:border-primary-500 hover:text-white"
           onClick={onRefresh}
           type="button"
         >
@@ -66,11 +66,11 @@ export function TrainingSessionList({
 
       <div>
         {loading ? (
-          <p className="px-5 py-8 text-sm text-neutral-400">
+          <p className="px-3 py-6 text-sm text-neutral-400 sm:px-5 sm:py-8">
             Loading training sessions...
           </p>
         ) : trainingSessions.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-neutral-400">
+          <p className="px-3 py-6 text-sm text-neutral-400 sm:px-5 sm:py-8">
             No training sessions for this day.
           </p>
         ) : (
@@ -98,7 +98,7 @@ export function TrainingSessionList({
           </div>
         )}
 
-        <div className="border-t border-neutral-800 bg-neutral-950/60 px-5 py-4">
+        <div className="border-t border-neutral-800 bg-neutral-950/60 px-3 py-3 sm:px-5 sm:py-4">
           <button
             className="w-full rounded border border-neutral-700 bg-neutral-800 px-4 py-3 text-sm font-semibold text-neutral-200 transition hover:border-neutral-500 hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
             type="button"

@@ -17,7 +17,7 @@ export function IconButton({
 }: IconButtonProps) {
   return (
     <button
-      className="flex h-9 w-9 items-center justify-center rounded border border-neutral-700 bg-neutral-950 text-neutral-300 transition hover:border-primary-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded border border-neutral-700 bg-neutral-950 text-neutral-300 transition hover:border-primary-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-9"
       type="button"
       aria-label={label}
       title={title || label}

@@ -30,18 +30,20 @@ export function LoginPage() {
   }
 
   return (
-    <div className="grid min-h-[calc(100vh-4rem)] place-items-center">
-      <section className="w-full max-w-sm rounded-lg border border-neutral-800 bg-neutral-900 p-6">
+    <div className="grid min-h-[calc(100vh-2rem)] place-items-center sm:min-h-[calc(100vh-4rem)]">
+      <section className="w-full max-w-sm rounded-lg border border-neutral-800 bg-neutral-900 p-4 sm:p-6">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary-400">
           Valetudo
         </p>
-        <h1 className="mt-2 text-3xl font-bold text-white">Login</h1>
+        <h1 className="mt-1 text-2xl font-bold text-white sm:mt-2 sm:text-3xl">
+          Login
+        </h1>
 
-        <form className="mt-6 grid gap-4" onSubmit={submit}>
+        <form className="mt-5 grid gap-3 sm:mt-6 sm:gap-4" onSubmit={submit}>
           <label className="grid gap-2 text-sm font-semibold text-neutral-200">
             Username
             <input
-              className="rounded border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-white outline-none focus:border-primary-500"
+              className="input"
               autoComplete="username"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
@@ -51,7 +53,7 @@ export function LoginPage() {
           <label className="grid gap-2 text-sm font-semibold text-neutral-200">
             Password
             <input
-              className="rounded border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-white outline-none focus:border-primary-500"
+              className="input"
               autoComplete="current-password"
               type="password"
               value={password}

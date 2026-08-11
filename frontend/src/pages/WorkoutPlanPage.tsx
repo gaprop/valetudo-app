@@ -14,12 +14,12 @@ export function WorkoutPlanPage() {
   const planDays = usePlanDays();
 
   return (
-    <div className="grid gap-8">
-      <header className="border-b border-neutral-800 pb-6">
+    <div className="grid gap-5 sm:gap-8">
+      <header className="border-b border-neutral-800 pb-4 sm:pb-6">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary-400">
           Valetudo
         </p>
-        <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">
+        <h1 className="mt-1 text-2xl font-bold text-white sm:mt-2 sm:text-4xl">
           Workout plan
         </h1>
         <PageNavigation />

@@ -15,7 +15,7 @@ import "./styles.css";
 function AppShell() {
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-3 py-4 sm:gap-8 sm:px-6 sm:py-8 lg:px-8">
         <Routes>
           <Route path={appRoutes.login} element={<LoginPage />} />
           <Route

@@ -46,11 +46,11 @@ export function ExerciseCatalog({
 
   return (
     <form
-      className="rounded-lg border border-neutral-800 bg-neutral-900 p-5 shadow-2xl shadow-black/30"
+      className="rounded-lg border border-neutral-800 bg-neutral-900 p-3 shadow-2xl shadow-black/30 sm:p-5"
       onSubmit={handleAddExercise}
     >
       <h2 className="text-lg font-semibold text-white">Exercises</h2>
-      <label className="mt-5 grid gap-2 text-sm font-medium text-neutral-300">
+      <label className="mt-4 grid gap-2 text-sm font-medium text-neutral-300 sm:mt-5">
         Exercise
         <input
           className="input"
@@ -66,14 +66,14 @@ export function ExerciseCatalog({
         </p>
       )}
       <button
-        className="mt-5 w-full rounded bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700"
+        className="mt-4 w-full rounded bg-primary-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-500 disabled:cursor-not-allowed disabled:bg-neutral-700 sm:mt-5"
         type="submit"
         disabled={creating}
       >
         {creating ? "Creating..." : "Create exercise"}
       </button>
 
-      <div className="mt-5 grid gap-3">
+      <div className="mt-4 grid gap-3 sm:mt-5">
         {loading ? (
           <p className="text-sm text-neutral-400">Loading exercises...</p>
         ) : exercises.length === 0 ? (

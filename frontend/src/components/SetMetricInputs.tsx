@@ -11,7 +11,7 @@ export function SetMetricInputs({ label, value, onChange }: SetMetricInputsProps
     <div className="min-w-0">
       <p className="text-xs uppercase tracking-wide text-neutral-500">{label}</p>
       <div className="mt-2 grid grid-cols-2 divide-x divide-neutral-700 overflow-hidden rounded border border-neutral-800 text-center text-sm font-semibold text-white">
-        <label className="flex items-center bg-neutral-900 px-3 py-2 text-center">
+        <label className="flex min-w-0 items-center bg-neutral-900 px-2 py-2 text-center sm:px-3">
           <input
             aria-label={`${label} weight in kg`}
             className="min-w-0 flex-1 bg-transparent text-center text-white outline-none"
@@ -26,7 +26,7 @@ export function SetMetricInputs({ label, value, onChange }: SetMetricInputsProps
             kg
           </span>
         </label>
-        <label className="flex items-center bg-neutral-900 px-3 py-2 text-center">
+        <label className="flex min-w-0 items-center bg-neutral-900 px-2 py-2 text-center sm:px-3">
           <input
             aria-label={`${label} reps`}
             className="min-w-0 flex-1 bg-transparent text-center text-white outline-none"

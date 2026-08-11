@@ -11,19 +11,19 @@ export function RecipesPage() {
   const recipes = useRecipes();
 
   return (
-    <div className="grid gap-8">
-      <header className="border-b border-neutral-800 pb-6">
+    <div className="grid gap-5 sm:gap-8">
+      <header className="border-b border-neutral-800 pb-4 sm:pb-6">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary-400">
           Valetudo
         </p>
-        <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">
+        <h1 className="mt-1 text-2xl font-bold text-white sm:mt-2 sm:text-4xl">
           Recipes
         </h1>
         <PageNavigation />
       </header>
 
-      <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
-        <div className="grid content-start gap-6">
+      <section className="grid gap-4 sm:gap-6 lg:grid-cols-[340px_1fr]">
+        <div className="grid content-start gap-4 sm:gap-6">
           <RecipeForm
             creating={recipes.pending.creatingRecipe}
             onAddRecipe={recipes.addRecipe}
