@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./components";
 import { AuthProvider } from "./hooks";
 import {
+  ClockPage,
   LoginPage,
   RecipesPage,
   TrainingLogPage,
@@ -26,6 +27,7 @@ function AppShell() {
             <Route path={appRoutes.trainingLog} element={<TrainingLogPage />} />
             <Route path={appRoutes.workoutPlan} element={<WorkoutPlanPage />} />
             <Route path={appRoutes.recipes} element={<RecipesPage />} />
+            <Route path={appRoutes.clock} element={<ClockPage />} />
           </Route>
           <Route
             path="*"

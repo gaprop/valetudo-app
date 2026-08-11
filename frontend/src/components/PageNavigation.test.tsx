@@ -29,6 +29,10 @@ describe("PageNavigation", () => {
       "href",
       "/recipes"
     );
+    expect(screen.getByRole("link", { name: "Clock" })).toHaveAttribute(
+      "href",
+      "/clock"
+    );
   });
 
   it("marks the current route as active", () => {
