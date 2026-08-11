@@ -7,7 +7,13 @@ export function ProtectedRoute() {
   const location = useLocation();
 
   if (loading) {
-    return <p className="text-sm text-neutral-400">Loading...</p>;
+    return (
+      <div className="grid min-h-[calc(100vh-4rem)] place-items-center">
+        <p className="rounded border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
+          Checking login...
+        </p>
+      </div>
+    );
   }
 
   if (!user) {

@@ -20,7 +20,7 @@ function AppShell() {
           <Route path={appRoutes.login} element={<LoginPage />} />
           <Route
             path="/"
-            element={<Navigate replace to={appRoutes.trainingLog} />}
+            element={<Navigate replace to={appRoutes.login} />}
           />
           <Route element={<ProtectedRoute />}>
             <Route path={appRoutes.trainingLog} element={<TrainingLogPage />} />
@@ -29,7 +29,7 @@ function AppShell() {
           </Route>
           <Route
             path="*"
-            element={<Navigate replace to={appRoutes.trainingLog} />}
+            element={<Navigate replace to={appRoutes.login} />}
           />
         </Routes>
       </div>
