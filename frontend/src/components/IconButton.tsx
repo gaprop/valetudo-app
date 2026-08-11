@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 type IconButtonProps = {
   label: string;
   title?: string;
+  className?: string;
   disabled?: boolean;
   onClick: () => void;
   children: ReactNode;
@@ -11,13 +12,14 @@ type IconButtonProps = {
 export function IconButton({
   label,
   title,
+  className = "",
   disabled,
   onClick,
   children,
 }: IconButtonProps) {
   return (
     <button
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded border border-neutral-700 bg-neutral-950 text-neutral-300 transition hover:border-primary-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-9"
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded border border-neutral-700 bg-neutral-950 text-neutral-300 transition hover:border-primary-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-9 ${className}`}
       type="button"
       aria-label={label}
       title={title || label}

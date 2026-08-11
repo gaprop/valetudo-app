@@ -79,8 +79,8 @@ export function ExerciseCatalog({
         ) : exercises.length === 0 ? (
           <p className="text-sm text-neutral-500">No exercises yet.</p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-            <label className="grid gap-2 text-sm font-medium text-neutral-300">
+          <div className="grid grid-cols-[1fr_auto] items-end gap-2 sm:gap-3">
+            <label className="grid min-w-0 gap-2 text-sm font-medium text-neutral-300">
               Existing exercise
               <select
                 className="input"
@@ -95,6 +95,7 @@ export function ExerciseCatalog({
               </select>
             </label>
             <IconButton
+              className="h-[42px] w-10 sm:h-[46px]"
               label="Delete selected exercise"
               title="Delete exercise"
               onClick={() => onDeleteExercise(selectedExerciseValue)}

@@ -32,10 +32,10 @@ export function TrainingForm({
       <h2 className="text-lg font-semibold text-white">Add training</h2>
 
       <div className="mt-4 grid gap-3 sm:mt-5 sm:gap-4">
-        <label className="grid gap-2 text-sm font-medium text-neutral-300">
+        <label className="grid min-w-0 gap-2 text-sm font-medium text-neutral-300">
           Date
           <input
-            className="input"
+            className="input date-input"
             type="date"
             value={form.trainingDate}
             onChange={(event) =>
@@ -45,7 +45,7 @@ export function TrainingForm({
           />
         </label>
 
-        <label className="grid gap-2 text-sm font-medium text-neutral-300">
+        <label className="grid min-w-0 gap-2 text-sm font-medium text-neutral-300">
           Workout plan
           <select
             className="input"
@@ -69,7 +69,7 @@ export function TrainingForm({
           </select>
         </label>
 
-        <label className="grid gap-2 text-sm font-medium text-neutral-300">
+        <label className="grid min-w-0 gap-2 text-sm font-medium text-neutral-300">
           Exercise
           <select
             className="input"

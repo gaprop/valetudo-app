@@ -18,4 +18,10 @@
   .input {
     @apply w-full min-w-0 rounded border border-neutral-700 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-800 sm:py-3;
   }
+
+  .date-input {
+    max-width: 100%;
+    min-inline-size: 0;
+    -webkit-appearance: none;
+  }
 }
