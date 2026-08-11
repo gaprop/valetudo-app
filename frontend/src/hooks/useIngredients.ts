@@ -3,6 +3,7 @@ import { errorMessage } from "../api";
 import { ingredientsService } from "../services";
 import { sortIngredients } from "../sorting";
 import type { Ingredient, IngredientRequest } from "../types";
+import { runAsyncAction } from "./asyncAction";
 
 export function useIngredients() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -13,15 +14,18 @@ export function useIngredients() {
   const [deletingValue, setDeletingValue] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      setIngredients(sortIngredients(await ingredientsService.listIngredients()));
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setLoading(false);
-    }
+    await runAsyncAction({
+      before: () => {
+        setLoading(true);
+        setError("");
+      },
+      action: async () => {
+        setIngredients(sortIngredients(await ingredientsService.listIngredients()));
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setLoading(false),
+      fallback: undefined,
+    });
   }, []);
 
   useEffect(() => {
@@ -29,58 +33,62 @@ export function useIngredients() {
   }, [load]);
 
   async function addIngredient(input: IngredientRequest): Promise<boolean> {
-    setCreating(true);
-    setError("");
-
-    try {
-      const ingredient = await ingredientsService.createIngredient(input);
-      setIngredients((current) => sortIngredients([...current, ingredient]));
-      return true;
-    } catch (err) {
-      setError(errorMessage(err));
-      return false;
-    } finally {
-      setCreating(false);
-    }
+    return runAsyncAction({
+      before: () => {
+        setCreating(true);
+        setError("");
+      },
+      action: async () => {
+        const ingredient = await ingredientsService.createIngredient(input);
+        setIngredients((current) => sortIngredients([...current, ingredient]));
+        return true;
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setCreating(false),
+      fallback: false,
+    });
   }
 
   async function updateIngredient(
     value: string,
     input: IngredientRequest
   ): Promise<boolean> {
-    setUpdatingValue(value);
-    setError("");
-
-    try {
-      const ingredient = await ingredientsService.updateIngredient(value, input);
-      setIngredients((current) =>
-        sortIngredients(
-          current.map((item) => (item.value === value ? ingredient : item))
-        )
-      );
-      return true;
-    } catch (err) {
-      setError(errorMessage(err));
-      return false;
-    } finally {
-      setUpdatingValue(null);
-    }
+    return runAsyncAction({
+      before: () => {
+        setUpdatingValue(value);
+        setError("");
+      },
+      action: async () => {
+        const ingredient = await ingredientsService.updateIngredient(value, input);
+        setIngredients((current) =>
+          sortIngredients(
+            current.map((item) => (item.value === value ? ingredient : item))
+          )
+        );
+        return true;
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setUpdatingValue(null),
+      fallback: false,
+    });
   }
 
   async function removeIngredient(value: string): Promise<void> {
-    setDeletingValue(value);
-    setError("");
-
-    try {
-      await ingredientsService.deleteIngredient(value);
-      setIngredients((current) =>
-        current.filter((ingredient) => ingredient.value !== value)
-      );
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setDeletingValue(null);
-    }
+    await runAsyncAction({
+      before: () => {
+        setDeletingValue(value);
+        setError("");
+      },
+      action: async () => {
+        await ingredientsService.deleteIngredient(value);
+        setIngredients((current) =>
+          current.filter((ingredient) => ingredient.value !== value)
+        );
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setDeletingValue(null),
+      fallback: undefined,
+    });
   }
 
   return {

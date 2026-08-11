@@ -3,6 +3,7 @@ import { errorMessage } from "../api";
 import { exerciseCatalogService } from "../services";
 import { sortExercises } from "../sorting";
 import type { Exercise } from "../types";
+import { runAsyncAction } from "./asyncAction";
 
 export function useExerciseCatalog() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -12,15 +13,18 @@ export function useExerciseCatalog() {
   const [deletingValue, setDeletingValue] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      setExercises(sortExercises(await exerciseCatalogService.list()));
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setLoading(false);
-    }
+    await runAsyncAction({
+      before: () => {
+        setLoading(true);
+        setError("");
+      },
+      action: async () => {
+        setExercises(sortExercises(await exerciseCatalogService.list()));
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setLoading(false),
+      fallback: undefined,
+    });
   }, []);
 
   useEffect(() => {
@@ -28,33 +32,38 @@ export function useExerciseCatalog() {
   }, [load]);
 
   async function addExercise(label: string): Promise<boolean> {
-    setCreating(true);
-    setError("");
-    try {
-      const exercise = await exerciseCatalogService.create({ label });
-      setExercises((current) => sortExercises([...current, exercise]));
-      return true;
-    } catch (err) {
-      setError(errorMessage(err));
-      return false;
-    } finally {
-      setCreating(false);
-    }
+    return runAsyncAction({
+      before: () => {
+        setCreating(true);
+        setError("");
+      },
+      action: async () => {
+        const exercise = await exerciseCatalogService.create({ label });
+        setExercises((current) => sortExercises([...current, exercise]));
+        return true;
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setCreating(false),
+      fallback: false,
+    });
   }
 
   async function removeExercise(value: string): Promise<void> {
-    setDeletingValue(value);
-    setError("");
-    try {
-      await exerciseCatalogService.delete({ value });
-      setExercises((current) =>
-        current.filter((exercise) => exercise.value !== value)
-      );
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setDeletingValue(null);
-    }
+    await runAsyncAction({
+      before: () => {
+        setDeletingValue(value);
+        setError("");
+      },
+      action: async () => {
+        await exerciseCatalogService.delete({ value });
+        setExercises((current) =>
+          current.filter((exercise) => exercise.value !== value)
+        );
+      },
+      onError: (error) => setError(errorMessage(error)),
+      after: () => setDeletingValue(null),
+      fallback: undefined,
+    });
   }
 
   return {

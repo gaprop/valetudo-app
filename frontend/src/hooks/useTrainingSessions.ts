@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { errorMessage } from "../api";
 import { trainingSessionsService } from "../services";
 import { sortTrainingSets, sortTrainingSessions } from "../sorting";
+import { runAsyncAction } from "./asyncAction";
 import type {
   CreateTrainingSessionRequest,
   CreateTrainingSetRequest,
@@ -57,15 +58,18 @@ export function useTrainingSessions() {
   }, []);
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setFormError("");
-    try {
-      setTrainingSessions(sortTrainingSessions(await trainingSessionsService.list()));
-    } catch (err) {
-      setFormError(errorMessage(err));
-    } finally {
-      setLoading(false);
-    }
+    await runAsyncAction({
+      before: () => {
+        setLoading(true);
+        setFormError("");
+      },
+      action: async () => {
+        setTrainingSessions(sortTrainingSessions(await trainingSessionsService.list()));
+      },
+      onError: (error) => setFormError(errorMessage(error)),
+      after: () => setLoading(false),
+      fallback: undefined,
+    });
   }, []);
 
   useEffect(() => {
@@ -73,98 +77,129 @@ export function useTrainingSessions() {
   }, [load]);
 
   async function createTrainingSession(input: CreateTrainingSessionRequest): Promise<boolean> {
-    setPending((current) => ({ ...current, savingEntry: true }));
-    setFormError("");
-
-    try {
-      const trainingSession = await trainingSessionsService.create(input);
-      setTrainingSessions((current) => sortTrainingSessions([trainingSession, ...current]));
-      setOpenTrainingSessionId(trainingSession.id);
-      return true;
-    } catch (err) {
-      setFormError(errorMessage(err));
-      return false;
-    } finally {
-      setPending((current) => ({ ...current, savingEntry: false }));
-    }
+    return runAsyncAction({
+      before: () => {
+        setPending((current) => ({ ...current, savingEntry: true }));
+        setFormError("");
+      },
+      action: async () => {
+        const trainingSession = await trainingSessionsService.create(input);
+        setTrainingSessions((current) =>
+          sortTrainingSessions([trainingSession, ...current])
+        );
+        setOpenTrainingSessionId(trainingSession.id);
+        return true;
+      },
+      onError: (error) => setFormError(errorMessage(error)),
+      after: () => setPending((current) => ({ ...current, savingEntry: false })),
+      fallback: false,
+    });
   }
 
   async function deleteTrainingSession(trainingSessionID: ID): Promise<void> {
-    setPending((current) => ({ ...current, deletingTrainingSessionId: trainingSessionID }));
-    clearEntryError(trainingSessionID);
-
-    try {
-      await trainingSessionsService.delete({ trainingSessionID });
-      setTrainingSessions((current) =>
-        current.filter((trainingSession) => trainingSession.id !== trainingSessionID)
-      );
-      setOpenTrainingSessionId((current) => (current === trainingSessionID ? null : current));
-    } catch (err) {
-      setEntryError(trainingSessionID, errorMessage(err));
-    } finally {
-      setPending((current) => ({ ...current, deletingTrainingSessionId: null }));
-    }
+    await runAsyncAction({
+      before: () => {
+        setPending((current) => ({
+          ...current,
+          deletingTrainingSessionId: trainingSessionID,
+        }));
+        clearEntryError(trainingSessionID);
+      },
+      action: async () => {
+        await trainingSessionsService.delete({ trainingSessionID });
+        setTrainingSessions((current) =>
+          current.filter(
+            (trainingSession) => trainingSession.id !== trainingSessionID
+          )
+        );
+        setOpenTrainingSessionId((current) =>
+          current === trainingSessionID ? null : current
+        );
+      },
+      onError: (error) => setEntryError(trainingSessionID, errorMessage(error)),
+      after: () =>
+        setPending((current) => ({ ...current, deletingTrainingSessionId: null })),
+      fallback: undefined,
+    });
   }
 
   async function addSet(input: CreateTrainingSetRequest): Promise<boolean> {
-    setPending((current) => ({ ...current, savingSetId: input.trainingSessionID }));
-    clearEntryError(input.trainingSessionID);
-
-    try {
-      const trainingSet = await trainingSessionsService.addSet(input);
-      setTrainingSessions((current) =>
-        updateTrainingSessionSets(current, input.trainingSessionID, (trainingSession) => ({
-          ...trainingSession,
-          sets: sortTrainingSets([...trainingSession.sets, trainingSet]),
-        }))
-      );
-      return true;
-    } catch (err) {
-      setEntryError(input.trainingSessionID, errorMessage(err));
-      return false;
-    } finally {
-      setPending((current) => ({ ...current, savingSetId: null }));
-    }
+    return runAsyncAction({
+      before: () => {
+        setPending((current) => ({
+          ...current,
+          savingSetId: input.trainingSessionID,
+        }));
+        clearEntryError(input.trainingSessionID);
+      },
+      action: async () => {
+        const trainingSet = await trainingSessionsService.addSet(input);
+        setTrainingSessions((current) =>
+          updateTrainingSessionSets(
+            current,
+            input.trainingSessionID,
+            (trainingSession) => ({
+              ...trainingSession,
+              sets: sortTrainingSets([...trainingSession.sets, trainingSet]),
+            })
+          )
+        );
+        return true;
+      },
+      onError: (error) =>
+        setEntryError(input.trainingSessionID, errorMessage(error)),
+      after: () => setPending((current) => ({ ...current, savingSetId: null })),
+      fallback: false,
+    });
   }
 
   async function updateSet(input: UpdateTrainingSetRequest): Promise<void> {
-    setPending((current) => ({ ...current, updatingSetId: input.setID }));
-    clearEntryError(input.trainingSessionID);
-
-    try {
-      const trainingSet = await trainingSessionsService.updateSet(input);
-      setTrainingSessions((current) =>
-        updateTrainingSessionSets(current, input.trainingSessionID, (trainingSession) => ({
-          ...trainingSession,
-          sets: trainingSession.sets.map((set) =>
-            set.id === input.setID ? trainingSet : set
-          ),
-        }))
-      );
-    } catch (err) {
-      setEntryError(input.trainingSessionID, errorMessage(err));
-    } finally {
-      setPending((current) => ({ ...current, updatingSetId: null }));
-    }
+    await runAsyncAction({
+      before: () => {
+        setPending((current) => ({ ...current, updatingSetId: input.setID }));
+        clearEntryError(input.trainingSessionID);
+      },
+      action: async () => {
+        const trainingSet = await trainingSessionsService.updateSet(input);
+        setTrainingSessions((current) =>
+          updateTrainingSessionSets(
+            current,
+            input.trainingSessionID,
+            (trainingSession) => ({
+              ...trainingSession,
+              sets: trainingSession.sets.map((set) =>
+                set.id === input.setID ? trainingSet : set
+              ),
+            })
+          )
+        );
+      },
+      onError: (error) =>
+        setEntryError(input.trainingSessionID, errorMessage(error)),
+      after: () => setPending((current) => ({ ...current, updatingSetId: null })),
+      fallback: undefined,
+    });
   }
 
   async function removeSet(trainingSessionID: ID, setID: ID): Promise<void> {
-    setPending((current) => ({ ...current, deletingSetId: setID }));
-    clearEntryError(trainingSessionID);
-
-    try {
-      await trainingSessionsService.deleteSet({ trainingSessionID, setID });
-      setTrainingSessions((current) =>
-        updateTrainingSessionSets(current, trainingSessionID, (trainingSession) => ({
-          ...trainingSession,
-          sets: trainingSession.sets.filter((set) => set.id !== setID),
-        }))
-      );
-    } catch (err) {
-      setEntryError(trainingSessionID, errorMessage(err));
-    } finally {
-      setPending((current) => ({ ...current, deletingSetId: null }));
-    }
+    await runAsyncAction({
+      before: () => {
+        setPending((current) => ({ ...current, deletingSetId: setID }));
+        clearEntryError(trainingSessionID);
+      },
+      action: async () => {
+        await trainingSessionsService.deleteSet({ trainingSessionID, setID });
+        setTrainingSessions((current) =>
+          updateTrainingSessionSets(current, trainingSessionID, (trainingSession) => ({
+            ...trainingSession,
+            sets: trainingSession.sets.filter((set) => set.id !== setID),
+          }))
+        );
+      },
+      onError: (error) => setEntryError(trainingSessionID, errorMessage(error)),
+      after: () => setPending((current) => ({ ...current, deletingSetId: null })),
+      fallback: undefined,
+    });
   }
 
   function toggleTrainingSession(trainingSessionID: ID): void {
