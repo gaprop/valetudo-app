@@ -13,6 +13,7 @@ function sessionCookieOptions() {
   return {
     httpOnly: true,
     maxAge: authSessionMaxAgeMs,
+    path: "/",
     sameSite: authCookieSameSite(),
     secure: useSecureAuthCookie(),
   };
@@ -21,6 +22,7 @@ function sessionCookieOptions() {
 function clearSessionCookieOptions() {
   return {
     httpOnly: true,
+    path: "/",
     sameSite: authCookieSameSite(),
     secure: useSecureAuthCookie(),
   };

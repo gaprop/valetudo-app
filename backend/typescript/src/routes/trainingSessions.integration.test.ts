@@ -30,9 +30,12 @@ describe("training sessions API integration", () => {
       .expect(200);
 
     expect(loginResponse.body).toMatchObject({ username: "admin" });
+    expect(loginResponse.headers["set-cookie"]?.[0]).toContain("Path=/");
 
     const meResponse = await authAgent.get("/api/auth/me").expect(200);
     expect(meResponse.body).toMatchObject({ username: "admin" });
+
+    await authAgent.get("/api/workouts").expect(200);
 
     await authAgent.post("/api/auth/logout").expect(204);
     await authAgent.get("/api/auth/me").expect(401);
