@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { errorMessage } from "../api";
 import { recipesService } from "../services";
+import { sortRecipeIngredients, sortRecipes } from "../sorting";
 import { setPendingField } from "./pending";
 import type {
   CreateRecipeIngredientRequest,
   CreateRecipeRequest,
   ID,
   Recipe,
-  RecipeIngredient,
   UpdateRecipeIngredientRequest,
 } from "../types";
 
@@ -26,22 +26,6 @@ const initialPendingState: RecipesPendingState = {
   updatingIngredientId: null,
   deletingIngredientId: null,
 };
-
-function sortRecipes(recipes: Recipe[]) {
-  return [...recipes].sort(
-    (left, right) =>
-      new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime() ||
-      left.id.localeCompare(right.id)
-  );
-}
-
-function sortRecipeIngredients(ingredients: RecipeIngredient[]) {
-  return [...ingredients].sort(
-    (left, right) =>
-      new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime() ||
-      left.id.localeCompare(right.id)
-  );
-}
 
 function updateRecipe(
   recipes: Recipe[],

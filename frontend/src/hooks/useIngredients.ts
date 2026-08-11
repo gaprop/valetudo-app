@@ -1,13 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { errorMessage } from "../api";
 import { ingredientsService } from "../services";
+import { sortIngredients } from "../sorting";
 import type { Ingredient, IngredientRequest } from "../types";
-
-function sortIngredients(ingredients: Ingredient[]) {
-  return [...ingredients].sort((left, right) =>
-    left.label.localeCompare(right.label) || left.value.localeCompare(right.value)
-  );
-}
 
 export function useIngredients() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);

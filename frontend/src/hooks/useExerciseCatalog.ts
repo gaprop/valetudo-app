@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { errorMessage } from "../api";
 import { exerciseCatalogService } from "../services";
+import { sortExercises } from "../sorting";
 import type { Exercise } from "../types";
 
 export function useExerciseCatalog() {
@@ -14,7 +15,7 @@ export function useExerciseCatalog() {
     setLoading(true);
     setError("");
     try {
-      setExercises(await exerciseCatalogService.list());
+      setExercises(sortExercises(await exerciseCatalogService.list()));
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -31,11 +32,7 @@ export function useExerciseCatalog() {
     setError("");
     try {
       const exercise = await exerciseCatalogService.create({ label });
-      setExercises((current) =>
-        [...current, exercise].sort((a, b) =>
-          a.label.localeCompare(b.label) || a.value.localeCompare(b.value)
-        )
-      );
+      setExercises((current) => sortExercises([...current, exercise]));
       return true;
     } catch (err) {
       setError(errorMessage(err));
