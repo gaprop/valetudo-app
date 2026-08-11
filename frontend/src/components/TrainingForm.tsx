@@ -1,4 +1,5 @@
-import type { FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { formatDdMmYyyyDate, parseDdMmYyyyDate } from "../dateFormatting";
 import type { Exercise, ID, TrainingSessionForm, PlanDay } from "../types";
 
 type TrainingFormProps = {
@@ -24,6 +25,14 @@ export function TrainingForm({
   onPlanDayChange,
   onSubmit,
 }: TrainingFormProps) {
+  const [displayDate, setDisplayDate] = useState(() =>
+    formatDdMmYyyyDate(form.trainingDate)
+  );
+
+  useEffect(() => {
+    setDisplayDate(formatDdMmYyyyDate(form.trainingDate));
+  }, [form.trainingDate]);
+
   return (
     <form
       onSubmit={onSubmit}
@@ -36,11 +45,19 @@ export function TrainingForm({
           Date
           <input
             className="input date-input"
-            type="date"
-            value={form.trainingDate}
-            onChange={(event) =>
-              onChange({ ...form, trainingDate: event.target.value })
-            }
+            inputMode="numeric"
+            pattern="\\d{2}/\\d{2}/\\d{4}"
+            placeholder="dd/mm/yyyy"
+            type="text"
+            value={displayDate}
+            onChange={(event) => {
+              const nextDate = event.target.value;
+              setDisplayDate(nextDate);
+              const parsedDate = parseDdMmYyyyDate(nextDate);
+              if (parsedDate) {
+                onChange({ ...form, trainingDate: parsedDate });
+              }
+            }}
             required
           />
         </label>

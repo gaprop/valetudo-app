@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatDdMmYyyyDate } from "../dateFormatting";
 import type { Exercise, TrainingSession } from "../types";
 import { formatWeight, labelFor, maxWeight } from "../trainingSessions";
 import { Modal } from "./Modal";
@@ -56,7 +57,7 @@ export function PreviousSessionSummary({
           title={exerciseLabel}
         >
           <p className="mb-4 text-sm text-neutral-400">
-            {previousSession.trainingDate}
+            {formatDdMmYyyyDate(previousSession.trainingDate)}
           </p>
           <div className="grid border border-neutral-800">
             <div className="grid grid-cols-[80px_1fr_1fr] border-b border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-semibold uppercase text-neutral-400">

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
+import { formatDdMmYyyyDate } from "../dateFormatting";
 import type { Exercise, ID, SetForm, TrainingSession } from "../types";
 import { formatWeight, labelFor, maxWeight } from "../trainingSessions";
 import { ActionButton } from "./ActionButton";
@@ -78,7 +79,7 @@ export function TrainingSessionCard({
             {isOpen ? "Close" : "Open"}
           </button>
           <IconButton
-            label={`Delete ${labelFor(exercises, trainingSession.exerciseType)} training on ${trainingSession.trainingDate}`}
+            label={`Delete ${labelFor(exercises, trainingSession.exerciseType)} training on ${formatDdMmYyyyDate(trainingSession.trainingDate)}`}
             title="Delete training"
             onClick={onDeleteTrainingSession}
             disabled={deletingTrainingSessionId === trainingSession.id}
