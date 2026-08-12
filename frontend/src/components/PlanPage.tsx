@@ -2,6 +2,7 @@ import type {
   CreatePlanDayRequest,
   CreatePlanExerciseRequest,
   Exercise,
+  ExerciseValue,
   ID,
   PlanDay,
 } from "../types";
@@ -22,8 +23,14 @@ type PlanPageProps = {
   deletingExerciseValue: string | null;
   onRefresh: () => void;
   onAddDay: (input: CreatePlanDayRequest) => Promise<boolean>;
+  onUpdateDay: (input: { dayID: ID; name: string }) => Promise<boolean>;
   onDeleteDay: (dayID: ID) => void;
   onAddItem: (input: CreatePlanExerciseRequest) => Promise<boolean>;
+  onUpdateItem: (input: {
+    dayID: ID;
+    itemID: ID;
+    exerciseType: ExerciseValue;
+  }) => Promise<boolean>;
   onDeleteItem: (dayID: ID, itemID: ID) => void;
   onAddExercise: (label: string) => Promise<boolean>;
   onDeleteExercise: (value: string) => void;
@@ -41,8 +48,10 @@ export function PlanPage({
   deletingExerciseValue,
   onRefresh,
   onAddDay,
+  onUpdateDay,
   onDeleteDay,
   onAddItem,
+  onUpdateItem,
   onDeleteItem,
   onAddExercise,
   onDeleteExercise,
@@ -93,8 +102,12 @@ export function PlanPage({
                 exercises={exercises}
                 addingItemDayId={pending.addingItemDayId}
                 deletingDayId={pending.deletingDayId}
+                updatingDayId={pending.updatingDayId}
                 deletingItemId={pending.deletingItemId}
+                updatingItemId={pending.updatingItemId}
                 onAddItem={onAddItem}
+                onUpdateDay={onUpdateDay}
+                onUpdateItem={onUpdateItem}
                 onDeleteDay={() => onDeleteDay(day.id)}
                 onDeleteItem={(itemID) => onDeleteItem(day.id, itemID)}
               />

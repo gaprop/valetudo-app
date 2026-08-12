@@ -6,6 +6,8 @@ export type {
   CreatePlanExerciseRequest,
   PlanDay,
   PlanExercise,
+  UpdatePlanDayRequest,
+  UpdatePlanExerciseRequest,
 } from "./types/plan";
 export type {
   CreateRecipeIngredientRequest,

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import type { Exercise, ExerciseValue, ID, PlanDay } from "../types";
 import { labelFor } from "../trainingSessions";
 import { ActionButton } from "./ActionButton";
@@ -10,9 +10,17 @@ type PlanDayCardProps = {
   exercises: Exercise[];
   addingItemDayId: ID | null;
   deletingDayId: ID | null;
+  updatingDayId: ID | null;
   deletingItemId: ID | null;
+  updatingItemId: ID | null;
   onAddItem: (input: {
     dayID: ID;
+    exerciseType: ExerciseValue;
+  }) => Promise<boolean>;
+  onUpdateDay: (input: { dayID: ID; name: string }) => Promise<boolean>;
+  onUpdateItem: (input: {
+    dayID: ID;
+    itemID: ID;
     exerciseType: ExerciseValue;
   }) => Promise<boolean>;
   onDeleteDay: () => void;
@@ -24,13 +32,35 @@ export function PlanDayCard({
   exercises,
   addingItemDayId,
   deletingDayId,
+  updatingDayId,
   deletingItemId,
+  updatingItemId,
   onAddItem,
+  onUpdateDay,
+  onUpdateItem,
   onDeleteDay,
   onDeleteItem,
 }: PlanDayCardProps) {
+  const [dayName, setDayName] = useState(day.name);
   const [exerciseValue, setExerciseValue] = useState<ExerciseValue>("bench");
   const [exerciseSearch, setExerciseSearch] = useState("");
+  const [itemExerciseValues, setItemExerciseValues] = useState<
+    Record<ID, ExerciseValue>
+  >({});
+
+  useEffect(() => {
+    setDayName(day.name);
+  }, [day.name]);
+
+  useEffect(() => {
+    setItemExerciseValues((current) => {
+      const next: Record<ID, ExerciseValue> = {};
+      for (const item of day.items) {
+        next[item.id] = current[item.id] || item.exerciseType;
+      }
+      return next;
+    });
+  }, [day.items]);
 
   useEffect(() => {
     if (
@@ -57,23 +87,89 @@ export function PlanDayCard({
     setExerciseSearch("");
   }
 
+  async function handleUpdateDay(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmedName = dayName.trim();
+    if (trimmedName === "" || trimmedName === day.name) {
+      setDayName(day.name);
+      return;
+    }
+
+    const saved = await onUpdateDay({ dayID: day.id, name: trimmedName });
+    if (!saved) {
+      setDayName(day.name);
+    }
+  }
+
+  async function saveItem(
+    itemID: ID,
+    currentExerciseType: ExerciseValue
+  ) {
+    const exerciseType = itemExerciseValues[itemID];
+    if (!exerciseType || exerciseType === currentExerciseType) {
+      return;
+    }
+
+    const saved = await onUpdateItem({
+      dayID: day.id,
+      itemID,
+      exerciseType,
+    });
+    if (!saved) {
+      setItemExerciseValues((current) => ({
+        ...current,
+        [itemID]: currentExerciseType,
+      }));
+    }
+  }
+
+  async function handleUpdateItem(
+    event: FormEvent<HTMLFormElement>,
+    itemID: ID,
+    currentExerciseType: ExerciseValue
+  ) {
+    event.preventDefault();
+    await saveItem(itemID, currentExerciseType);
+  }
+
   return (
     <article className="grid gap-4 px-3 py-3 sm:px-5 sm:py-5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold text-white">{day.name}</h3>
-          <p className="mt-1 text-sm text-neutral-400">
-            {day.items.length} {day.items.length === 1 ? "exercise" : "exercises"}
-          </p>
-        </div>
-        <IconButton
-          label={`Delete ${day.name}`}
-          title="Delete day"
-          onClick={onDeleteDay}
-          disabled={deletingDayId === day.id}
+      <div className="grid gap-2">
+        <form
+          className="grid grid-cols-[minmax(0,1fr)_5rem_2.75rem] items-center gap-2"
+          onSubmit={handleUpdateDay}
         >
-          <X aria-hidden="true" size={16} strokeWidth={2.25} />
-        </IconButton>
+          <input
+            className="input h-11 font-semibold text-white"
+            value={dayName}
+            onChange={(event) => setDayName(event.target.value)}
+            aria-label="Workout plan day name"
+          />
+          <ActionButton
+            className="h-11 w-full px-2"
+            type="submit"
+            variant="secondary"
+            disabled={
+              updatingDayId === day.id ||
+              dayName.trim() === "" ||
+              dayName.trim() === day.name
+            }
+          >
+            {updatingDayId === day.id ? "Saving" : "Save"}
+          </ActionButton>
+          <IconButton
+            className="h-11 w-11 sm:h-11 sm:w-11"
+            label={`Delete ${day.name}`}
+            title="Delete day"
+            onClick={onDeleteDay}
+            disabled={deletingDayId === day.id}
+          >
+            <X aria-hidden="true" size={16} strokeWidth={2.25} />
+          </IconButton>
+        </form>
+        <p className="text-sm text-neutral-400">
+          {day.items.length} {day.items.length === 1 ? "exercise" : "exercises"}
+        </p>
       </div>
 
       {day.items.length === 0 ? (
@@ -81,14 +177,46 @@ export function PlanDayCard({
       ) : (
         <div className="grid gap-2">
           {day.items.map((item) => (
-            <div
-              className="flex items-center justify-between gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3"
+            <form
+              className="grid grid-cols-[minmax(0,1fr)_2.75rem_2.75rem] items-center gap-2 rounded border border-neutral-800 bg-neutral-950 px-3 py-3"
               key={item.id}
+              onSubmit={(event) =>
+                void handleUpdateItem(event, item.id, item.exerciseType)
+              }
             >
-              <span className="min-w-0 text-sm font-semibold text-white">
-                {labelFor(exercises, item.exerciseType)}
-              </span>
+              <select
+                className="input h-11 min-w-0 text-sm font-semibold text-white"
+                value={itemExerciseValues[item.id] || item.exerciseType}
+                onChange={(event) =>
+                  setItemExerciseValues((current) => ({
+                    ...current,
+                    [item.id]: event.target.value as ExerciseValue,
+                  }))
+                }
+                aria-label={`Change ${labelFor(exercises, item.exerciseType)}`}
+                disabled={exercises.length === 0}
+              >
+                {exercises.map((exercise) => (
+                  <option key={exercise.value} value={exercise.value}>
+                    {exercise.label}
+                  </option>
+                ))}
+              </select>
               <IconButton
+                className="h-11 w-11 sm:h-11 sm:w-11"
+                label={`Save ${labelFor(exercises, item.exerciseType)}`}
+                title="Save exercise"
+                onClick={() => void saveItem(item.id, item.exerciseType)}
+                disabled={
+                  updatingItemId === item.id ||
+                  !itemExerciseValues[item.id] ||
+                  itemExerciseValues[item.id] === item.exerciseType
+                }
+              >
+                <Check aria-hidden="true" size={16} strokeWidth={2.25} />
+              </IconButton>
+              <IconButton
+                className="h-11 w-11 sm:h-11 sm:w-11"
                 label={`Remove ${labelFor(exercises, item.exerciseType)} from ${day.name}`}
                 title="Remove exercise"
                 onClick={() => onDeleteItem(item.id)}
@@ -96,7 +224,7 @@ export function PlanDayCard({
               >
                 <X aria-hidden="true" size={16} strokeWidth={2.25} />
               </IconButton>
-            </div>
+            </form>
           ))}
         </div>
       )}
@@ -147,8 +275,9 @@ export function PlanDayCard({
             </p>
           )}
         </div>
-        <div className="grid gap-2 sm:w-40">
+        <div className="grid gap-2 sm:w-40 sm:pt-7">
           <ActionButton
+            className="h-11"
             type="submit"
             disabled={addingItemDayId === day.id || exercises.length === 0}
           >

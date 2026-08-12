@@ -5,6 +5,8 @@ import type {
   ID,
   PlanDay,
   PlanExercise,
+  UpdatePlanDayRequest,
+  UpdatePlanExerciseRequest,
 } from "../types";
 import { expectArrayResponse } from "./responseGuards";
 
@@ -24,6 +26,14 @@ export const planDaysService = {
     return response.data;
   },
 
+  async updateDay(input: UpdatePlanDayRequest): Promise<PlanDay> {
+    const response = await api.put<PlanDay>(
+      `/api/workout-plan/days/${input.dayID}`,
+      { name: input.name }
+    );
+    return response.data;
+  },
+
   async deleteDay(input: { dayID: ID }): Promise<void> {
     await api.delete(`/api/workout-plan/days/${input.dayID}`);
   },
@@ -33,6 +43,16 @@ export const planDaysService = {
   ): Promise<PlanExercise> {
     const response = await api.post<PlanExercise>(
       `/api/workout-plan/days/${input.dayID}/items`,
+      { exerciseType: input.exerciseType }
+    );
+    return response.data;
+  },
+
+  async updateItem(
+    input: UpdatePlanExerciseRequest
+  ): Promise<PlanExercise> {
+    const response = await api.put<PlanExercise>(
+      `/api/workout-plan/days/${input.dayID}/items/${input.itemID}`,
       { exerciseType: input.exerciseType }
     );
     return response.data;

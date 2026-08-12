@@ -29,8 +29,10 @@ export function WorkoutPlanPage() {
         deletingExerciseValue={deletingExerciseValue}
         onRefresh={planDays.load}
         onAddDay={planDays.addDay}
+        onUpdateDay={planDays.updateDay}
         onDeleteDay={(dayID) => void planDays.removeDay(dayID)}
         onAddItem={planDays.addItem}
+        onUpdateItem={planDays.updateItem}
         onDeleteItem={(dayID, itemID) => void planDays.removeItem(dayID, itemID)}
         onAddExercise={addExercise}
         onDeleteExercise={(value) => void removeExercise(value)}

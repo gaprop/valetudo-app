@@ -28,6 +28,20 @@ export class PlanDaysController {
     }
   }
 
+  static async updatePlanDay(_req: Request, res: Response) {
+    try {
+      const dayID = res.locals.id as string;
+      const day = await PlanDaysService.updatePlanDay(
+        res.locals.userID as string,
+        dayID,
+        res.locals.planDayBody as ValidatedPlanDayBody
+      );
+      res.json(day);
+    } catch (error) {
+      handleControllerError(error, res);
+    }
+  }
+
   static async deletePlanDay(_req: Request, res: Response) {
     try {
       const dayID = res.locals.id as string;
@@ -47,6 +61,22 @@ export class PlanDaysController {
         res.locals.planExerciseBody as ValidatedPlanExerciseBody
       );
       res.status(201).json(item);
+    } catch (error) {
+      handleControllerError(error, res);
+    }
+  }
+
+  static async updatePlanExercise(_req: Request, res: Response) {
+    try {
+      const dayID = res.locals.id as string;
+      const itemID = res.locals.itemID as string;
+      const item = await PlanDaysService.updatePlanExercise(
+        res.locals.userID as string,
+        dayID,
+        itemID,
+        res.locals.planExerciseBody as ValidatedPlanExerciseBody
+      );
+      res.json(item);
     } catch (error) {
       handleControllerError(error, res);
     }
