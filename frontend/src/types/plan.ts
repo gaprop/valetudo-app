@@ -18,7 +18,18 @@ export type CreatePlanDayRequest = {
   name: string;
 };
 
+export type UpdatePlanDayRequest = {
+  dayID: ID;
+  name: string;
+};
+
 export type CreatePlanExerciseRequest = {
   dayID: ID;
+  exerciseType: ExerciseValue;
+};
+
+export type UpdatePlanExerciseRequest = {
+  dayID: ID;
+  itemID: ID;
   exerciseType: ExerciseValue;
 };

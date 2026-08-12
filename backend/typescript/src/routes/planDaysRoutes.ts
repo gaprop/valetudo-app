@@ -18,6 +18,12 @@ planDaysRoutes.post(
   validatePlanDayBody,
   asyncHandler(PlanDaysController.createPlanDay)
 );
+planDaysRoutes.put(
+  "/days/:id",
+  validateUUIDPathID("id", "day id"),
+  validatePlanDayBody,
+  asyncHandler(PlanDaysController.updatePlanDay)
+);
 planDaysRoutes.delete(
   "/days/:id",
   validateUUIDPathID("id", "day id"),
@@ -28,6 +34,13 @@ planDaysRoutes.post(
   validateUUIDPathID("id", "day id"),
   validatePlanExerciseBody,
   asyncHandler(PlanDaysController.createPlanExercise)
+);
+planDaysRoutes.put(
+  "/days/:id/items/:itemID",
+  validateUUIDPathID("id", "day id"),
+  validateUUIDPathID("itemID", "item id"),
+  validatePlanExerciseBody,
+  asyncHandler(PlanDaysController.updatePlanExercise)
 );
 planDaysRoutes.delete(
   "/days/:id/items/:itemID",

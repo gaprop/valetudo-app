@@ -8,20 +8,26 @@ import type {
   CreatePlanExerciseRequest,
   ID,
   PlanDay,
+  UpdatePlanDayRequest,
+  UpdatePlanExerciseRequest,
 } from "../types";
 
 export type PlanPendingState = {
   creatingDay: boolean;
   deletingDayId: ID | null;
+  updatingDayId: ID | null;
   addingItemDayId: ID | null;
   deletingItemId: ID | null;
+  updatingItemId: ID | null;
 };
 
 const initialPendingState: PlanPendingState = {
   creatingDay: false,
   deletingDayId: null,
+  updatingDayId: null,
   addingItemDayId: null,
   deletingItemId: null,
+  updatingItemId: null,
 };
 
 function updatePlanDay(
@@ -84,6 +90,26 @@ export function usePlanDays() {
     }
   }
 
+  async function updateDay(input: UpdatePlanDayRequest): Promise<boolean> {
+    setPendingField(setPending, "updatingDayId", input.dayID);
+    setError("");
+
+    try {
+      const updatedDay = await planDaysService.updateDay(input);
+      setDays((current) =>
+        sortPlanDays(
+          current.map((day) => (day.id === input.dayID ? updatedDay : day))
+        )
+      );
+      return true;
+    } catch (err) {
+      setError(errorMessage(err));
+      return false;
+    } finally {
+      setPendingField(setPending, "updatingDayId", null);
+    }
+  }
+
   async function addItem(input: CreatePlanExerciseRequest): Promise<boolean> {
     setPendingField(setPending, "addingItemDayId", input.dayID);
     setError("");
@@ -102,6 +128,33 @@ export function usePlanDays() {
       return false;
     } finally {
       setPendingField(setPending, "addingItemDayId", null);
+    }
+  }
+
+  async function updateItem(
+    input: UpdatePlanExerciseRequest
+  ): Promise<boolean> {
+    setPendingField(setPending, "updatingItemId", input.itemID);
+    setError("");
+
+    try {
+      const updatedItem = await planDaysService.updateItem(input);
+      setDays((current) =>
+        updatePlanDay(current, input.dayID, (day) => ({
+          ...day,
+          items: sortPlanItems(
+            day.items.map((item) =>
+              item.id === input.itemID ? updatedItem : item
+            )
+          ),
+        }))
+      );
+      return true;
+    } catch (err) {
+      setError(errorMessage(err));
+      return false;
+    } finally {
+      setPendingField(setPending, "updatingItemId", null);
     }
   }
 
@@ -132,7 +185,9 @@ export function usePlanDays() {
     load,
     addDay,
     removeDay,
+    updateDay,
     addItem,
+    updateItem,
     removeItem,
   };
 }

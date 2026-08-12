@@ -90,6 +90,29 @@ export class PlanDaysService {
     return mapPlanDay(result.rows[0]);
   }
 
+  static async updatePlanDay(
+    userID: string,
+    dayID: string,
+    { name }: ValidatedPlanDayBody
+  ) {
+    const result = await pool.query<PlanDayRow>(
+      `
+        UPDATE workout_plan_days
+        SET name = $3
+        WHERE id = $1 AND user_id = $2
+        RETURNING id, name, created_at AS "createdAt"
+      `,
+      [dayID, userID, name]
+    );
+    if (!result.rows[0]) {
+      throw new HttpError(404, "workout plan day was not found");
+    }
+
+    const day = mapPlanDay(result.rows[0]);
+    await loadPlanExercises(userID, [day]);
+    return day;
+  }
+
   static async deletePlanDay(userID: string, dayID: string) {
     const result = await pool.query(
       `
@@ -145,6 +168,35 @@ export class PlanDaysService {
     } finally {
       client.release();
     }
+  }
+
+  static async updatePlanExercise(
+    userID: string,
+    dayID: string,
+    itemID: string,
+    { exerciseType }: ValidatedPlanExerciseBody
+  ) {
+    const result = await pool.query<PlanExerciseRow>(
+      `
+        UPDATE workout_plan_items
+        SET exercise_type = $3
+        FROM workout_plan_days day
+        WHERE workout_plan_items.day_id = $1
+          AND workout_plan_items.id = $2
+          AND day.id = workout_plan_items.day_id
+          AND day.user_id = $4
+        RETURNING
+          workout_plan_items.id,
+          workout_plan_items.exercise_type AS "exerciseType",
+          workout_plan_items.created_at AS "createdAt"
+      `,
+      [dayID, itemID, exerciseType, userID]
+    );
+    if (!result.rows[0]) {
+      throw new HttpError(404, "workout plan item was not found");
+    }
+
+    return mapPlanExercise(result.rows[0]);
   }
 
   static async deletePlanExercise(userID: string, dayID: string, itemID: string) {
