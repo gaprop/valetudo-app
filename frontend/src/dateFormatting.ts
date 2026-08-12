@@ -1,5 +1,5 @@
 const isoDatePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
-const ddMmYyyyPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+const ddMmYyyyPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
 
 export function formatDdMmYyyyDate(isoDate: string): string {
   const match = isoDatePattern.exec(isoDate);
@@ -12,7 +12,7 @@ export function formatDdMmYyyyDate(isoDate: string): string {
 }
 
 export function parseDdMmYyyyDate(ddMmYyyyDate: string): string | null {
-  const match = ddMmYyyyPattern.exec(ddMmYyyyDate);
+  const match = ddMmYyyyPattern.exec(ddMmYyyyDate.trim());
   if (!match) {
     return null;
   }
@@ -31,5 +31,9 @@ export function parseDdMmYyyyDate(ddMmYyyyDate: string): string | null {
     return null;
   }
 
-  return `${yearValue}-${monthValue}-${dayValue}`;
+  return `${yearValue}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+export function toApiDate(date: string): string {
+  return parseDdMmYyyyDate(date) ?? date;
 }
