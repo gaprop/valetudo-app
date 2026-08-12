@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   Exercise,
   ID,
@@ -84,9 +84,11 @@ export function useTrainingLogState({
     }
   }, [exercises, form.exerciseType]);
 
-  async function submitTrainingSession(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
-    await createTrainingSession(form);
+  async function submitTrainingSession(
+    trainingSessionForm: TrainingSessionForm
+  ): Promise<void> {
+    setForm(trainingSessionForm);
+    await createTrainingSession(trainingSessionForm);
   }
 
   async function addNextPlanSession(): Promise<void> {

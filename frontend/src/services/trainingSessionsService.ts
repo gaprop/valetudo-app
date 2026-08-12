@@ -1,4 +1,5 @@
 import { api } from "../api";
+import { toApiDate } from "../dateFormatting";
 import type {
   CreateTrainingSessionRequest,
   CreateTrainingSetRequest,
@@ -16,7 +17,10 @@ export const trainingSessionsService = {
   },
 
   async create(input: CreateTrainingSessionRequest): Promise<TrainingSession> {
-    const response = await api.post<TrainingSession>("/api/workouts", input);
+    const response = await api.post<TrainingSession>("/api/workouts", {
+      ...input,
+      trainingDate: toApiDate(input.trainingDate),
+    });
     return response.data;
   },
 

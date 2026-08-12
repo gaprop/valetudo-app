@@ -12,7 +12,7 @@ type TrainingFormProps = {
   savingEntry: boolean;
   onChange: (form: TrainingSessionForm) => void;
   onPlanDayChange: (dayID: ID | null) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onSubmit: (form: TrainingSessionForm) => void;
 };
 
 export function TrainingForm({
@@ -34,9 +34,17 @@ export function TrainingForm({
     setDisplayDate(formatDdMmYyyyDate(form.trainingDate));
   }, [form.trainingDate]);
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onSubmit({
+      ...form,
+      trainingDate: parseDdMmYyyyDate(displayDate) ?? displayDate,
+    });
+  }
+
   return (
     <form
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       className="rounded-lg border border-neutral-800 bg-neutral-900 p-3 shadow-2xl shadow-black/30 sm:p-5"
     >
       <h2 className="text-lg font-semibold text-white">Add training</h2>
@@ -46,7 +54,6 @@ export function TrainingForm({
           className="date-input"
           inputMode="numeric"
           label="Date"
-          pattern="\\d{2}/\\d{2}/\\d{4}"
           placeholder="dd/mm/yyyy"
           type="text"
           value={displayDate}
