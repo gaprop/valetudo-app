@@ -118,7 +118,7 @@ export function TrainingSessionCard({
           </div>
 
           <form
-            className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
+            className="grid gap-3 rounded border border-neutral-800 bg-neutral-950 px-3 py-3 sm:grid-cols-[1fr_auto] sm:items-end"
             onSubmit={handleAddSet}
           >
             <SetMetricInputs
@@ -129,7 +129,11 @@ export function TrainingSessionCard({
               }
             />
             <div className="grid gap-2 sm:w-40">
-              <ActionButton type="submit" disabled={savingSetId === trainingSession.id}>
+              <ActionButton
+                className="h-10"
+                type="submit"
+                disabled={savingSetId === trainingSession.id}
+              >
                 {savingSetId === trainingSession.id ? "Adding" : "Add set"}
               </ActionButton>
             </div>
