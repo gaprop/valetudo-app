@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 let authState = {
   user: null as { id: string; username: string } | null,
   loading: false,
+  refreshCurrentUser: jest.fn<Promise<void>, []>(() => Promise.resolve()),
 };
 
 jest.mock("../hooks", () => ({
@@ -13,10 +14,14 @@ jest.mock("../hooks", () => ({
 
 describe("ProtectedRoute", () => {
   beforeEach(() => {
-    authState = { user: null, loading: false };
+    authState = {
+      user: null,
+      loading: false,
+      refreshCurrentUser: jest.fn<Promise<void>, []>(() => Promise.resolve()),
+    };
   });
 
-  it("redirects unauthenticated users to login", () => {
+  it("redirects unauthenticated users to login", async () => {
     render(
       <MemoryRouter initialEntries={["/training-log"]}>
         <Routes>
@@ -28,13 +33,15 @@ describe("ProtectedRoute", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Login page")).toBeInTheDocument();
+    expect(await screen.findByText("Login page")).toBeInTheDocument();
+    expect(authState.refreshCurrentUser).toHaveBeenCalled();
   });
 
-  it("renders protected pages for authenticated users", () => {
+  it("renders protected pages for authenticated users", async () => {
     authState = {
       user: { id: "user-id", username: "admin" },
       loading: false,
+      refreshCurrentUser: jest.fn<Promise<void>, []>(() => Promise.resolve()),
     };
 
     render(
@@ -48,6 +55,7 @@ describe("ProtectedRoute", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Training log page")).toBeInTheDocument();
+    expect(await screen.findByText("Training log page")).toBeInTheDocument();
+    expect(authState.refreshCurrentUser).toHaveBeenCalled();
   });
 });
