@@ -4,7 +4,7 @@ import { useAuth } from "../hooks";
 import { appRoutes } from "../routes";
 
 export function ProtectedRoute() {
-  const { user, loading, refreshCurrentUser } = useAuth();
+  const { user, loading, status, refreshCurrentUser } = useAuth();
   const location = useLocation();
   const locationKey = useMemo(
     () => `${location.pathname}${location.search}`,
@@ -29,7 +29,16 @@ export function ProtectedRoute() {
     };
   }, [locationKey, refreshCurrentUser]);
 
-  if (loading || checkedLocationKey !== locationKey) {
+  if (user) {
+    return <Outlet />;
+  }
+
+  if (
+    loading ||
+    checkedLocationKey !== locationKey ||
+    status === "checking" ||
+    status === "unknown"
+  ) {
     return (
       <div className="grid min-h-[calc(100vh-4rem)] place-items-center">
         <p className="rounded border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
@@ -39,9 +48,15 @@ export function ProtectedRoute() {
     );
   }
 
-  if (!user) {
+  if (status === "unauthenticated") {
     return <Navigate replace to={appRoutes.login} state={{ from: location }} />;
   }
 
-  return <Outlet />;
+  return (
+    <div className="grid min-h-[calc(100vh-4rem)] place-items-center">
+      <p className="rounded border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
+        Checking login...
+      </p>
+    </div>
+  );
 }
