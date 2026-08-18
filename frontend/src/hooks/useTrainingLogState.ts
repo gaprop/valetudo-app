@@ -9,6 +9,8 @@ import type {
 import { findPreviousTrainingSessionForSelection } from "../trainingLogSelectors";
 import { usePlanProgress } from "./usePlanProgress";
 
+const selectedPlanDayStorageKey = "fitness-trainingSession-selected-plan-day";
+
 type UseTrainingLogPageInput = {
   today: string;
   exercises: Exercise[];
@@ -17,6 +19,14 @@ type UseTrainingLogPageInput = {
   openTrainingSessionId: ID | null;
   createTrainingSession: (input: TrainingSessionForm) => Promise<boolean>;
 };
+
+function readSelectedPlanDayId(): ID | null {
+  try {
+    return window.localStorage.getItem(selectedPlanDayStorageKey);
+  } catch {
+    return null;
+  }
+}
 
 export function useTrainingLogState({
   today,
@@ -30,7 +40,9 @@ export function useTrainingLogState({
     trainingDate: today,
     exerciseType: "bench",
   });
-  const [selectedPlanDayId, setSelectedPlanDayId] = useState<ID | null>(null);
+  const [selectedPlanDayId, setSelectedPlanDayIdState] = useState<ID | null>(
+    () => readSelectedPlanDayId()
+  );
 
   const selectedPlanDay = useMemo(() => {
     return (
@@ -102,6 +114,19 @@ export function useTrainingLogState({
     });
     if (created) {
       advance();
+    }
+  }
+
+  function setSelectedPlanDayId(dayID: ID | null): void {
+    setSelectedPlanDayIdState(dayID);
+    try {
+      if (dayID) {
+        window.localStorage.setItem(selectedPlanDayStorageKey, dayID);
+      } else {
+        window.localStorage.removeItem(selectedPlanDayStorageKey);
+      }
+    } catch {
+      // Ignore storage failures; plan selection can still work in memory.
     }
   }
 
